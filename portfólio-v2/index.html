@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beatriz Reis | Tecnologia que Resolve</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f4ee;
+  --bg2: #efefea;
+  --ink: #111111;
+  --ink2: #1e1e1e;
+  --muted: #888580;
+  --orange: #e85d26;
+  --orange-light: #fde8dc;
+  --teal: #0d7377;
+  --border: #ddd9d1;
+  --white: #ffffff;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 3.5rem;
+  background: rgba(247,244,238,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-size: 1.25rem; letter-spacing: -.02em;
+  color: var(--ink); text-decoration: none;
+}
+.logo em { color: var(--orange); font-style: normal; }
+.nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+.nav-links a {
+  color: var(--muted); text-decoration: none;
+  font-size: .82rem; font-weight: 500; letter-spacing: .02em;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-cta {
+  background: var(--ink); color: var(--bg);
+  padding: .55rem 1.4rem; border-radius: 6px;
+  font-weight: 600; font-size: .82rem; letter-spacing: .02em;
+  text-decoration: none;
+  transition: background .2s, transform .15s;
+}
+.nav-cta:hover { background: var(--orange); transform: translateY(-1px); }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 8rem 3.5rem 5rem;
+  gap: 4rem;
+  border-bottom: 1px solid var(--border);
+}
+.hero-left { }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--orange-light); color: var(--orange);
+  font-size: .72rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; padding: .35rem .85rem;
+  border-radius: 100px; margin-bottom: 2rem;
+}
+.hero-badge-dot {
+  width: 7px; height: 7px; background: var(--orange);
+  border-radius: 50%; animation: blink 1.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hero h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.8rem, 5vw, 4.6rem);
+  font-weight: 700; line-height: 1.05; letter-spacing: -.03em;
+  margin-bottom: 1.6rem;
+}
+.hero h1 .accent { color: var(--orange); }
+.hero-desc {
+  color: var(--muted); font-size: 1rem; font-weight: 400;
+  line-height: 1.8; max-width: 420px; margin-bottom: 2.4rem;
+}
+.hero-actions { display: flex; gap: .9rem; flex-wrap: wrap; }
+.btn-primary {
+  background: var(--orange); color: var(--white);
+  padding: .9rem 2rem; border-radius: 8px;
+  font-weight: 600; font-size: .95rem; text-decoration: none;
+  transition: background .2s, transform .2s, box-shadow .2s;
+  box-shadow: 0 4px 20px rgba(232,93,38,.25);
+}
+.btn-primary:hover { background: #c94d1a; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,93,38,.35); }
+.btn-secondary {
+  background: transparent; color: var(--ink);
+  border: 1.5px solid var(--border);
+  padding: .9rem 2rem; border-radius: 8px;
+  font-weight: 500; font-size: .95rem; text-decoration: none;
+  transition: border-color .2s, transform .2s;
+}
+.btn-secondary:hover { border-color: var(--ink); transform: translateY(-2px); }
+
+.hero-right {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  animation: fadeIn .8s .2s ease both;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 1.8rem 1.6rem;
+  transition: transform .3s, box-shadow .3s;
+}
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.07); }
+.stat-card.featured { background: var(--ink); border-color: var(--ink); }
+.stat-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.6rem; font-weight: 700; line-height: 1;
+  letter-spacing: -.03em; margin-bottom: .5rem;
+}
+.stat-card.featured .stat-value { color: var(--orange); }
+.stat-card.featured .stat-label { color: rgba(255,255,255,.5); }
+.stat-label { font-size: .78rem; color: var(--muted); font-weight: 500; line-height: 1.5; }
+
+/* TICKER */
+.ticker-wrap {
+  overflow: hidden; border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2); padding: .85rem 0;
+}
+.ticker { display: flex; width: max-content; animation: tick 28s linear infinite; }
+.ticker-item {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .82rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--muted);
+  padding: 0 1.8rem; white-space: nowrap;
+}
+.ticker-item span { color: var(--orange); margin: 0 .4rem; }
+@keyframes tick { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* SHARED SECTION STYLES */
+section { padding: 6rem 3.5rem; }
+.container { max-width: 1160px; margin: 0 auto; }
+.section-eyebrow {
+  font-size: .72rem; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--orange);
+  margin-bottom: .9rem; display: flex; align-items: center; gap: .6rem;
+}
+.section-eyebrow::before {
+  content: ''; width: 20px; height: 2px; background: var(--orange);
+}
+h2.section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 700; letter-spacing: -.03em; line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+/* SERVICES */
+#services { background: var(--white); border-bottom: 1px solid var(--border); }
+.svc-layout { display: grid; grid-template-columns: 1fr 1.6fr; gap: 5rem; align-items: start; }
+.svc-intro .section-desc {
+  color: var(--muted); font-size: .95rem; line-height: 1.75;
+  margin-bottom: 2.4rem; max-width: 300px;
+}
+.svc-list { display: flex; flex-direction: column; }
+.svc-item {
+  display: grid; grid-template-columns: auto 1fr;
+  gap: 1.4rem; align-items: start;
+  padding: 1.8rem 0;
+  border-bottom: 1px solid var(--border);
+  cursor: default;
+  transition: background .2s;
+}
+.svc-item:first-child { border-top: 1px solid var(--border); }
+.svc-num {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .7rem; font-weight: 700; color: var(--orange);
+  letter-spacing: .06em; padding-top: .15rem;
+}
+.svc-content h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 1.1rem; margin-bottom: .5rem;
+  transition: color .2s;
+}
+.svc-item:hover .svc-content h3 { color: var(--orange); }
+.svc-content p { color: var(--muted); font-size: .88rem; line-height: 1.7; }
+
+/* PORTFOLIO */
+#portfolio { background: var(--bg); }
+.port-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4rem; flex-wrap: wrap; gap: 1.5rem; }
+.port-header .section-desc { color: var(--muted); font-size: .9rem; line-height: 1.7; max-width: 280px; }
+
+.projects-grid { display: grid; gap: 1.5rem; }
+.proj-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden;
+  display: grid; grid-template-columns: 1fr 1fr;
+  min-height: 300px;
+  transition: box-shadow .3s, transform .3s;
+}
+.proj-card:hover { box-shadow: 0 20px 60px rgba(0,0,0,.08); transform: translateY(-4px); }
+.proj-card.flip .proj-info { order: 2; }
+.proj-card.flip .proj-visual { order: 1; }
+.proj-info { padding: 2.8rem 2.6rem; display: flex; flex-direction: column; justify-content: center; }
+.proj-tag {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: var(--orange-light); color: var(--orange);
+  font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; padding: .3rem .8rem;
+  border-radius: 100px; margin-bottom: 1.2rem; width: fit-content;
+}
+.proj-num {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .75rem; font-weight: 600;
+  color: var(--muted); letter-spacing: .1em;
+  margin-bottom: .6rem; text-transform: uppercase;
+}
+.proj-info h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 700; letter-spacing: -.02em;
+  line-height: 1.15; margin-bottom: .9rem;
+}
+.proj-info p { color: var(--muted); font-size: .875rem; line-height: 1.75; margin-bottom: 1.6rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip {
+  background: var(--bg2); color: var(--ink);
+  font-size: .72rem; font-weight: 500;
+  padding: .3rem .85rem; border-radius: 100px;
+  border: 1px solid var(--border);
+}
+.proj-visual {
+  background: linear-gradient(135deg, var(--bg2), var(--border));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 5rem; min-height: 260px;
+  position: relative; overflow: hidden;
+}
+.proj-visual-inner {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .8rem; text-align: center;
+}
+.proj-visual-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .7rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+}
+.proj-card.nda .proj-visual {
+  background: linear-gradient(135deg, #1e1e2e, #2d2d4e);
+}
+.proj-card.nda .proj-visual-label { color: rgba(255,255,255,.4); }
+
+/* ABOUT */
+#about { background: var(--ink); color: var(--bg); }
+.about-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center; }
+.about-left .section-eyebrow { color: var(--orange); }
+.about-left .section-eyebrow::before { background: var(--orange); }
+.about-left h2 { color: var(--bg); }
+.about-left .about-desc { color: rgba(247,244,238,.55); font-size: .95rem; line-height: 1.8; margin: 1.4rem 0 2rem; }
+.about-tags { display: flex; flex-wrap: wrap; gap: .5rem; }
+.about-tag {
+  background: rgba(255,255,255,.08); color: rgba(247,244,238,.75);
+  border: 1px solid rgba(255,255,255,.1);
+  font-size: .78rem; font-weight: 500;
+  padding: .35rem 1rem; border-radius: 100px;
+}
+.about-right { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.about-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px; padding: 1.6rem;
+}
+.about-card h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem; font-weight: 700; color: var(--orange);
+  letter-spacing: -.03em; margin-bottom: .4rem;
+}
+.about-card p { font-size: .78rem; color: rgba(247,244,238,.45); line-height: 1.55; }
+
+/* RESULTS */
+#results { background: var(--orange); }
+.results-inner {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 0;
+}
+.result-item {
+  padding: 2.5rem 2rem;
+  border-right: 1px solid rgba(255,255,255,.25);
+  transition: background .2s;
+}
+.result-item:last-child { border-right: none; }
+.result-item:hover { background: rgba(0,0,0,.05); }
+.result-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.8rem; font-weight: 700;
+  color: var(--white); letter-spacing: -.04em;
+  margin-bottom: .4rem; line-height: 1;
+}
+.result-label { font-size: .83rem; color: rgba(255,255,255,.75); line-height: 1.55; font-weight: 400; }
+
+/* PROCESS */
+#how { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.how-header { margin-bottom: 3.5rem; }
+.steps-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.step-item {
+  background: var(--bg2); padding: 2.4rem 2rem;
+  transition: background .3s;
+}
+.step-item:hover { background: var(--white); }
+.step-n {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem; font-weight: 700;
+  color: var(--border); letter-spacing: -.05em;
+  line-height: 1; margin-bottom: 1rem;
+}
+.step-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+.step-item h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 1rem;
+  margin-bottom: .5rem; color: var(--ink);
+}
+.step-item p { font-size: .84rem; color: var(--muted); line-height: 1.65; }
+
+/* CTA */
+#cta {
+  background: var(--ink); position: relative; overflow: hidden;
+  padding: 7rem 3.5rem;
+}
+#cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 60% 50%, rgba(232,93,38,.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cta-inner {
+  max-width: 680px; position: relative; z-index: 1;
+}
+.cta-inner .section-eyebrow { color: var(--orange); }
+.cta-inner .section-eyebrow::before { background: var(--orange); }
+.cta-inner h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 700; letter-spacing: -.04em; line-height: 1.05;
+  color: var(--white); margin-bottom: 1.2rem;
+}
+.cta-inner h2 .accent { color: var(--orange); }
+.cta-inner p { color: rgba(255,255,255,.5); font-size: .95rem; line-height: 1.75; margin-bottom: 2.5rem; max-width: 480px; }
+.cta-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn-wa {
+  display: inline-flex; align-items: center; gap: .55rem;
+  background: #25d366; color: #fff;
+  padding: .9rem 2rem; border-radius: 8px;
+  font-weight: 600; font-size: .95rem; text-decoration: none;
+  transition: background .2s, transform .2s;
+  box-shadow: 0 4px 20px rgba(37,211,102,.3);
+}
+.btn-wa:hover { background: #1db954; transform: translateY(-2px); }
+.btn-ghost {
+  display: inline-flex; align-items: center;
+  background: transparent; color: rgba(255,255,255,.6);
+  border: 1px solid rgba(255,255,255,.15);
+  padding: .9rem 2rem; border-radius: 8px;
+  font-weight: 500; font-size: .95rem; text-decoration: none;
+  transition: border-color .2s, color .2s, transform .2s;
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,.4); color: #fff; transform: translateY(-2px); }
+
+/* FOOTER */
+footer {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 2rem 3.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem;
+}
+footer .logo { font-size: 1rem; }
+footer .footer-copy { font-size: .78rem; color: var(--muted); }
+
+/* REVEAL ANIMATION */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .65s ease, transform .65s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; gap: 3rem; }
+  .hero-right { max-width: 480px; }
+  .about-layout { grid-template-columns: 1fr; gap: 3rem; }
+  .results-inner { grid-template-columns: repeat(2,1fr); }
+  .result-item:nth-child(2) { border-right: none; }
+  .steps-grid { grid-template-columns: repeat(2,1fr); }
+  .svc-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+}
+@media (max-width: 768px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  section { padding: 4.5rem 1.5rem; }
+  #cta { padding: 5rem 1.5rem; }
+  footer { padding: 1.5rem; }
+  .hero { padding: 7rem 1.5rem 4rem; }
+  .proj-card { grid-template-columns: 1fr; }
+  .proj-card .proj-visual { min-height: 200px; order: -1 !important; }
+  .results-inner { grid-template-columns: 1fr 1fr; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .hero-right { grid-template-columns: 1fr 1fr; max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 2.4rem; }
+  .results-inner { grid-template-columns: 1fr; }
+  .result-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,.25); }
+  .result-item:last-child { border-bottom: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">bea<em>.</em>tech</a>
+  <ul class="nav-links">
+    <li><a href="#services">Serviços</a></li>
+    <li><a href="#portfolio">Projetos</a></li>
+    <li><a href="#about">Sobre</a></li>
+    <li><a href="#how">Processo</a></li>
+  </ul>
+  <a href="https://wa.me/5521997235209" class="nav-cta" target="_blank">Falar agora →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      Disponível para projetos
+    </div>
+    <h1>Tecnologia que resolve<br>o seu <span class="accent">problema.</span></h1>
+    <p class="hero-desc">Sites, dashboards, automações e bots no WhatsApp — soluções digitais sob medida para fazer seu negócio crescer de verdade.</p>
+    <div class="hero-actions">
+      <a href="#portfolio" class="btn-primary">Ver projetos →</a>
+      <a href="#cta" class="btn-secondary">Quero meu projeto</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="stat-card featured">
+      <div class="stat-value">24h</div>
+      <div class="stat-label">Bot atendendo e captando clientes sem parar</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">−80%</div>
+      <div class="stat-label">Redução em tarefas manuais com automações</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">48h</div>
+      <div class="stat-label">Prazo médio para entregar um MVP funcional</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">3×</div>
+      <div class="stat-label">Mais conversões com landing pages otimizadas</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">Sites profissionais <span>✦</span></span>
+    <span class="ticker-item">Bots no WhatsApp <span>✦</span></span>
+    <span class="ticker-item">Dashboards financeiros <span>✦</span></span>
+    <span class="ticker-item">Automações inteligentes <span>✦</span></span>
+    <span class="ticker-item">Ferramentas para representantes <span>✦</span></span>
+    <span class="ticker-item">Sites profissionais <span>✦</span></span>
+    <span class="ticker-item">Bots no WhatsApp <span>✦</span></span>
+    <span class="ticker-item">Dashboards financeiros <span>✦</span></span>
+    <span class="ticker-item">Automações inteligentes <span>✦</span></span>
+    <span class="ticker-item">Ferramentas para representantes <span>✦</span></span>
+    <span class="ticker-item">Sites profissionais <span>✦</span></span>
+    <span class="ticker-item">Bots no WhatsApp <span>✦</span></span>
+    <span class="ticker-item">Dashboards financeiros <span>✦</span></span>
+    <span class="ticker-item">Automações inteligentes <span>✦</span></span>
+    <span class="ticker-item">Ferramentas para representantes <span>✦</span></span>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="container">
+    <div class="svc-layout">
+      <div class="svc-intro reveal">
+        <div class="section-eyebrow">O que eu entrego</div>
+        <h2 class="section-title">Soluções que resolvem.</h2>
+        <p class="section-desc">Do site ao bot, crio ferramentas que trabalham por você 24h por dia.</p>
+        <a href="https://wa.me/5521997235209" class="btn-primary" target="_blank">Conversar agora →</a>
+      </div>
+      <div class="svc-list reveal">
+        <div class="svc-item">
+          <span class="svc-num">01</span>
+          <div class="svc-content">
+            <h3>Sites &amp; Landing Pages</h3>
+            <p>Presença digital que converte visitas em clientes. Design moderno, rápido e otimizado para mobile.</p>
+          </div>
+        </div>
+        <div class="svc-item">
+          <span class="svc-num">02</span>
+          <div class="svc-content">
+            <h3>Dashboards &amp; Ferramentas Web</h3>
+            <p>Sistemas para organizar dados e tomar decisões — financeiro, gestão de rotas, métricas de negócio.</p>
+          </div>
+        </div>
+        <div class="svc-item">
+          <span class="svc-num">03</span>
+          <div class="svc-content">
+            <h3>Automações de Negócio</h3>
+            <p>Elimine tarefas repetitivas. Fluxos automáticos que economizam horas e reduzem erros humanos.</p>
+          </div>
+        </div>
+        <div class="svc-item">
+          <span class="svc-num">04</span>
+          <div class="svc-content">
+            <h3>Bot Assistente no WhatsApp</h3>
+            <p>IA que atende, agenda, tira dúvidas e capta novos clientes 24h por dia — direto no WhatsApp.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="container">
+    <div class="port-header reveal">
+      <div>
+        <div class="section-eyebrow">Projetos selecionados</div>
+        <h2 class="section-title">Resultados reais.</h2>
+      </div>
+      <p class="section-desc">Cada projeto foi construído para resolver um problema concreto.</p>
+    </div>
+    <div class="projects-grid">
+
+      <!-- Projeto 1 -->
+      <div class="proj-card reveal">
+        <div class="proj-info">
+          <div class="proj-num">Projeto 01</div>
+          <div class="proj-tag">SaaS · Gestão · Representantes</div>
+          <h3>Rep.Rota — Gestão de Rotas</h3>
+          <p>Sistema completo para representantes comerciais gerenciarem sua carteira de clientes, roteiros de visitas e ciclos. Com mapa inteligente, categorização por potencial e agenda integrada.</p>
+          <div class="chips">
+            <span class="chip">Representantes</span>
+            <span class="chip">Mapa inteligente</span>
+            <span class="chip">Multi-usuário</span>
+            <span class="chip">Agenda de ciclos</span>
+          </div>
+        </div>
+        <div class="proj-visual">
+          <div class="proj-visual-inner">
+            <span>📍</span>
+            <span class="proj-visual-label">Gestão de rotas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projeto 2 -->
+      <div class="proj-card flip reveal">
+        <div class="proj-info">
+          <div class="proj-num">Projeto 02</div>
+          <div class="proj-tag">Finanças · Dashboard · Família</div>
+          <h3>Finances Control — Organização Financeira</h3>
+          <p>Aplicativo de controle financeiro com dashboard visual e diagnóstico inteligente por categorias. Mostra em tempo real onde o dinheiro vai, sinaliza gastos críticos e acompanha metas de poupança.</p>
+          <div class="chips">
+            <span class="chip">Dashboard</span>
+            <span class="chip">Alertas críticos</span>
+            <span class="chip">Cofrinho com meta</span>
+            <span class="chip">Multi-usuário</span>
+          </div>
+        </div>
+        <div class="proj-visual">
+          <div class="proj-visual-inner">
+            <span>💰</span>
+            <span class="proj-visual-label">Dashboard financeiro</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projeto 3 -->
+      <div class="proj-card reveal">
+        <div class="proj-info">
+          <div class="proj-num">Projeto 03</div>
+          <div class="proj-tag">IA · WhatsApp · Atendimento 24h</div>
+          <h3>Bot Assistente — Secretaria Virtual</h3>
+          <p>Assistente inteligente no WhatsApp que atende pacientes e clientes a qualquer hora, tira dúvidas, coleta informações e agenda consultas — sem intervenção humana.</p>
+          <div class="chips">
+            <span class="chip">Atendimento 24h/7</span>
+            <span class="chip">Captação automática</span>
+            <span class="chip">IA conversacional</span>
+            <span class="chip">WhatsApp nativo</span>
+          </div>
+        </div>
+        <div class="proj-visual">
+          <div class="proj-visual-inner">
+            <span>🤖</span>
+            <span class="proj-visual-label">WhatsApp Bot</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projeto 4 NDA -->
+      <div class="proj-card nda flip reveal">
+        <div class="proj-info">
+          <div class="proj-num">Projeto 04</div>
+          <div class="proj-tag">Pharma · Ferramenta Clínica</div>
+          <h3>Projeto Pharma — NDA</h3>
+          <p>Solução web desenvolvida para uma grande empresa farmacêutica. A ferramenta apoia profissionais de saúde na tomada de decisão clínica. Detalhes disponíveis mediante assinatura de NDA.</p>
+          <div class="chips">
+            <span class="chip">Confidencial</span>
+            <span class="chip">Saúde</span>
+            <span class="chip">Enterprise</span>
+          </div>
+        </div>
+        <div class="proj-visual">
+          <div class="proj-visual-inner">
+            <span>🔒</span>
+            <span class="proj-visual-label" style="color:rgba(255,255,255,.35)">Confidencial · NDA</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="about-layout">
+      <div class="about-left reveal">
+        <div class="section-eyebrow">Quem está por trás</div>
+        <h2 class="section-title">Oi, eu sou Beatriz Reis.</h2>
+        <p class="about-desc">Combino estratégia de marketing com tecnologia de ponta para criar soluções digitais que realmente funcionam. Uso Inteligência Artificial como aliada principal — cada projeto que entrego é mais rápido, mais preciso e com resultados acima da média.</p>
+        <div class="about-tags">
+          <span class="about-tag">Pós-grad. Marketing &amp; Comunicação</span>
+          <span class="about-tag">IA Manager</span>
+          <span class="about-tag">Project Manager</span>
+          <span class="about-tag">Pharma &amp; Tech</span>
+        </div>
+      </div>
+      <div class="about-right reveal">
+        <div class="about-card">
+          <h4>4+</h4>
+          <p>Anos criando soluções digitais que resolvem problemas reais</p>
+        </div>
+        <div class="about-card">
+          <h4>100%</h4>
+          <p>Projetos entregues com suporte e resultado garantido</p>
+        </div>
+        <div class="about-card">
+          <h4>IA</h4>
+          <p>Uso inteligência artificial em cada etapa do desenvolvimento</p>
+        </div>
+        <div class="about-card">
+          <h4>MVP</h4>
+          <p>Em 48h você tem um produto funcional, testável e real</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results" style="padding: 0;">
+  <div class="results-inner">
+    <div class="result-item">
+      <div class="result-value">24H</div>
+      <div class="result-label">Bot atendendo e captando clientes sem parar</div>
+    </div>
+    <div class="result-item">
+      <div class="result-value">−80%</div>
+      <div class="result-label">Redução em tarefas manuais com automações</div>
+    </div>
+    <div class="result-item">
+      <div class="result-value">48H</div>
+      <div class="result-label">Prazo médio para entregar um MVP funcional</div>
+    </div>
+    <div class="result-item">
+      <div class="result-value">3×</div>
+      <div class="result-label">Mais conversões com landing pages otimizadas</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="how">
+  <div class="container">
+    <div class="how-header reveal">
+      <div class="section-eyebrow">Como funciona</div>
+      <h2 class="section-title">Do zero ao ar<br>sem burocracia.</h2>
+    </div>
+    <div class="steps-grid reveal">
+      <div class="step-item">
+        <div class="step-n">01</div>
+        <div class="step-icon">💬</div>
+        <h3>Conversa gratuita</h3>
+        <p>Você conta o que precisa. Sem formulário — direto no WhatsApp.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-n">02</div>
+        <div class="step-icon">📋</div>
+        <h3>Proposta objetiva</h3>
+        <p>Escopo, prazo e valor claros. Sem surpresas no meio do caminho.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-n">03</div>
+        <div class="step-icon">⚡</div>
+        <h3>Desenvolvimento ágil</h3>
+        <p>Você acompanha em tempo real. Iteramos juntos até ficar exato.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-n">04</div>
+        <div class="step-icon">🚀</div>
+        <h3>Entrega + suporte</h3>
+        <p>No ar e funcionando. Suporte disponível após a entrega.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="container">
+    <div class="cta-inner reveal">
+      <div class="section-eyebrow">Próximo passo</div>
+      <h2>Sua ideia merece <span class="accent">existir.</span></h2>
+      <p>Me chama no WhatsApp. Respondo rápido e já te dou uma ideia de como posso resolver seu problema.</p>
+      <div class="cta-btns">
+        <a href="https://wa.me/5521997235209" class="btn-wa" target="_blank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+          Falar no WhatsApp agora
+        </a>
+        <a href="#portfolio" class="btn-ghost">Ver projetos</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="logo">bea<em>.</em>tech</a>
+  <p class="footer-copy">© 2026 · Beatriz Reis · Tecnologia que resolve.</p>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
