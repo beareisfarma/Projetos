@@ -435,6 +435,37 @@ nav.scrolled {
   box-shadow: 0 2px 12px rgba(37,211,102,.3);
 }
 .action-bar-wa:hover { background: #1db954; transform: scale(1.04); }
+
+/* VERSION SWITCHER */
+.version-switcher {
+  position: fixed; bottom: 1.6rem; right: 1.6rem; z-index: 300;
+  display: flex; align-items: center; gap: .5rem;
+  background: rgba(20,20,30,0.92);
+  border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(16px);
+  padding: .55rem .55rem .55rem 1rem;
+  border-radius: 100px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  text-decoration: none;
+  transition: border-color .25s, box-shadow .25s, transform .25s;
+}
+.version-switcher:hover {
+  border-color: rgba(245,243,239,.3);
+  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  transform: translateY(-2px);
+}
+.vs-label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: rgba(240,238,255,.5);
+  white-space: nowrap;
+}
+.vs-badge {
+  background: #f5f3ef; color: #0c0c14;
+  font-size: .72rem; font-weight: 800; letter-spacing: .05em;
+  text-transform: uppercase; padding: .32rem .85rem;
+  border-radius: 100px; white-space: nowrap;
+}
+
 @media (max-width: 640px) {
   .action-bar { padding: .5rem 1.2rem; top: 52px; }
   .action-bar-links a { font-size: .68rem; padding: .3rem .65rem; }
@@ -714,6 +745,12 @@ footer p { color:var(--muted); font-size:.78rem; }
 <body>
 
 <div class="cursor" id="cursor"></div>
+
+<!-- VERSION SWITCHER -->
+<a href="../portfolio-v2/" class="version-switcher">
+  <span class="vs-label">Versão</span>
+  <span class="vs-badge">☀ Light</span>
+</a>
 
 <!-- FLOATING CTA -->
 <!-- STICKY ACTION BAR -->

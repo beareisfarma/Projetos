@@ -509,9 +509,43 @@ footer .footer-copy { font-size: .78rem; color: var(--muted); }
   .result-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,.25); }
   .result-item:last-child { border-bottom: none; }
 }
+.version-switcher {
+  position: fixed; bottom: 1.6rem; right: 1.6rem; z-index: 300;
+  display: flex; align-items: center; gap: .5rem;
+  background: rgba(245,243,239,0.92);
+  border: 1px solid rgba(12,12,20,.12);
+  backdrop-filter: blur(16px);
+  padding: .55rem .55rem .55rem 1rem;
+  border-radius: 100px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  text-decoration: none;
+  transition: border-color .25s, box-shadow .25s, transform .25s;
+}
+.version-switcher:hover {
+  border-color: rgba(12,12,20,.25);
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  transform: translateY(-2px);
+}
+.vs-label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: rgba(12,12,20,.4);
+  white-space: nowrap; font-family: 'Manrope', sans-serif;
+}
+.vs-badge {
+  background: #0c0c14; color: #c8f135;
+  font-size: .72rem; font-weight: 800; letter-spacing: .05em;
+  text-transform: uppercase; padding: .32rem .85rem;
+  border-radius: 100px; white-space: nowrap; font-family: 'Manrope', sans-serif;
+}
 </style>
 </head>
 <body>
+
+<!-- VERSION SWITCHER -->
+<a href="../portfolio-v1/" class="version-switcher">
+  <span class="vs-label">Versão</span>
+  <span class="vs-badge">◑ Dark</span>
+</a>
 
 <!-- NAV -->
 <nav>
