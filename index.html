@@ -3,24 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beatriz Reis — Escolha o design</title>
+<title>Beatriz Reis | BEA.TECH — Escolha sua versão</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body { font-family: sans-serif; background: #111; color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-  .wrap { text-align: center; }
-  h1 { font-size: 1.5rem; margin-bottom: 2rem; color: #aaa; font-weight: 400; }
-  .links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
-  a { display: block; padding: 1.2rem 2.5rem; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: transform .2s; }
-  a:hover { transform: translateY(-3px); }
-  .v1 { background: #c8f135; color: #111; }
-  .v2 { background: #e85d26; color: #fff; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Manrope', sans-serif;
+  background: #0c0c14;
+  color: #f0eeff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+.glow {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(91,58,247,0.1) 0%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+.wrap {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 2.8rem;
+  padding: 2rem;
+  animation: fadeUp .6s ease both;
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem; letter-spacing: .08em;
+}
+.logo span { color: #c8f135; }
+.eyebrow {
+  font-size: .7rem; font-weight: 700; letter-spacing: .16em;
+  text-transform: uppercase; color: rgba(240,238,255,.35);
+}
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  line-height: 1; letter-spacing: .03em;
+  text-align: center; color: #f0eeff;
+}
+h1 span { color: #c8f135; }
+.sub {
+  color: rgba(240,238,255,.4); font-size: .92rem;
+  line-height: 1.7; text-align: center; max-width: 360px;
+}
+.cards {
+  display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center;
+}
+.card {
+  display: flex; flex-direction: column; gap: 1.4rem;
+  width: 260px; padding: 2rem 1.8rem;
+  border-radius: 20px; text-decoration: none;
+  transition: transform .3s, box-shadow .3s;
+  position: relative; overflow: hidden;
+}
+.card:hover { transform: translateY(-8px); }
+.card-dark {
+  background: #111118;
+  border: 1px solid rgba(200,241,53,.25);
+  box-shadow: 0 0 0 0 rgba(200,241,53,0);
+}
+.card-dark:hover {
+  box-shadow: 0 20px 60px rgba(200,241,53,.15);
+  border-color: rgba(200,241,53,.5);
+}
+.card-light {
+  background: #f5f3ef;
+  border: 1px solid rgba(218,119,86,.3);
+  box-shadow: 0 0 0 0 rgba(218,119,86,0);
+}
+.card-light:hover {
+  box-shadow: 0 20px 60px rgba(218,119,86,.2);
+  border-color: rgba(218,119,86,.6);
+}
+.card-preview {
+  width: 100%; height: 120px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem; letter-spacing: .02em;
+  font-family: 'Bebas Neue', sans-serif;
+}
+.preview-dark {
+  background: linear-gradient(135deg, #1a1a2c 0%, #0c0c14 100%);
+  color: #c8f135;
+  border: 1px solid rgba(200,241,53,.15);
+}
+.preview-light {
+  background: linear-gradient(135deg, #fff 0%, #f0ede8 100%);
+  color: #da7756;
+  border: 1px solid rgba(218,119,86,.15);
+}
+.card-label {
+  display: flex; flex-direction: column; gap: .3rem;
+}
+.card-label strong {
+  font-size: 1rem; font-weight: 800;
+}
+.card-dark .card-label strong { color: #f0eeff; }
+.card-light .card-label strong { color: #0c0c14; }
+.card-label span {
+  font-size: .75rem; font-weight: 500;
+}
+.card-dark .card-label span { color: rgba(240,238,255,.4); }
+.card-light .card-label span { color: rgba(12,12,20,.4); }
+.card-cta {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-size: .8rem; font-weight: 700; letter-spacing: .04em;
+  padding: .55rem 1.2rem; border-radius: 100px;
+  transition: background .2s;
+}
+.card-dark .card-cta {
+  background: #c8f135; color: #0c0c14;
+}
+.card-dark:hover .card-cta { background: #d4ff44; }
+.card-light .card-cta {
+  background: #da7756; color: #fff;
+}
+.card-light:hover .card-cta { background: #c96644; }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@media (max-width: 580px) {
+  .cards { flex-direction: column; align-items: center; }
+  .card { width: 100%; max-width: 320px; }
+}
 </style>
 </head>
 <body>
+<div class="glow"></div>
 <div class="wrap">
-  <h1>Escolha a versão para visualizar</h1>
-  <div class="links">
-    <a href="portfolio-v1/" class="v1">Versão 1 — Dark / Verde limão</a>
-    <a href="portfolio-v2/" class="v2">Versão 2 — Light / Laranja</a>
+  <div class="logo">bea<span>.</span>tech</div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.6rem">
+    <div class="eyebrow">Escolha o estilo</div>
+    <h1>QUAL VERSÃO<br>PREFERE <span>VER?</span></h1>
+    <p class="sub">Mesmo conteúdo, duas identidades visuais. Escolha a que mais combina com você.</p>
+  </div>
+  <div class="cards">
+    <a href="portfolio-v1/" class="card card-dark">
+      <div class="card-preview preview-dark">BEA.TECH</div>
+      <div class="card-label">
+        <strong>Versão Dark</strong>
+        <span>Fundo escuro · Acento verde limão</span>
+      </div>
+      <span class="card-cta">Ver esta versão →</span>
+    </a>
+    <a href="portfolio-v2/" class="card card-light">
+      <div class="card-preview preview-light">BEA.TECH</div>
+      <div class="card-label">
+        <strong>Versão Light</strong>
+        <span>Fundo claro · Acento laranja</span>
+      </div>
+      <span class="card-cta">Ver esta versão →</span>
+    </a>
   </div>
 </div>
 </body>
