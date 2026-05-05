@@ -74,6 +74,8 @@ nav {
   text-decoration: none; transition: background .2s, transform .2s;
 }
 .nav-pill:hover { background: #e8906a; transform: scale(1.04); }
+nav.action-visible .nav-links,
+nav.action-visible .nav-pill { opacity: 0; pointer-events: none; transition: opacity .25s; }
 
 /* HERO */
 .hero {
@@ -204,35 +206,56 @@ h2.sec-title {
 }
 
 /* SERVICES */
-#services { background: var(--paper); color: var(--ink); }
+#services { background: var(--ink); color: #f0eeff; }
 .svc-header {
   display: flex; justify-content: space-between; align-items: flex-end;
-  margin-bottom: 3rem; flex-wrap: wrap; gap: 2rem;
+  margin-bottom: 3.5rem; flex-wrap: wrap; gap: 2rem;
 }
-.svc-header .sub { max-width: 260px; color: var(--muted); font-size: .88rem; line-height: 1.7; }
+.svc-header h2.sec-title { color: #f0eeff; }
+.svc-header .section-label { color: rgba(218,119,86,.8); }
+.svc-header .sub { max-width: 280px; color: rgba(240,238,255,.45); font-size: .9rem; line-height: 1.75; }
 .svc-grid {
   display: grid; grid-template-columns: repeat(2,1fr);
-  gap: 1px; background: var(--border-light);
-  border: 1px solid var(--border-light);
-  border-radius: 20px; overflow: hidden;
+  gap: 1.25rem;
 }
 .svc-item {
-  background: var(--paper); padding: 2.2rem;
-  position: relative; overflow: hidden; transition: background .3s;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 20px; padding: 2.4rem;
+  position: relative; overflow: hidden;
+  transition: transform .3s, border-color .3s, background .3s;
+  display: flex; flex-direction: column; gap: .9rem;
 }
-.svc-item::after {
-  content: ''; position: absolute; inset: 0;
-  background: var(--ink); transform: translateY(100%);
-  transition: transform .4s cubic-bezier(.4,0,.2,1); z-index: 0;
+.svc-item::before {
+  content: ''; position: absolute; top: 0; left: 2rem; right: 2rem;
+  height: 2px; border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--lime), rgba(218,119,86,.6));
+  opacity: 0; transition: opacity .3s;
 }
-.svc-item:hover::after { transform: translateY(0); }
-.svc-item > * { position: relative; z-index: 1; }
-.svc-item:hover h3, .svc-item:hover p { color: #f0eeff; }
-.svc-item:hover .svc-n { color: rgba(240,238,255,.25); }
-.svc-n { font-family:'Bebas Neue',sans-serif; font-size:.85rem; letter-spacing:.1em; color:var(--muted); margin-bottom:1.2rem; display:block; transition:color .3s; }
-.svc-icon { font-size:1.8rem; margin-bottom:1rem; display:block; }
-.svc-item h3 { font-family:'Manrope',sans-serif; font-weight:700; font-size:1.08rem; margin-bottom:.5rem; color:var(--ink); transition:color .3s; }
-.svc-item p { color:var(--muted); font-size:.87rem; line-height:1.7; transition:color .3s; }
+.svc-item:hover { transform: translateY(-5px); border-color: rgba(200,241,53,.25); background: rgba(255,255,255,.07); }
+.svc-item:hover::before { opacity: 1; }
+.svc-n {
+  font-family:'Bebas Neue',sans-serif; font-size:.8rem; letter-spacing:.14em;
+  color: rgba(240,238,255,.25); display:block;
+}
+.svc-icon-wrap {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: rgba(200,241,53,.09); border: 1px solid rgba(200,241,53,.18);
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+  transition: background .3s, border-color .3s;
+}
+.svc-item:hover .svc-icon-wrap { background: rgba(200,241,53,.14); border-color: rgba(200,241,53,.3); }
+.svc-item h3 {
+  font-family:'Manrope',sans-serif; font-weight:700; font-size:1.08rem;
+  color: #f0eeff; margin: 0;
+}
+.svc-item p { color: rgba(240,238,255,.45); font-size:.88rem; line-height:1.7; margin:0; }
+.svc-result {
+  margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,.06);
+  font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--lime); display: flex; align-items: center; gap: .45rem;
+}
+.svc-result::before { content: '→'; }
 
 /* PORTFOLIO */
 #portfolio { background: var(--ink); }
@@ -579,8 +602,20 @@ nav.scrolled {
 
 /* INSIGHT SECTION */
 #insight { background: var(--ink2); }
-.insight-header { text-align:center; max-width:620px; margin:0 auto 4rem; }
+.insight-header { text-align:center; max-width:680px; margin:0 auto 4rem; }
 .insight-header p { color:var(--muted); font-size:.95rem; line-height:1.75; margin-top:.8rem; }
+.insight-sectors {
+  display:flex; flex-wrap:wrap; justify-content:center; gap:.55rem; margin-top:1.4rem;
+}
+.insight-sector {
+  font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  padding:.32rem 1rem; border-radius:100px;
+  border:1px solid rgba(218,119,86,.3);
+  color:rgba(218,119,86,.85);
+  background:rgba(218,119,86,.07);
+  transition:background .2s, border-color .2s, color .2s;
+}
+.insight-sector:hover { background:rgba(218,119,86,.15); border-color:rgba(218,119,86,.55); color:#da7756; }
 .insight-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; }
 .insight-card {
   background:rgba(255,255,255,.03); border:1px solid var(--border-dark);
@@ -751,35 +786,35 @@ footer p { color:var(--muted); font-size:.78rem; }
       <div class="dor-left reveal">
         <div class="section-label">O diagnóstico</div>
         <h2>SEU NEGÓCIO<br>ESTÁ <em>SANGRANDO</em><br>POR AQUI.</h2>
-        <p style="margin-top:1rem;">Você já sabe que tem um problema. A questão é que quase ninguém consegue ver onde ele realmente está — muito menos resolvê-lo.</p>
+        <p style="margin-top:1rem;">Você sabe que tem um problema. Quase ninguém sabe onde ele está.</p>
       </div>
       <div class="dor-list reveal">
         <div class="dor-item">
           <div class="dor-dot"></div>
           <div>
             <strong>Gargalo de vendas que não sai do lugar</strong>
-            <p>O processo trava em algum ponto e você não consegue identificar exatamente onde. As vendas ficam paradas e os clientes somem.</p>
+            <p>As vendas param e os clientes somem — sem você saber onde.</p>
           </div>
         </div>
         <div class="dor-item">
           <div class="dor-dot"></div>
           <div>
             <strong>Problemas que viram bola de neve</strong>
-            <p>Um problema operacional pequeno acumula, gera atraso, queima cliente, mancha reputação — e você ainda está tentando resolver o primeiro.</p>
+            <p>Um erro pequeno vira atraso, queima cliente e mancha reputação.</p>
           </div>
         </div>
         <div class="dor-item">
           <div class="dor-dot"></div>
           <div>
             <strong>Tentou resolver. Não funcionou.</strong>
-            <p>Já testou ferramentas, contratou alguém, tentou organizar — e o problema continua. A sensação é que ninguém consegue resolver de verdade.</p>
+            <p>Testou, contratou, reorganizou. O ciclo continua.</p>
           </div>
         </div>
         <div class="dor-item">
           <div class="dor-dot"></div>
           <div>
             <strong>Cada dia parado é dinheiro perdido</strong>
-            <p>Não é hipérbole. Enquanto o gargalo existe, vendas escorrem, clientes não voltam e concorrentes avançam.</p>
+            <p>Vendas escorrem. Clientes não voltam. Concorrentes avançam.</p>
           </div>
         </div>
       </div>
@@ -794,6 +829,13 @@ footer p { color:var(--muted); font-size:.78rem; }
       <div class="section-label">O que eu enxergo</div>
       <h2 class="sec-title">O QUE VOCÊ VÊ.<br><span style="color:var(--lime)">O QUE EU VEJO.</span></h2>
       <p>A maioria chega com um pedido. Eu chego com um diagnóstico. Porque o problema que aparece raramente é o problema real.</p>
+      <div class="insight-sectors">
+        <span class="insight-sector">Clínicas</span>
+        <span class="insight-sector">Varejo</span>
+        <span class="insight-sector">Imobiliário</span>
+        <span class="insight-sector">Advocacia</span>
+        <span class="insight-sector">Farmacêutico</span>
+      </div>
     </div>
     <div class="insight-grid reveal">
 
@@ -857,35 +899,39 @@ footer p { color:var(--muted); font-size:.78rem; }
   <div class="container">
     <div class="svc-header reveal">
       <div>
-        <div class="section-label" style="color:var(--muted)">Como eu resolvo</div>
-        <h2 class="sec-title" style="color:var(--ink)">TECNOLOGIA A<br>SERVIÇO DO SEU<br>RESULTADO</h2>
+        <div class="section-label">Como eu resolvo</div>
+        <h2 class="sec-title">TECNOLOGIA A<br>SERVIÇO DO SEU<br>RESULTADO</h2>
       </div>
       <p class="sub">Não entrego tecnologia. Entrego resultado. A ferramenta é consequência do problema que precisa ser resolvido.</p>
     </div>
     <div class="svc-grid reveal">
       <div class="svc-item">
         <span class="svc-n">01</span>
-        <span class="svc-icon">🌐</span>
+        <div class="svc-icon-wrap">🌐</div>
         <h3>Sites & Landing Pages</h3>
         <p>Presença digital que converte visitas em clientes. Design moderno, rápido e otimizado para mobile.</p>
+        <span class="svc-result">Mais visibilidade, mais contatos</span>
       </div>
       <div class="svc-item">
         <span class="svc-n">02</span>
-        <span class="svc-icon">📊</span>
+        <div class="svc-icon-wrap">📊</div>
         <h3>Dashboards & Ferramentas Web</h3>
         <p>Sistemas para organizar dados e tomar decisões — financeiro, gestão de rotas, métricas de negócio.</p>
+        <span class="svc-result">Decisões mais rápidas e precisas</span>
       </div>
       <div class="svc-item">
         <span class="svc-n">03</span>
-        <span class="svc-icon">⚙️</span>
+        <div class="svc-icon-wrap">⚙️</div>
         <h3>Automações de Negócio</h3>
         <p>Elimine tarefas repetitivas. Fluxos automáticos que economizam horas e reduzem erros humanos.</p>
+        <span class="svc-result">Horas recuperadas por semana</span>
       </div>
       <div class="svc-item">
         <span class="svc-n">04</span>
-        <span class="svc-icon">🤖</span>
+        <div class="svc-icon-wrap">🤖</div>
         <h3>Bot Assistente no WhatsApp</h3>
-        <p>IA que atende, agenda, tira dúvidas e capta novos clientes 24h por dia — direto no WhatsApp.</p>
+        <p>IA que atende, qualifica e agenda 24h por dia — só chega até você o cliente pronto para fechar.</p>
+        <span class="svc-result">Atendimento 24h sem você</span>
       </div>
     </div>
   </div>
@@ -1180,7 +1226,9 @@ const heroH = document.querySelector('.hero').offsetHeight;
 window.addEventListener('scroll', ()=>{
   const y = window.scrollY;
   nav.classList.toggle('scrolled', y > 60);
-  actionBar.classList.toggle('visible', y > heroH * 0.6);
+  const barVisible = y > heroH * 0.6;
+  actionBar.classList.toggle('visible', barVisible);
+  nav.classList.toggle('action-visible', barVisible);
 }, {passive: true});
 
 // Counter animation
