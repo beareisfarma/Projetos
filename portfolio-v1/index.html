@@ -740,17 +740,132 @@ footer p { color:var(--muted); font-size:.78rem; }
   .hero-previews { gap:.5rem; }
   .preview-card { width:88px; }
 }
+
+/* =====================
+   LIGHT THEME OVERRIDES
+   ===================== */
+body.light {
+  --ink: #f5f3ef;
+  --ink2: #edeae5;
+  --ink3: #e5e1db;
+  --muted: #7a7060;
+  --border-dark: rgba(12,12,20,0.1);
+  background: var(--ink);
+  color: #0c0c14;
+}
+body.light nav {
+  background: rgba(245,243,239,0.92);
+  border-bottom-color: rgba(12,12,20,0.1);
+}
+body.light .nav-links a { color: rgba(12,12,20,.5); }
+body.light .nav-links a:hover { color: #0c0c14; }
+body.light .action-bar {
+  background: rgba(245,243,239,0.96);
+  border-bottom-color: rgba(218,119,86,.2);
+}
+body.light .action-bar-links a { color: rgba(12,12,20,.5); }
+body.light .action-bar-links a:hover { color: #0c0c14; background: rgba(12,12,20,.05); border-color: rgba(12,12,20,.12); }
+body.light .hero-sub { color: rgba(12,12,20,.5); }
+body.light .hero h1 .outline { -webkit-text-stroke-color: #0c0c14; }
+body.light .btn-ghost-w { color: rgba(12,12,20,.6); border-color: rgba(12,12,20,.15); }
+body.light .btn-ghost-w:hover { color: #0c0c14; }
+body.light .glow-1 { background: radial-gradient(circle, rgba(218,119,86,0.08) 0%, transparent 70%); }
+
+/* Services */
+body.light #services { color: #0c0c14; }
+body.light .svc-header h2.sec-title { color: #0c0c14; }
+body.light .svc-header .sub { color: rgba(12,12,20,.5); }
+body.light .svc-item { background: rgba(12,12,20,.04); border-color: rgba(12,12,20,.1); }
+body.light .svc-item:hover { background: rgba(12,12,20,.07); border-color: rgba(218,119,86,.3); }
+body.light .svc-n { color: rgba(12,12,20,.25); }
+body.light .svc-item h3 { color: #0c0c14; }
+body.light .svc-item p { color: rgba(12,12,20,.5); }
+body.light .svc-result { border-top-color: rgba(12,12,20,.08); }
+body.light .svc-icon-wrap { background: rgba(218,119,86,.1); border-color: rgba(218,119,86,.2); }
+
+/* Portfolio */
+body.light .sc-main, body.light .sc-side, body.light .proj-single { border-color: rgba(12,12,20,.12); }
+body.light .proj-info p { color: rgba(12,12,20,.5); }
+body.light .chip { background: rgba(12,12,20,.06); border-color: rgba(12,12,20,.1); color: rgba(12,12,20,.6); }
+body.light .proj-pharma { background: var(--ink3); border-color: rgba(12,12,20,.1); }
+body.light .pharma-text p { color: rgba(12,12,20,.45); }
+body.light .bot-phone { border-color: rgba(12,12,20,.12); }
+
+/* About */
+body.light .about-desc { color: rgba(12,12,20,.5); }
+
+/* Results / Bento */
+body.light .bento-card { background: var(--ink3); border-color: rgba(12,12,20,.1); }
+body.light .bento-label { color: rgba(12,12,20,.5); }
+
+/* Process / Timeline */
+body.light .tl-card { background: rgba(12,12,20,.04); border-color: rgba(12,12,20,.08); }
+body.light .tl-step:hover .tl-card { background: rgba(218,119,86,.07); border-color: rgba(218,119,86,.25); }
+body.light .tl-card h4 { color: #0c0c14; }
+
+/* Dor */
+body.light .dor-item p { color: rgba(12,12,20,.6); }
+body.light .dor-item strong { color: #0c0c14; }
+
+/* Insight */
+body.light .insight-card { background: rgba(12,12,20,.03); border-color: rgba(12,12,20,.1); }
+body.light .insight-card:hover { background: rgba(218,119,86,.04); }
+body.light .insight-text { color: rgba(12,12,20,.75); }
+body.light .insight-text.is-real { color: #0c0c14; }
+body.light .insight-sep { border-top-color: rgba(12,12,20,.1); }
+
+/* CTA */
+body.light #cta h2 .outline { -webkit-text-stroke-color: #0c0c14; }
+body.light #cta p { color: rgba(12,12,20,.5); }
+body.light #cta::before { background: radial-gradient(circle, rgba(218,119,86,0.08) 0%, transparent 60%); }
+
+/* Footer */
+body.light footer { background: var(--ink); border-top-color: rgba(12,12,20,.1); }
+body.light .footer-copy { color: rgba(12,12,20,.3); }
+
+/* THEME TOGGLE BUTTON */
+.theme-toggle {
+  position: fixed; bottom: 1.6rem; right: 1.6rem; z-index: 400;
+  display: flex; align-items: center; gap: .6rem;
+  padding: .55rem .55rem .55rem 1.1rem;
+  border-radius: 100px; border: none; cursor: pointer;
+  background: rgba(20,20,30,0.9); border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.35);
+  transition: transform .25s, box-shadow .25s, background .3s, border-color .3s;
+  font-family: 'Manrope', sans-serif;
+}
+.theme-toggle:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,.4); }
+.tt-label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: rgba(240,238,255,.5);
+  white-space: nowrap; transition: color .3s;
+}
+.tt-pill {
+  display: flex; align-items: center; gap: .4rem;
+  background: #DA7756; color: #fff;
+  padding: .3rem .85rem; border-radius: 100px;
+  font-size: .72rem; font-weight: 800; letter-spacing: .04em;
+  text-transform: uppercase; white-space: nowrap; transition: background .3s;
+}
+body.light .theme-toggle {
+  background: rgba(245,243,239,0.92); border-color: rgba(12,12,20,.12);
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+}
+body.light .theme-toggle:hover { box-shadow: 0 12px 40px rgba(0,0,0,.18); }
+body.light .tt-label { color: rgba(12,12,20,.45); }
+body.light .tt-pill { background: #0c0c14; color: #c8f135; }
 </style>
 </head>
 <body>
 
 <div class="cursor" id="cursor"></div>
 
-<!-- VERSION SWITCHER -->
-<a href="../portfolio-v2/" class="version-switcher">
-  <span class="vs-label">Versão</span>
-  <span class="vs-badge">☀ Light</span>
-</a>
+<!-- THEME TOGGLE -->
+<button class="theme-toggle" id="themeToggle" aria-label="Alternar tema">
+  <span class="tt-label">Tema</span>
+  <span class="tt-pill" id="ttPill">☀ Light</span>
+</button>
 
 <!-- FLOATING CTA -->
 <!-- STICKY ACTION BAR -->
@@ -1291,6 +1406,17 @@ const countObs = new IntersectionObserver(entries=>{
   });
 },{threshold:.5});
 document.querySelectorAll('.bento-num[data-count]').forEach(el=>countObs.observe(el));
+
+// Theme toggle
+const themeToggle = document.getElementById('themeToggle');
+const ttPill = document.getElementById('ttPill');
+const saved = localStorage.getItem('theme');
+if (saved === 'light') { document.body.classList.add('light'); ttPill.textContent = '◑ Dark'; }
+themeToggle.addEventListener('click', () => {
+  const isLight = document.body.classList.toggle('light');
+  ttPill.textContent = isLight ? '◑ Dark' : '☀ Light';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+});
 </script>
 </body>
 </html>
