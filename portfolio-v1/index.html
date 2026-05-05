@@ -369,24 +369,96 @@ h2.sec-title {
 .about-desc { color:rgba(240,238,255,.45); font-size:.88rem; line-height:1.75; max-width:540px; }
 
 /* STATS */
-#results { background: var(--lime); color: var(--ink); }
+/* NAV SCROLL */
+nav.scrolled {
+  background: rgba(12,12,20,0.97);
+  box-shadow: 0 4px 30px rgba(0,0,0,.4);
+}
+
+/* FLOATING CTA */
+.float-cta {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 300;
+  display: flex; align-items: center; gap: .6rem;
+  background: #25d366; color: #fff;
+  padding: .75rem 1.4rem; border-radius: 100px;
+  font-weight: 700; font-size: .85rem; text-decoration: none;
+  box-shadow: 0 8px 32px rgba(37,211,102,.45);
+  transform: translateY(100px); opacity: 0;
+  transition: transform .4s cubic-bezier(.4,0,.2,1), opacity .4s, box-shadow .2s;
+  pointer-events: none;
+}
+.float-cta.visible {
+  transform: translateY(0); opacity: 1; pointer-events: auto;
+}
+.float-cta:hover {
+  box-shadow: 0 12px 40px rgba(37,211,102,.6);
+  transform: translateY(-3px);
+}
+.float-cta svg { flex-shrink: 0; }
+
+/* RESULTS BENTO */
+#results { background: var(--ink2); padding: 6rem 2rem; }
 .results-header { margin-bottom: 3rem; }
-.results-header h2.sec-title { color: var(--ink); }
-.results-header .section-label { color: rgba(12,12,20,.5); }
-.stats-grid {
-  display: grid; grid-template-columns: repeat(4,1fr);
-  gap: 1px; background: rgba(12,12,20,.15);
-  border: 1px solid rgba(12,12,20,.15);
-  border-radius: 20px; overflow: hidden;
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 1rem;
 }
-.stat-cell { background:var(--lime); padding:2.2rem 1.8rem; transition:background .3s; }
-.stat-cell:hover { background:rgba(12,12,20,.07); }
-.stat-big {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(3rem,5vw,4.5rem);
-  line-height:1; color:var(--ink); margin-bottom:.4rem;
+.bento-card {
+  background: var(--ink3);
+  border: 1px solid var(--border-dark);
+  border-radius: 20px; padding: 2.4rem 2.2rem;
+  position: relative; overflow: hidden;
+  transition: transform .35s, border-color .35s, box-shadow .35s;
 }
-.stat-desc { font-size:.83rem; font-weight:500; color:rgba(12,12,20,.6); line-height:1.5; }
+.bento-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(218,119,86,.35);
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.bento-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 20%, rgba(218,119,86,.08) 0%, transparent 65%);
+  pointer-events: none; opacity: 0;
+  transition: opacity .35s;
+}
+.bento-card:hover::before { opacity: 1; }
+.bento-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4rem, 7vw, 6.5rem);
+  line-height: 1; letter-spacing: -.02em;
+  color: var(--lime);
+  filter: drop-shadow(0 0 24px rgba(218,119,86,.35));
+  margin-bottom: .5rem;
+}
+.bento-label {
+  font-size: .88rem; font-weight: 500;
+  color: rgba(240,238,255,.45); line-height: 1.6;
+  max-width: 240px;
+}
+.bento-card.wide { grid-column: 1 / -1; }
+.bento-card.wide .bento-num { font-size: clamp(4.5rem, 9vw, 8rem); }
+.bento-card.wide .inner {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+.bento-card.wide .bento-label { font-size: 1rem; max-width: 360px; }
+.bento-badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(218,119,86,.12); border: 1px solid rgba(218,119,86,.25);
+  color: var(--lime); font-size: .68rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: .3rem .8rem; border-radius: 100px;
+  margin-bottom: 1rem;
+}
+.bento-badge-dot { width:6px; height:6px; border-radius:50%; background: var(--lime); }
+
+@media (max-width: 640px) {
+  .bento-grid { grid-template-columns: 1fr; }
+  .bento-card.wide .inner { flex-direction: column; }
+}
 
 /* PROCESS */
 #how { background: var(--ink); padding: 6rem 2rem; }
@@ -533,6 +605,12 @@ footer p { color:var(--muted); font-size:.78rem; }
 <body>
 
 <div class="cursor" id="cursor"></div>
+
+<!-- FLOATING CTA -->
+<a href="https://wa.me/5521997235209" class="float-cta" id="floatCta" target="_blank">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+  Falar agora
+</a>
 
 <!-- NAV -->
 <nav>
@@ -767,23 +845,50 @@ footer p { color:var(--muted); font-size:.78rem; }
       <div class="section-label">Impacto</div>
       <h2 class="sec-title">NÚMEROS QUE<br>NÃO MENTEM.</h2>
     </div>
-    <div class="stats-grid reveal">
-      <div class="stat-cell">
-        <div class="stat-big">24H</div>
-        <div class="stat-desc">Bot atendendo e captando clientes sem parar</div>
+    <div class="bento-grid reveal">
+
+      <!-- Card largo: -80% -->
+      <div class="bento-card wide">
+        <div class="inner">
+          <div>
+            <div class="bento-badge"><span class="bento-badge-dot"></span>Automações</div>
+            <div class="bento-num" data-count="80" data-prefix="-" data-suffix="%">-80%</div>
+            <div class="bento-label">Redução em tarefas manuais com automações inteligentes</div>
+          </div>
+          <div class="bento-label" style="font-size:.78rem; color:rgba(240,238,255,.25); max-width:220px; text-align:right;">
+            Horas que voltam para o que importa de verdade
+          </div>
+        </div>
       </div>
-      <div class="stat-cell">
-        <div class="stat-big">-80%</div>
-        <div class="stat-desc">Redução em tarefas manuais com automações</div>
+
+      <!-- Card: 24H -->
+      <div class="bento-card">
+        <div class="bento-badge"><span class="bento-badge-dot"></span>Atendimento</div>
+        <div class="bento-num" data-count="24" data-suffix="H">24H</div>
+        <div class="bento-label">Bot atendendo e captando clientes sem parar, todos os dias</div>
       </div>
-      <div class="stat-cell">
-        <div class="stat-big">48H</div>
-        <div class="stat-desc">Prazo médio para entregar um MVP funcional</div>
+
+      <!-- Card: 48H -->
+      <div class="bento-card">
+        <div class="bento-badge"><span class="bento-badge-dot"></span>Velocidade</div>
+        <div class="bento-num" data-count="48" data-suffix="H">48H</div>
+        <div class="bento-label">Prazo médio para entregar um MVP funcional e testável</div>
       </div>
-      <div class="stat-cell">
-        <div class="stat-big">3×</div>
-        <div class="stat-desc">Mais conversões com landing pages otimizadas</div>
+
+      <!-- Card: 3× -->
+      <div class="bento-card wide">
+        <div class="inner">
+          <div>
+            <div class="bento-badge"><span class="bento-badge-dot"></span>Conversão</div>
+            <div class="bento-num" data-count="3" data-suffix="×">3×</div>
+            <div class="bento-label">Mais conversões com landing pages otimizadas para resultado</div>
+          </div>
+          <div class="bento-label" style="font-size:.78rem; color:rgba(240,238,255,.25); max-width:220px; text-align:right;">
+            Mais clientes, mesma audiência
+          </div>
+        </div>
       </div>
+
     </div>
   </div>
 </section>
@@ -888,6 +993,39 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   el.style.transitionDelay=(i%3*.08)+'s';
   obs.observe(el);
 });
+
+// Nav scroll effect + floating CTA
+const nav = document.querySelector('nav');
+const floatCta = document.getElementById('floatCta');
+window.addEventListener('scroll', ()=>{
+  const y = window.scrollY;
+  nav.classList.toggle('scrolled', y > 60);
+  floatCta.classList.toggle('visible', y > 400);
+}, {passive: true});
+
+// Counter animation
+function animateCount(el){
+  const target = parseInt(el.dataset.count);
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const duration = 1400;
+  const start = performance.now();
+  (function step(now){
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = prefix + Math.round(ease * target) + suffix;
+    if(p < 1) requestAnimationFrame(step);
+  })(start);
+}
+const countObs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      animateCount(e.target);
+      countObs.unobserve(e.target);
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.bento-num[data-count]').forEach(el=>countObs.observe(el));
 </script>
 </body>
 </html>
