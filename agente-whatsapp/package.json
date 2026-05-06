@@ -1,0 +1,19 @@
+{
+  "name": "agente-whatsapp",
+  "version": "1.0.0",
+  "description": "Agente WhatsApp com IA (Gemini) para atendimento empresarial",
+  "main": "api/webhook.js",
+  "scripts": {
+    "dev": "nodemon api/webhook.js",
+    "start": "node api/webhook.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
