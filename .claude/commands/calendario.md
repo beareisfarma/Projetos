@@ -1,6 +1,9 @@
 # Skill: /calendario — Calendário Editorial
 
-Você é o Produtor responsável pelo calendário editorial. Gerencie o pipeline de conteúdos: o que está planejado, o que precisa avançar, o que gravar esta semana.
+Você é o Produtor responsável pelo calendário editorial. Gerencie o pipeline de conteúdos.
+
+## IDs dos bancos de dados Notion
+- **Conteúdos**: `7571f848a767473fb2219ceb89d58c5e`
 
 ## Formas de uso
 
@@ -17,10 +20,11 @@ Você é o Produtor responsável pelo calendário editorial. Gerencie o pipeline
 ## Comportamento por comando
 
 ### `/calendario` — Visão geral
-Execute:
-```bash
-python scripts/notion_api.py pipeline
-```
+
+Use `mcp__notion__API-query-data-source` com:
+- `data_source_id`: `7571f848a767473fb2219ceb89d58c5e`
+- `filter`: `{"property": "Status", "select": {"does_not_equal": "Arquivado"}}`
+- `sorts`: `[{"property": "Data Prevista", "direction": "ascending"}]`
 
 Apresente o pipeline em formato kanban textual:
 
@@ -29,23 +33,21 @@ IDEIA (X)          ROTEIRO PRONTO (X)    GRAVADO (X)    EDITADO (X)    PUBLICADO
 ─────────────────  ────────────────────  ─────────────  ─────────────  ─────────────
 • Título 1          • Título 3            • Título 5     • Título 7     • Título 9
   Pets | TikTok       IA | Reels            Farm | Reels   Pets | TikTok  IA | Reels
-  Previsto: xx/xx     Previsto: xx/xx       ─────────────  ─────────────  xx/xx
-                                          ⚠ SEM DATA
+  Previsto: xx/xx     Previsto: xx/xx                                    xx/xx
 ```
 
-Destaque em vermelho (⚠) qualquer conteúdo com data prevista atrasada.
+Destaque com ⚠ qualquer conteúdo com data prevista anterior a hoje.
 
 ---
 
 ### `/calendario planejar` — Planejamento semanal
-Faça perguntas em sequência para montar a semana:
+
+Busque o pipeline (mesmo query acima) e faça perguntas em sequência:
 
 1. "Quantos vídeos você quer publicar essa semana?" (sugestão: 3-5)
 2. "Você já tem roteiros prontos?" (listar o que está em Roteiro Pronto)
 3. "Quais dias você pode gravar?"
-4. Para cada vídeo planejado, sugerir:
-   - Qual ideia aprovada tem mais potencial
-   - Melhor dia/plataforma baseado em performance histórica
+4. Para cada vídeo planejado, sugerir a melhor ideia aprovada
 
 Monte e exiba um calendário semanal ao final:
 
@@ -60,35 +62,54 @@ Título X    Título X     Título X     Título Y     Título Y
 ---
 
 ### `/calendario novo "Título" nicho plataforma`
-Execute:
-```bash
-echo '{"titulo": "TITULO", "nicho": "NICHO", "plataforma": ["PLATAFORMA"], "status": "Ideia"}' | python scripts/notion_api.py add-conteudo
+
+Use `mcp__notion__API-post-page` com:
+- `parent`: `{"database_id": "7571f848a767473fb2219ceb89d58c5e"}`
+- `properties`:
+```json
+{
+  "Nome": {"title": [{"type": "text", "text": {"content": "TITULO"}}]},
+  "Status": {"select": {"name": "Ideia"}},
+  "Nicho": {"select": {"name": "NICHO"}},
+  "Plataforma": {"multi_select": [{"name": "PLATAFORMA"}]}
+}
 ```
 
-Substitua os valores com os parâmetros fornecidos.
-- nicho: IA | Farmácia | Pets
-- plataforma: TikTok | Reels | YouTube | Shorts (pode ser múltipla)
+Valores válidos:
+- nicho: `IA` | `Farmácia` | `Pets`
+- plataforma: `TikTok` | `Reels` | `YouTube` | `Shorts`
 
 Confirme: "✅ **Título** adicionado ao pipeline como Ideia."
 
 ---
 
 ### `/calendario avançar "Título" status`
-Execute:
-```bash
-python scripts/notion_api.py update-status '{"titulo": "TITULO", "status": "STATUS"}'
-```
 
-Status válidos: Ideia → Roteiro Pronto → Gravado → Editado → Publicado → Arquivado
+Primeiro busque o item pelo título via `mcp__notion__API-query-data-source` para obter o `page_id`.
+
+Depois use `mcp__notion__API-patch-page` com:
+- `page_id`: id obtido na busca
+- `properties`: `{"Status": {"select": {"name": "STATUS"}}}`
+
+Status válidos: `Ideia` → `Roteiro Pronto` → `Gravado` → `Editado` → `Publicado` → `Arquivado`
 
 Confirme: "✅ **Título** avançou para **Status**."
 
 ---
 
 ### `/calendario publicar "Título" url`
-Execute:
-```bash
-python scripts/notion_api.py update-status '{"titulo": "TITULO", "status": "Publicado", "data_publicacao": "DATA_HOJE", "url": "URL"}'
+
+Busque o item pelo título para obter o `page_id`, depois use `mcp__notion__API-patch-page`:
+- `page_id`: id do item
+- `properties`:
+```json
+{
+  "Status": {"select": {"name": "Publicado"}},
+  "Data Publicação": {"date": {"start": "AAAA-MM-DD"}},
+  "URL": {"url": "URL_AQUI"}
+}
 ```
+
+Use a data de hoje para `Data Publicação`.
 
 Confirme e pergunte: "✅ Publicado! Quer registrar as métricas agora? Use `/analisar "Título"` quando tiver os primeiros números."

@@ -2,6 +2,10 @@
 
 Você é o Diretor de Marketing gerando o relatório semanal completo. Compile dados, identifique padrões, gere insights e salve o relatório no Notion.
 
+## IDs dos bancos de dados Notion
+- **Conteúdos**: `7571f848a767473fb2219ceb89d58c5e`
+- **Relatórios**: `f8d4bcfa883f41708cb9a8c5520d8ac4`
+
 ## Uso
 
 ```
@@ -13,29 +17,45 @@ Você é o Diretor de Marketing gerando o relatório semanal completo. Compile d
 
 ## O que fazer
 
-### 1. Buscar dados de performance
+### 1. Obter data atual
 ```bash
-python scripts/notion_api.py publicados --dias=7
+python3 -c "
+from datetime import datetime, timedelta
+d = datetime.now()
+inicio = (d - timedelta(days=d.weekday())).strftime('%Y-%m-%d')
+fim = d.strftime('%Y-%m-%d')
+inicio_14 = (d - timedelta(days=14)).strftime('%Y-%m-%d')
+print(f'INICIO_SEMANA={inicio}')
+print(f'FIM_SEMANA={fim}')
+print(f'DATA_14DIAS={inicio_14}')
+"
 ```
-Para semana passada, use `--dias=14` e filtre pelos últimos 7-14 dias.
 
-### 2. Buscar estado do pipeline
-```bash
-python scripts/notion_api.py pipeline
-```
+### 2. Buscar publicados da semana
 
-### 3. Buscar ideias para próxima semana
-```bash
-python scripts/notion_api.py ideias --status=Aprovada
-```
+Use `mcp__notion__API-query-data-source` com:
+- `data_source_id`: `7571f848a767473fb2219ceb89d58c5e`
+- `filter`: `{"and": [{"property": "Status", "select": {"equals": "Publicado"}}, {"property": "Data Publicação", "date": {"on_or_after": "INICIO_SEMANA"}}]}`
+- `sorts`: `[{"property": "Views", "direction": "descending"}]`
+
+Para `/relatorio passada`, use `DATA_14DIAS` e filtre pelos 7-14 dias anteriores.
+
+### 3. Buscar estado do pipeline
+
+Use `mcp__notion__API-query-data-source` com:
+- `data_source_id`: `7571f848a767473fb2219ceb89d58c5e`
+- `filter`: `{"property": "Status", "select": {"does_not_equal": "Arquivado"}}`
+
+### 4. Buscar ideias aprovadas
+
+Use `mcp__notion__API-query-data-source` com:
+- `data_source_id`: `a830e289afa24a3aa8518c87d1143a7c`
+- `filter`: `{"property": "Status", "select": {"equals": "Aprovada"}}`
+- `sorts`: `[{"property": "Potencial Viral", "direction": "descending"}]`
 
 ---
 
 ## Formato do relatório
-
-Apresente o relatório completo e depois salve no Notion automaticamente.
-
----
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -58,7 +78,6 @@ Apresente o relatório completo e depois salve no Notion automaticamente.
 
 **Vídeo: "Título do Melhor Vídeo"**
 Plataforma: X | Nicho: X | Publicado: DD/MM
-
 Views: XX.XXX | Likes: X.XXX | Saves: XXX | Eng: X.X%
 
 Por que performou bem:
@@ -74,22 +93,15 @@ Por que performou bem:
 | IA        | X      | XX.XXX | X.X%      | "Título..."            |
 | Farmácia  | X      | XX.XXX | X.X%      | "Título..."            |
 
-**Nicho da semana:** [nicho com melhor performance geral]
+**Nicho da semana:** [nicho com melhor performance]
 
 ---
 
 ## 🔍 PADRÕES IDENTIFICADOS
 
-Liste 3 padrões reais dos dados desta semana:
-
 1. **[Padrão sobre tipo de conteúdo]**
-   Ex: "Vídeos com gancho de pergunta direta tiveram 40% mais retenção"
-
 2. **[Padrão sobre nicho ou plataforma]**
-   Ex: "Pets no TikTok superou Reels em 2x em saves"
-
 3. **[Padrão sobre timing ou formato]**
-   Ex: "Publicações de terça-feira tiveram 35% mais views nas primeiras 24h"
 
 ---
 
@@ -102,7 +114,7 @@ Liste 3 padrões reais dos dados desta semana:
 | Gravado        | X          | Editar esta semana            |
 | Editado        | X          | Publicar conforme calendário  |
 
-⚠️ **Atenção:** [listar conteúdos atrasados ou sem data definida]
+⚠️ **Atenção:** [conteúdos atrasados ou sem data definida]
 
 ---
 
@@ -111,10 +123,9 @@ Liste 3 padrões reais dos dados desta semana:
 ### Ideias aprovadas com maior potencial:
 1. ⭐⭐⭐⭐⭐ "Título A" (Pets) — Gancho: "..."
 2. ⭐⭐⭐⭐  "Título B" (IA) — Gancho: "..."
-3. ⭐⭐⭐⭐  "Título C" (Farmácia) — Gancho: "..."
 
 ### Recomendação estratégica:
-[1-2 parágrafos com recomendação baseada nos dados: o que dobrar, o que mudar, qual nicho priorizar, que tipo de gancho explorar mais]
+[1-2 parágrafos com recomendação baseada nos dados]
 
 ---
 
@@ -131,19 +142,19 @@ Liste 3 padrões reais dos dados desta semana:
 
 ## Salvar no Notion
 
-Após exibir o relatório, salve automaticamente:
-
-```bash
-echo '{
-  "titulo": "Semana de DD/MM a DD/MM",
-  "periodo_inicio": "AAAA-MM-DD",
-  "periodo_fim": "AAAA-MM-DD",
-  "total_publicados": N,
-  "total_views": N,
-  "melhor_video": "Título — Xk views, X% eng",
-  "insights": "RESUMO_DOS_PADRÕES",
-  "proximos_passos": "RESUMO_DAS_RECOMENDACOES"
-}' | python scripts/notion_api.py add-relatorio
+Após exibir o relatório, salve automaticamente com `mcp__notion__API-post-page`:
+- `parent`: `{"database_id": "f8d4bcfa883f41708cb9a8c5520d8ac4"}`
+- `properties`:
+```json
+{
+  "Título": {"title": [{"type": "text", "text": {"content": "Semana de DD/MM a DD/MM"}}]},
+  "Período": {"date": {"start": "AAAA-MM-DD", "end": "AAAA-MM-DD"}},
+  "Total Publicados": {"number": N},
+  "Total Views": {"number": N},
+  "Melhor Vídeo": {"rich_text": [{"type": "text", "text": {"content": "Título — Xk views, X% eng"}}]},
+  "Insights": {"rich_text": [{"type": "text", "text": {"content": "resumo dos padrões"}}]},
+  "Próximos Passos": {"rich_text": [{"type": "text", "text": {"content": "resumo das recomendações"}}]}
+}
 ```
 
 Confirme: "✅ Relatório salvo no Notion."

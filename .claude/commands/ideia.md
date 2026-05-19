@@ -2,13 +2,16 @@
 
 Você é o Analista de Conteúdo responsável por capturar, avaliar e organizar ideias de vídeo.
 
+## IDs dos bancos de dados Notion
+- **Ideias**: `a830e289afa24a3aa8518c87d1143a7c`
+
 ## Formas de uso
 
 ```
 /ideia "Título da ideia"                 → Avaliar e salvar nova ideia
 /ideia listar                            → Ver banco de ideias por prioridade
 /ideia listar pets                       → Filtrar por mercado (ia | farmacia | pets)
-/ideia aprovar "Título"                  → Mover ideia para Aprovada (pronta para gravar)
+/ideia aprovar "Título"                  → Mover ideia para Aprovada
 /ideia descartar "Título"               → Arquivar ideia descartada
 ```
 
@@ -17,48 +20,46 @@ Você é o Analista de Conteúdo responsável por capturar, avaliar e organizar 
 ## Comportamento: `/ideia "Título"`
 
 ### Passo 1 — Identificar o mercado
-Analise o título e pergunte se não for óbvio:
-- É sobre **IA**, **Farmácia/Saúde** ou **Pets**?
+Analise o título e pergunte se não for óbvio: IA, Farmácia/Saúde ou Pets?
 
 ### Passo 2 — Pontuar o potencial viral (1 a 5)
 
-Use estes critérios para calcular a pontuação:
-
-| Critério | Peso | Perguntas |
-|----------|------|-----------|
-| Curiosidade / Dúvida comum | 25% | Muita gente já quis saber isso? |
-| Emoção / Identificação | 20% | Gera emoção, raiva, surpresa ou alívio? |
-| Potencial de compartilhamento | 20% | As pessoas vão querer mandar para alguém? |
-| Timing / Tendência | 20% | Está em alta agora ou é perene? |
-| Contra-intuitivo / Surpresa | 15% | Contradiz algo que as pessoas achavam? |
-
-Calcule a nota e apresente justificativa.
+| Critério | Peso |
+|----------|------|
+| Curiosidade / Dúvida comum | 25% |
+| Emoção / Identificação | 20% |
+| Potencial de compartilhamento | 20% |
+| Timing / Tendência | 20% |
+| Contra-intuitivo / Surpresa | 15% |
 
 ### Passo 3 — Sugerir o gancho e ângulo
-Com base no mercado e no tom correto:
 - **IA:** provocador, impacto na vida real
 - **Farmácia:** desmistificador, confiável
 - **Pets:** afetivo, identificação do tutor
 
-Sugira:
-1. Gancho principal (3 segundos)
-2. Por que essa ideia vai funcionar (2-3 linhas)
+Sugira: 1) Gancho principal (3s), 2) Por que vai funcionar (2-3 linhas)
 
 ### Passo 4 — Salvar no Notion
-Execute:
-```bash
-echo '{
-  "titulo": "TITULO",
-  "mercado": "MERCADO",
-  "potencial": NOTA,
-  "fonte": "FONTE",
-  "gancho": "GANCHO_SUGERIDO",
-  "porque_funciona": "JUSTIFICATIVA"
-}' | python scripts/notion_api.py add-ideia
+
+Use `mcp__notion__API-post-page` com:
+- `parent`: `{"database_id": "a830e289afa24a3aa8518c87d1143a7c"}`
+- `properties`:
+```json
+{
+  "Título": {"title": [{"type": "text", "text": {"content": "TITULO"}}]},
+  "Mercado": {"select": {"name": "MERCADO"}},
+  "Potencial Viral": {"number": NOTA},
+  "Fonte": {"select": {"name": "FONTE"}},
+  "Status": {"select": {"name": "Nova"}},
+  "Gancho Sugerido": {"rich_text": [{"type": "text", "text": {"content": "GANCHO"}}]},
+  "Por que funciona": {"rich_text": [{"type": "text", "text": {"content": "JUSTIFICATIVA"}}]}
+}
 ```
 
-Substituir:
-- FONTE: Trends | Pesquisa | Comentários | Pessoal
+Valores válidos:
+- MERCADO: `IA` | `Farmácia` | `Pets`
+- FONTE: `Trends` | `Pesquisa` | `Comentários` | `Pessoal`
+- NOTA: número de 1 a 5
 
 ### Passo 5 — Apresentar resultado
 ```
@@ -71,8 +72,7 @@ Substituir:
    "Todo tutor já viu isso, mas ninguém sabe por quê."
 
 💡 Por que vai funcionar:
-   Alta identificação — 80% dos tutores passam por isso e ficam sem resposta.
-   Potencial de salvar alto: conteúdo útil que as pessoas guardam para consultar.
+   Alta identificação — 80% dos tutores passam por isso.
 
 ▶ Próximos passos:
    - Use /ideia aprovar "Título" quando quiser colocar em produção
@@ -83,17 +83,12 @@ Substituir:
 
 ## Comportamento: `/ideia listar [mercado]`
 
-Execute:
-```bash
-python scripts/notion_api.py ideias --status=Nova
-# ou com filtro de mercado:
-python scripts/notion_api.py ideias --status=Nova --mercado=Pets
-```
-
-Também busque aprovadas:
-```bash
-python scripts/notion_api.py ideias --status=Aprovada
-```
+Use `mcp__notion__API-query-data-source` com:
+- `data_source_id`: `a830e289afa24a3aa8518c87d1143a7c`
+- `filter`:
+  - Sem filtro de mercado: `{"or": [{"property": "Status", "select": {"equals": "Aprovada"}}, {"property": "Status", "select": {"equals": "Nova"}}]}`
+  - Com filtro de mercado: adicione `{"property": "Mercado", "select": {"equals": "Pets"}}` no `and`
+- `sorts`: `[{"property": "Potencial Viral", "direction": "descending"}]`
 
 Apresente em duas seções:
 
@@ -102,25 +97,35 @@ Apresente em duas seções:
 ⭐⭐⭐⭐⭐ Título A (Pets) — "Gancho..."
 ⭐⭐⭐⭐  Título B (IA) — "Gancho..."
 
-### 🔵 Novas — Aguardando avaliação/aprovação  
+### 🔵 Novas — Aguardando avaliação
 ⭐⭐⭐⭐  Título C (Farmácia) — "Gancho..."
 ⭐⭐⭐   Título D (Pets) — "Gancho..."
 ```
 
-Ao final, sugira: "Quer aprovar alguma para produção? Use `/ideia aprovar "Título"`."
+Ao final: "Quer aprovar alguma? Use `/ideia aprovar "Título"`."
 
 ---
 
 ## Comportamento: `/ideia aprovar "Título"`
 
-Execute:
-```bash
-python scripts/notion_api.py update-status '{"titulo": "TITULO", "status": "Aprovada"}'
-```
+Busque a ideia pelo título via `mcp__notion__API-query-data-source` para obter o `page_id`.
 
-Confirme e sugira próximo passo:
+Use `mcp__notion__API-patch-page` com:
+- `page_id`: id obtido na busca
+- `properties`: `{"Status": {"select": {"name": "Aprovada"}}}`
+
+Confirme:
 ```
 ✅ Ideia aprovada para produção!
 Próximo passo: /roteiro "Título" mercado reels
 Ou adicione ao pipeline: /calendario novo "Título" mercado plataforma
 ```
+
+---
+
+## Comportamento: `/ideia descartar "Título"`
+
+Busque pelo título e use `mcp__notion__API-patch-page`:
+- `properties`: `{"Status": {"select": {"name": "Descartada"}}}`
+
+Confirme: "🗑 Ideia arquivada."

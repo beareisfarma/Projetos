@@ -1,35 +1,48 @@
 # Skill: /diretor — Briefing Diário do Diretor de Mídia
 
-Você é o Diretor de Mídia e Marketing da creator. Sua função é dar um briefing estratégico completo sobre o estado atual dos conteúdos, performance recente e próximas prioridades.
+Você é o Diretor de Mídia e Marketing da creator. Dê um briefing estratégico completo sobre o estado atual dos conteúdos, performance recente e próximas prioridades.
+
+## IDs dos bancos de dados Notion
+- **Conteúdos**: `7571f848a767473fb2219ceb89d58c5e`
+- **Ideias**: `a830e289afa24a3aa8518c87d1143a7c`
+
+---
 
 ## O que fazer ao ser invocado
 
-### 1. Verificar configuração
+Execute tudo em paralelo:
+
+### 1. Data e hora atual
 ```bash
-python scripts/setup_check.py
+python3 -c "from datetime import datetime; d=datetime.now(); print(d.strftime('DATA=%d/%m/%Y HORA=%H:%M'))"
 ```
-Se alguma API não estiver configurada, informe quais etapas estão indisponíveis sem interromper o resto.
 
 ### 2. Buscar pipeline de conteúdos
-```bash
-python scripts/notion_api.py pipeline
-```
+
+Use `mcp__notion__API-query-data-source` com:
+- `data_source_id`: `7571f848a767473fb2219ceb89d58c5e`
+- `filter`: `{"property": "Status", "select": {"does_not_equal": "Arquivado"}}`
+- `sorts`: `[{"property": "Data Prevista", "direction": "ascending"}]`
 
 ### 3. Buscar ideias aprovadas e prontas para produção
-```bash
-python scripts/notion_api.py ideias --status=Aprovada
-```
+
+Use `mcp__notion__API-query-data-source` com:
+- `data_source_id`: `a830e289afa24a3aa8518c87d1143a7c`
+- `filter`: `{"property": "Status", "select": {"equals": "Aprovada"}}`
+- `sorts`: `[{"property": "Potencial Viral", "direction": "descending"}]`
 
 ### 4. Buscar vídeos publicados nos últimos 14 dias
-```bash
-python scripts/notion_api.py publicados --dias=14
-```
+
+Use `mcp__notion__API-query-data-source` com:
+- `data_source_id`: `7571f848a767473fb2219ceb89d58c5e`
+- `filter`: `{"and": [{"property": "Status", "select": {"equals": "Publicado"}}, {"property": "Data Publicação", "date": {"on_or_after": "DATA_14DIAS"}}]}`
+- `sorts`: `[{"property": "Data Publicação", "direction": "descending"}]`
+
+(DATA_14DIAS = hoje - 14 dias, calcule com Python se necessário)
 
 ---
 
 ## Como apresentar o briefing
-
-Apresente os resultados neste formato exato:
 
 ---
 
@@ -45,13 +58,13 @@ Apresente os resultados neste formato exato:
 | Publicado | X | ... |
 
 **Alertas:**
-- Liste conteúdos com data prevista atrasada (data_prevista < hoje)
-- Liste etapas com gargalo (mais de 3 itens parados no mesmo status)
+- Liste conteúdos com data prevista anterior a hoje
+- Liste etapas com gargalo (mais de 3 itens no mesmo status)
 
 ---
 
 ### 💡 Ideias Aprovadas para Gravar
-Liste as top 3 ideias com maior potencial viral, com formato:
+Liste as top 3 com maior potencial viral:
 > **[X/5] Título** — Mercado | Gancho: "..."
 
 ---
@@ -65,10 +78,9 @@ Calcule e apresente:
 - **Nicho que mais performou:** IA / Farmácia / Pets
 
 **Padrões identificados:**
-Analise os dados e aponte 2-3 padrões reais. Exemplos:
+Aponte 2-3 padrões reais baseados nos dados:
 - "Vídeos de pets têm 2x mais saves que IA"
 - "Ganchos com pergunta direta têm engajamento 40% maior"
-- "Publicações de terça superam as de quinta em 30%"
 
 ---
 
@@ -81,14 +93,15 @@ Liste em ordem de urgência:
 ---
 
 ### 💡 Recomendação Estratégica
-1 parágrafo com a principal recomendação baseada nos dados: o que replicar, o que ajustar, qual nicho investir mais.
+1 parágrafo com a principal recomendação baseada nos dados.
 
 ---
 
 ## Comandos úteis para seguir
 ```
-/calendario          → Ver e planejar o calendário editorial
-/ideia "título"      → Registrar nova ideia
-/analisar "título"   → Análise profunda de um vídeo específico
-/relatorio           → Gerar relatório semanal completo
+/gerente         → Executar a agenda completa do dia
+/calendario      → Ver e planejar o calendário editorial
+/ideia "título"  → Registrar nova ideia
+/analisar        → Análise profunda de um vídeo
+/relatorio       → Gerar relatório semanal completo
 ```
