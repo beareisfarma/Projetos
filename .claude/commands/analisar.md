@@ -1,138 +1,102 @@
-# Skill: /analisar — Análise de Performance de Conteúdo
+# Skill: /analisar — Análise de Performance
 
-Você é o Analista de Performance. Analise métricas de vídeos para identificar o que funcionou e como replicar o sucesso.
+Você é o Analista de Performance.
 
-## IDs dos bancos de dados Notion
-- **Conteúdos**: `7571f848a767473fb2219ceb89d58c5e`
+## Repositório de dados
+- **owner**: `beareisfarma` | **repo**: `Projetos` | **branch**: `main`
+- `data/pipeline.json` → campo `conteudos[]`
 
 ## Formas de uso
-
 ```
-/analisar "Título do vídeo"                    → Análise de um vídeo (busca métricas salvas)
-/analisar "Título" views:45k likes:3.2k saves:890 comentarios:145 shares:340
-                                               → Análise com métricas coladas manualmente
-/analisar youtube VIDEO_ID                     → Buscar stats do YouTube por ID
-/analisar comparar                             → Comparar todos os vídeos publicados recentes
+/analisar "Título"                                        → Análise com métricas salvas
+/analisar "Título" views:45k likes:3.2k saves:890 ...   → Análise com métricas manuais
+/analisar youtube VIDEO_ID                               → Buscar stats do YouTube
+/analisar comparar                                       → Comparar últimos 30 dias
 ```
 
 ---
 
-## Comportamento: `/analisar "Título"`
+## `/analisar "Título"` sem métricas fornecidas
 
-### Se não houver métricas fornecidas:
-
-Busque o vídeo no Notion via `mcp__notion__API-query-data-source`:
-- `data_source_id`: `7571f848a767473fb2219ceb89d58c5e`
-- `filter`: `{"and": [{"property": "Status", "select": {"equals": "Publicado"}}, {"property": "Data Publicação", "date": {"on_or_after": "DATA_30DIAS"}}]}`
-
-Filtre pelo título. Se encontrar métricas salvas (Views > 0), use-as para análise.
-
-Se não houver métricas, pergunte: "Qual o ID do vídeo no YouTube? Ou cole as métricas diretamente."
-
-### Se métricas forem fornecidas manualmente:
-
-Converta valores (ex: 45k → 45000) e salve no Notion.
-
-Busque o `page_id` do vídeo e use `mcp__notion__API-patch-page` com:
-- `properties`:
-```json
-{
-  "Views": {"number": N},
-  "Likes": {"number": N},
-  "Saves": {"number": N},
-  "Comentários": {"number": N},
-  "Shares": {"number": N},
-  "Taxa Engajamento": {"number": 0.092}
-}
-```
-(Taxa Engajamento em decimal: 9.2% = 0.092)
-
-Calcule a Taxa de Engajamento como: `(likes + comentarios + shares + saves) / views`
+Leia `data/pipeline.json`, localize o vídeo pelo `titulo`.
+Se `views > 0`: use as métricas salvas para análise completa.
+Se `views = 0`: pergunte "Qual o ID do vídeo no YouTube? Ou cole as métricas."
 
 ---
 
-## Análise completa
+## `/analisar "Título"` com métricas fornecidas
 
-Apresente neste formato:
+Converta valores (ex: 45k → 45000).
+Calcule `taxa_engajamento = (likes + comentarios + shares + saves) / views`.
+
+Leia `data/pipeline.json`, localize o item, atualize as métricas, salve com `mcp__github__push_files`:
+- `owner`: `beareisfarma`, `repo`: `Projetos`, `branch`: `main`
+- `message`: `"analisar: métricas de [Título]"`
+- `files`: `[{"path": "data/pipeline.json", "content": <JSON_ATUALIZADO>}]`
+
+Campos a salvar: `views`, `likes`, `saves`, `comentarios`, `shares`, `taxa_engajamento`
+
+---
+
+## Formato da análise completa
 
 ```
-## 📊 Análise: "Título do Vídeo"
-Nicho: Pets | Plataforma: TikTok | Publicado: DD/MM/AAAA
+## 📊 Análise: "Título"
+Nicho: X | Plataforma: X | Publicado: DD/MM/AAAA
 
 ### Números
-| Métrica           | Valor   | Benchmark nicho | Avaliação |
-|-------------------|---------|-----------------|-----------|
-| Views             | 45.000  | ~20.000         | ⬆ Acima   |
-| Taxa engajamento  | 9,2%    | ~5%             | ⬆ Acima   |
-| Saves             | 890     | ~400            | ⬆ Acima   |
-| Compartilhamentos | 340     | ~150            | ⬆ Acima   |
-| Comentários       | 145     | ~200            | ⬇ Abaixo  |
+| Métrica           | Valor   | Benchmark | Avaliação |
+|-------------------|---------|-----------|-----------|
+| Views             | 45.000  | ~20.000   | ⬆ Acima   |
+| Taxa engajamento  | 9,2%    | ~5%       | ⬆ Acima   |
+| Saves             | 890     | ~400      | ⬆ Acima   |
+| Compartilhamentos | 340     | ~150      | ⬆ Acima   |
+| Comentários       | 145     | ~200      | ⬇ Abaixo  |
 
 ### O que funcionou
-[2-3 fatores que contribuíram para o resultado]
+[2-3 fatores]
 
 ### O que pode melhorar
-[Baseado nos números abaixo da média]
-
-### Padrão identificado
-Compare com outros vídeos do mesmo nicho. Identifique:
-- Melhor horário de publicação
-- Tipo de gancho que mais converteu
+[baseado nos números abaixo da média]
 
 ### Recomendação de replicação
-O que deste vídeo deve ser replicado no próximo conteúdo do mesmo nicho.
+[o que deste vídeo deve ser replicado]
 ```
 
 ---
 
-## Comportamento: `/analisar youtube VIDEO_ID`
+## `/analisar youtube VIDEO_ID`
 
 ```bash
 python3 scripts/youtube_api.py video VIDEO_ID
 ```
-
-Analise e apresente no formato acima.
+Apresente no formato de análise completa acima.
 
 ---
 
-## Comportamento: `/analisar comparar`
+## `/analisar comparar`
 
-Use `mcp__notion__API-query-data-source`:
-- `data_source_id`: `7571f848a767473fb2219ceb89d58c5e`
-- `filter`: `{"and": [{"property": "Status", "select": {"equals": "Publicado"}}, {"property": "Data Publicação", "date": {"on_or_after": "DATA_30DIAS"}}]}`
-- `sorts`: `[{"property": "Views", "direction": "descending"}]`
-
-Faça análise comparativa:
+Leia `data/pipeline.json`, filtre `status="Publicado"`.
+Ordenar por `views` decrescente.
 
 ```
-## 📊 Comparativo — Últimos 30 dias
+## 📊 Comparativo
 
 ### Ranking por Views
 1. "Título A" — 89k views — Pets/TikTok — 11.2% eng
 2. "Título B" — 45k views — IA/Reels — 9.2% eng
 
 ### Por Nicho
-| Nicho     | Média Views | Média Eng | Melhor Formato |
-|-----------|-------------|-----------|----------------|
-| Pets      | 45.000      | 10.1%     | TikTok         |
-| IA        | 31.000      | 8.4%      | Reels          |
-| Farmácia  | 18.000      | 7.2%      | Reels          |
-
-### Insights estratégicos
-[3 conclusões acionáveis]
+| Nicho    | Média Views | Média Eng | Melhor Formato |
+|----------|-------------|-----------|----------------|
+| Pets     | 45.000      | 10.1%     | TikTok         |
 
 ### Próximo conteúdo recomendado
-Qual nicho, formato e gancho maximiza o alcance agora.
+[nicho, formato e gancho que maximiza alcance]
 ```
 
 ---
 
-## Benchmarks por plataforma
-
-### TikTok
-- Engajamento bom: 5-8% | excelente: >8%
-- Save rate boa: >1% | excelente: >2%
-
-### Instagram Reels
-- Engajamento bom: 3-6% | excelente: >6%
-- Save rate boa: >0.8% | excelente: >1.5%
+## Benchmarks
+- **TikTok**: eng bom 5-8% | excelente >8% | save rate >1%
+- **Reels**: eng bom 3-6% | excelente >6% | save rate >0.8%
