@@ -4,7 +4,7 @@ Você é o Produtor responsável pelo calendário editorial.
 
 ## Repositório de dados
 - **owner**: `beareisfarma` | **repo**: `Projetos` | **branch**: `main`
-- `data/pipeline.json` → campo `conteudos[]`
+- `creator-agent/data/pipeline.json` → campo `conteudos[]`
 
 ## Formas de uso
 ```
@@ -19,8 +19,8 @@ Você é o Produtor responsável pelo calendário editorial.
 
 ## Leitura do pipeline
 
-Em todos os comandos, primeiro leia o arquivo atual:
-Use `mcp__github__get_file_contents` com `owner="beareisfarma"`, `repo="Projetos"`, `path="data/pipeline.json"`, `ref="refs/heads/main"`.
+Em todos os comandos, leia o arquivo atual:
+`mcp__github__get_file_contents` com `owner="beareisfarma"`, `repo="Projetos"`, `path="creator-agent/data/pipeline.json"`, `ref="refs/heads/main"`.
 Decodifique base64 se necessário e parse o JSON.
 
 ---
@@ -42,9 +42,9 @@ Destaque ⚠ itens com `data_prevista` anterior a hoje.
 ## `/calendario planejar`
 
 Com o pipeline lido, faça perguntas em sequência:
-1. "Quantos vídeos quer publicar essa semana?" (sugestão: 3-5)
+1. "Quantos vídeos quer publicar essa semana?"
 2. "Quais dias pode gravar?"
-3. Para cada vídeo planejado, sugira a melhor ideia aprovada
+3. Para cada vídeo planejado, sugira a melhor ideia aprovada.
 
 Monte e exiba o calendário semanal.
 
@@ -52,15 +52,13 @@ Monte e exiba o calendário semanal.
 
 ## `/calendario novo "Título" nicho plataforma`
 
-Crie novo item com `id` = timestamp atual (`YYYYMMDDHHMMSS`), status `"Ideia"`.
-Adicione ao array `conteudos[]` e salve com `mcp__github__push_files`:
+Crie item com `id` = timestamp (`YYYYMMDDHHMMSS`), `status="Ideia"`.
+Adicione ao array e salve com `mcp__github__push_files`:
 - `owner`: `beareisfarma`, `repo`: `Projetos`, `branch`: `main`
 - `message`: `"calendario: adicionar [Título]"`
-- `files`: `[{"path": "data/pipeline.json", "content": <JSON_ATUALIZADO>}]`
+- `files`: `[{"path": "creator-agent/data/pipeline.json", "content": <JSON_ATUALIZADO>}]`
 
-Valores válidos:
-- nicho: `IA` | `Farmácia` | `Pets`
-- plataforma: `TikTok` | `Reels` | `YouTube` | `Shorts`
+Valores válidos — nicho: `IA` | `Farmácia` | `Pets` | plataforma: `TikTok` | `Reels` | `YouTube` | `Shorts`
 
 Confirme: "✅ **Título** adicionado ao pipeline como Ideia."
 
@@ -68,19 +66,13 @@ Confirme: "✅ **Título** adicionado ao pipeline como Ideia."
 
 ## `/calendario avançar "Título" status`
 
-Localize o item por `titulo` em `conteudos[]`, atualize o campo `status` e salve com `push_files`.
-
+Localize por `titulo`, atualize `status`, salve com `push_files`.
 Status válidos: `Ideia` → `Roteiro Pronto` → `Gravado` → `Editado` → `Publicado` → `Arquivado`
-
 Confirme: "✅ **Título** avançou para **Status**."
 
 ---
 
 ## `/calendario publicar "Título" url`
 
-Localize o item, atualize:
-- `status`: `"Publicado"`
-- `data_publicacao`: data de hoje (`YYYY-MM-DD`)
-- `url`: URL fornecida
-
-Salve com `push_files` e confirme: "✅ Publicado! Use `/analisar \"Título\"` quando tiver os primeiros números."
+Localize, atualize `status="Publicado"`, `data_publicacao` (hoje, YYYY-MM-DD), `url`.
+Salve com `push_files`. Confirme: "✅ Publicado! Use `/analisar \"Título\"` para registrar métricas."

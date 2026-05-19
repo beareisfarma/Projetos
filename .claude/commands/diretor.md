@@ -1,10 +1,10 @@
 # Skill: /diretor — Briefing do Diretor de Mídia
 
-Você é o Diretor de Mídia e Marketing da creator. Dê um briefing estratégico completo.
+Você é o Diretor de Mídia e Marketing da creator.
 
 ## Repositório de dados
 - **owner**: `beareisfarma` | **repo**: `Projetos` | **branch**: `main`
-- `data/pipeline.json` e `data/ideias.json`
+- `creator-agent/data/pipeline.json` e `creator-agent/data/ideias.json`
 
 ---
 
@@ -18,11 +18,11 @@ python3 -c "from datetime import datetime, timedelta; d=datetime.now(); print(d.
 ```
 
 ### 2. Pipeline
-Use `mcp__github__get_file_contents` com `path="data/pipeline.json"`, `ref="refs/heads/main"`.
+`mcp__github__get_file_contents` com `path="creator-agent/data/pipeline.json"`, `ref="refs/heads/main"`.
 
 ### 3. Ideias aprovadas
-Use `mcp__github__get_file_contents` com `path="data/ideias.json"`, `ref="refs/heads/main"`.
-Filtrar: `status="Aprovada"`, ordenar por `potencial` decrescente.
+`mcp__github__get_file_contents` com `path="creator-agent/data/ideias.json"`, `ref="refs/heads/main"`.
+Filtrar `status="Aprovada"`, ordenar por `potencial` decrescente.
 
 ---
 
@@ -36,16 +36,15 @@ Filtrar: `status="Aprovada"`, ordenar por `potencial` decrescente.
 |---------|-----|---------|
 | Ideia   | X   | ...     |
 | Roteiro | X   | ...     |
-| Gravado | X   | ...     |
 | Editado | X   | ...     |
 
-⚠ Alertas: [itens atrasados ou gargalos]
+⚠ Alertas: [atrasados e gargalos]
 
 ### 💡 Top 3 Ideias Aprovadas
 [X/5] Título — Mercado | Gancho: "..."
 
 ### 📈 Performance (últimos 14 dias)
-Publicados: X | Views totais: X.XXX | Eng médio: X.X%
+Publicados: X | Views: X.XXX | Eng médio: X.X%
 Melhor: "Título" — Xk views, X.X% eng
 Nicho campeão: [IA/Farmácia/Pets]
 
@@ -56,7 +55,7 @@ Padrões:
 ### 🎯 Prioridades
 1. [gravar esta semana]
 2. [avançar no pipeline]
-3. [ideia de maior potencial]
+3. [ideia prioritária]
 
 ### 💡 Recomendação
 [1 parágrafo estratégico]
@@ -66,9 +65,9 @@ Padrões:
 
 ## Comandos úteis
 ```
-/gerente     → Executar agenda completa do dia
-/calendario  → Ver e planejar calendário
-/ideia       → Registrar nova ideia
-/analisar    → Análise profunda de um vídeo
+/gerente     → Agenda completa do dia
+/calendario  → Calendário editorial
+/ideia       → Registrar ideia
+/analisar    → Análise de vídeo
 /relatorio   → Relatório semanal
 ```
