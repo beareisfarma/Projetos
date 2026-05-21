@@ -54,30 +54,46 @@ _MAPA_DIAS = {
 }
 
 
+def _dia_idx(token):
+    """Converte um token unico em indice de dia (0..6) ou None."""
+    token = token.replace("-feira", "").replace("feira", "").strip()
+    if token in _MAPA_DIAS:
+        return _MAPA_DIAS[token]
+    if token[:3] in _MAPA_DIAS:
+        return _MAPA_DIAS[token[:3]]
+    return None
+
+
 def parse_dias(texto):
     """Converte texto livre em conjunto de indices de dia da semana (0=Seg..6=Dom)."""
     n = normalizar(texto)
     if not n or n in ("todos", "qualquer", "todos os dias", "qualquer dia", "*"):
         return {0, 1, 2, 3, 4, 5, 6}
-    if "util" in n or "uteis" in n or "comercial" in n or "semana" in n and "fim" not in n:
-        return {0, 1, 2, 3, 4}
     if "fim de semana" in n or "fds" in n:
         return {5, 6}
+    if "util" in n or "uteis" in n or "comercial" in n or ("semana" in n and "fim" not in n):
+        return {0, 1, 2, 3, 4}
+    # intervalo "<dia> a <dia>" (ex.: "segunda a sexta", "seg-sex")
+    faixa = re.search(r"([a-z]+)\s*(?:a|ate|-|–)\s*([a-z]+)", n)
+    if faixa:
+        ini, fim = _dia_idx(faixa.group(1)), _dia_idx(faixa.group(2))
+        if ini is not None and fim is not None:
+            seq, i = [], ini
+            while True:
+                seq.append(i)
+                if i == fim or len(seq) > 7:
+                    break
+                i = (i + 1) % 7
+            return set(seq)
+    # lista separada por virgula/ponto-e-virgula/barra ou conector "e"
     dias = set()
-    # tokeniza por separadores comuns
-    for token in re.split(r"[,;/|e\s]+", n):
+    for token in re.split(r"[,;/|]+|\s+", n):
         token = token.strip()
-        if not token:
+        if not token or token == "e":
             continue
-        # remove sufixo "-feira"
-        token = token.replace("-feira", "").replace("feira", "")
-        if token in _MAPA_DIAS:
-            dias.add(_MAPA_DIAS[token])
-        else:
-            # tenta prefixo de 3 letras
-            chave = token[:3]
-            if chave in _MAPA_DIAS:
-                dias.add(_MAPA_DIAS[chave])
+        idx = _dia_idx(token)
+        if idx is not None:
+            dias.add(idx)
     return dias if dias else {0, 1, 2, 3, 4, 5, 6}
 
 
@@ -215,13 +231,18 @@ _ALIASES = {
 }
 
 
+def _canon_col(s):
+    """Normaliza nome de coluna: sem acento, minusculo, _/-/espacos unificados."""
+    return re.sub(r"[\s_\-]+", " ", normalizar(s)).strip()
+
+
 def _mapear_colunas(cabecalho):
     mapa = {}
-    norm = {normalizar(c): c for c in cabecalho}
+    norm = {_canon_col(c): c for c in cabecalho}
     for campo, nomes in _ALIASES.items():
         for nome in nomes:
-            if nome in norm:
-                mapa[campo] = norm[nome]
+            if _canon_col(nome) in norm:
+                mapa[campo] = norm[_canon_col(nome)]
                 break
     return mapa
 

@@ -1,0 +1,11 @@
+nome,especialidade,frequencia,endereco,bairro,melhor_dia,turno,dias_desde_a_ultima_visita,cat
+Dr. Ana Cardoso,Cardiologia,4,"Av. Paulista 1000, São Paulo - SP",Bela Vista,"seg,qua",manhã,45,A
+Dr. Bruno Endo,Endocrinologia,3,"R. Augusta 500, São Paulo - SP",Consolação,ter,tarde,12,A
+Dra. Carla Geriatra,Geriatria,2,"R. Haddock Lobo 300, São Paulo - SP",Cerqueira César,qui,,60,B
+Dr. Diego Clínico,Clínica Geral,6,"Av. Rebouças 2000, São Paulo - SP",Pinheiros,,,5,B
+Dra. Elisa Derma,Dermatologia,2,"R. dos Pinheiros 100, São Paulo - SP",Pinheiros,sex,manhã,0,C
+Dr. Fábio Cardio,Cardiologia,5,"Av. Brasil 700, São Paulo - SP",Jardim América,"qua,sex",,35,A
+Dr. Gustavo Clínico,Clínica Geral,3,"R. Oscar Freire 800, São Paulo - SP",Cerqueira César,,tarde,20,B
+Dra. Helena Endo,Endocrinologia,4,"Av. Paulista 1500, São Paulo - SP",Bela Vista,seg,,40,A
+Dr. Ivo Orto,Ortopedia,2,"R. Augusta 900, São Paulo - SP",Consolação,,manhã,8,C
+Dra. Julia Geriatra,Geriatria,3,"R. Teodoro Sampaio 400, São Paulo - SP",Pinheiros,"ter,qui",,33,B

@@ -3,3 +3,7 @@
 .mcp.json
 Roteirizador/.cache_geocode.json
 Roteirizador/rotas_geradas.csv
+Roteirizador/agenda_visitacao.xlsx
+Roteirizador/agenda_visitacao_*.csv
+__pycache__/
+*.pyc
