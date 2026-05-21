@@ -1,0 +1,9 @@
+nome,endereco,latitude,longitude,dias,janela,duracao
+Farmácia Centro,"Praça da Sé, São Paulo - SP",-23.550520,-46.633308,"seg,qua,sex",08:00-12:00,30
+Drogaria Paulista,"Av. Paulista 1000, São Paulo - SP",-23.561414,-46.655881,"seg,ter,qua,qui,sex",comercial,30
+Posto Liberdade,"R. Galvão Bueno 500, São Paulo - SP",-23.557000,-46.635000,"ter,qui",13:00-18:00,20
+Clínica Pinheiros,"R. dos Pinheiros 200, São Paulo - SP",-23.566000,-46.693000,"seg,qua,sex",manhã,45
+Mercado Vila Mariana,"R. Domingos de Morais 1500, São Paulo - SP",-23.589000,-46.634000,"qua,qui,sex",08:00-17:00,25
+Loja Moema,"Av. Ibirapuera 2000, São Paulo - SP",-23.601000,-46.665000,"ter,qui",tarde,30
+Depósito Brás,"R. Mendes Júnior 100, São Paulo - SP",-23.539000,-46.616000,uteis,comercial,15
+Filial Lapa,"R. Clélia 800, São Paulo - SP",-23.524000,-46.703000,"seg,qua",08:00-13:00,30
