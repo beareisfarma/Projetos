@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cronômetro de Jogos</title>
+<meta name="theme-color" content="#0f1117">
+<style>
+  :root{
+    --bg:#0f1117;
+    --bg2:#171a23;
+    --card:#1d212c;
+    --border:rgba(255,255,255,0.08);
+    --text:#f1f2f6;
+    --muted:#8a8fa3;
+    --accent:#5b8cff;
+    --accent2:#ff8a5b;
+    --danger:#ff5b6e;
+    --ok:#4fd18b;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f4f5f8;
+      --bg2:#ffffff;
+      --card:#ffffff;
+      --border:rgba(0,0,0,0.08);
+      --text:#14161f;
+      --muted:#5b5f70;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior:none;
+  }
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:1rem 1rem 2.5rem;
+    min-height:100dvh;
+  }
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:.5rem 0 1rem;
+  }
+  header h1{
+    font-size:1.05rem;
+    font-weight:700;
+    letter-spacing:.02em;
+    margin:0;
+  }
+  .icon-btn{
+    background:var(--card);
+    border:1px solid var(--border);
+    color:var(--text);
+    width:2.5rem;height:2.5rem;
+    border-radius:.7rem;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.15rem;
+    cursor:pointer;
+  }
+  .tabs{
+    display:flex;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:1rem;
+    padding:.25rem;
+    gap:.25rem;
+    margin-bottom:1rem;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:.65rem .5rem;
+    border-radius:.75rem;
+    font-weight:600;
+    font-size:.9rem;
+    color:var(--muted);
+    cursor:pointer;
+    border:none;
+    background:transparent;
+  }
+  .tab.active{
+    background:var(--accent);
+    color:#fff;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:1.25rem;
+    padding:1.25rem;
+    margin-bottom:1rem;
+  }
+  .display{
+    text-align:center;
+    padding:1.75rem 0 1.25rem;
+  }
+  .time{
+    font-variant-numeric:tabular-nums;
+    font-size:min(19vw,4.6rem);
+    font-weight:700;
+    letter-spacing:.02em;
+    line-height:1;
+  }
+  .time.pulse{
+    color:var(--danger);
+  }
+  .subtext{
+    color:var(--muted);
+    font-size:.85rem;
+    margin-top:.6rem;
+    min-height:1.1rem;
+  }
+  .progress-ring-wrap{
+    display:flex;justify-content:center;margin-bottom:.5rem;
+  }
+  .duration-setter{
+    display:flex;align-items:center;justify-content:center;gap:.5rem;
+    margin-bottom:.75rem;
+  }
+  .num-input{
+    width:4.2rem;
+    text-align:center;
+    font-size:1.4rem;
+    font-weight:700;
+    background:var(--bg2);
+    border:1px solid var(--border);
+    border-radius:.6rem;
+    color:var(--text);
+    padding:.4rem 0;
+  }
+  .colon{font-size:1.4rem;font-weight:700;color:var(--muted);}
+  .presets{
+    display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;
+    margin-bottom:.5rem;
+  }
+  .chip{
+    background:var(--bg2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:.4rem .8rem;
+    border-radius:999px;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .chip.active{ background:var(--accent); color:#fff; border-color:var(--accent);}
+  .controls{
+    display:flex;gap:.75rem;margin-top:1rem;
+  }
+  .btn{
+    flex:1;
+    border:none;
+    border-radius:1rem;
+    padding:1rem;
+    font-size:1.05rem;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary.running{ background:var(--danger); }
+  .btn-secondary{
+    background:var(--bg2);
+    color:var(--text);
+    border:1px solid var(--border);
+  }
+  .settings{
+    display:none;
+  }
+  .settings.open{ display:block; }
+  .settings h3{
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--muted);
+    margin:1.1rem 0 .5rem;
+  }
+  .settings h3:first-child{ margin-top:0; }
+  .row{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:.75rem;
+    padding:.6rem 0;
+  }
+  .row .label{ font-size:.92rem; }
+  .row .hint{ font-size:.75rem; color:var(--muted); margin-top:.15rem;}
+  .switch{
+    position:relative;width:2.9rem;height:1.6rem;flex:none;
+  }
+  .switch input{ opacity:0;width:0;height:0; }
+  .slider-toggle{
+    position:absolute;inset:0;
+    background:var(--bg2);
+    border:1px solid var(--border);
+    border-radius:999px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .slider-toggle:before{
+    content:"";
+    position:absolute;
+    height:1.15rem;width:1.15rem;
+    left:.2rem;top:.19rem;
+    background:var(--muted);
+    border-radius:50%;
+    transition:.15s;
+  }
+  input:checked + .slider-toggle{ background:var(--accent); border-color:var(--accent);}
+  input:checked + .slider-toggle:before{ transform:translateX(1.3rem); background:#fff; }
+  .small-input{
+    width:3.6rem;
+    text-align:center;
+    background:var(--bg2);
+    border:1px solid var(--border);
+    border-radius:.5rem;
+    color:var(--text);
+    padding:.35rem 0;
+    font-size:.95rem;
+  }
+  .alert-list{
+    display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0;
+  }
+  .alert-chip{
+    background:var(--bg2);
+    border:1px solid var(--border);
+    padding:.35rem .5rem .35rem .75rem;
+    border-radius:999px;
+    font-size:.85rem;
+    display:flex;align-items:center;gap:.4rem;
+  }
+  .alert-chip button{
+    background:none;border:none;color:var(--muted);
+    cursor:pointer;font-size:.95rem;line-height:1;padding:0 .1rem;
+  }
+  .add-alert{
+    display:flex;gap:.5rem;
+  }
+  .add-alert input{
+    flex:1;
+    background:var(--bg2);
+    border:1px solid var(--border);
+    border-radius:.6rem;
+    color:var(--text);
+    padding:.55rem .7rem;
+    font-size:.95rem;
+  }
+  .add-alert button{
+    background:var(--accent);
+    color:#fff;border:none;border-radius:.6rem;
+    padding:.55rem 1rem;font-weight:700;cursor:pointer;
+  }
+  input[type=range]{ width:100%; accent-color:var(--accent); }
+  .test-btn{
+    background:var(--bg2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:.6rem;
+    padding:.4rem .7rem;
+    font-size:.8rem;
+    cursor:pointer;
+  }
+  footer{
+    text-align:center;color:var(--muted);font-size:.75rem;margin-top:1.5rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎲 Cronômetro de Jogos</h1>
+    <button class="icon-btn" id="settingsToggle" aria-label="Configurações">⚙️</button>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tabStopwatch">Cronômetro (crescente)</button>
+    <button class="tab" id="tabCountdown">Temporizador (regressivo)</button>
+  </div>
+
+  <div class="card">
+    <div id="countdownSetup">
+      <div class="duration-setter">
+        <input class="num-input" id="minInput" type="tel" inputmode="numeric" maxlength="3" value="5">
+        <span class="colon">:</span>
+        <input class="num-input" id="secInput" type="tel" inputmode="numeric" maxlength="2" value="00">
+      </div>
+      <div class="presets" id="presets">
+        <button class="chip" data-sec="60">1 min</button>
+        <button class="chip" data-sec="180">3 min</button>
+        <button class="chip active" data-sec="300">5 min</button>
+        <button class="chip" data-sec="600">10 min</button>
+        <button class="chip" data-sec="900">15 min</button>
+        <button class="chip" data-sec="1800">30 min</button>
+      </div>
+    </div>
+
+    <div class="display">
+      <div class="time" id="timeDisplay">05:00</div>
+      <div class="subtext" id="subText">Pronto para começar</div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="startBtn">Iniciar</button>
+      <button class="btn btn-secondary" id="resetBtn">Zerar</button>
+    </div>
+  </div>
+
+  <div class="card settings" id="settingsPanel">
+    <div id="countdownSettings">
+      <h3>Alertas em pontos específicos (temporizador)</h3>
+      <p class="row hint" style="padding:0 0 .3rem;">Toca um bipe quando faltar X segundos para acabar.</p>
+      <div class="alert-list" id="countdownAlertList"></div>
+      <div class="add-alert">
+        <input type="number" id="countdownAlertInput" placeholder="segundos restantes, ex: 10" min="1">
+        <button id="addCountdownAlert">Adicionar</button>
+      </div>
+
+      <h3>Contagem regressiva sonora (tick-tick-tick)</h3>
+      <div class="row">
+        <div>
+          <div class="label">Bipar a cada segundo no final</div>
+          <div class="hint">Ex: nos últimos 5 segundos, um bipe por segundo</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="finalTickEnabled" checked>
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+      <div class="row">
+        <div class="label">Últimos quantos segundos?</div>
+        <input class="small-input" type="number" id="finalTickSeconds" value="5" min="1" max="30">
+      </div>
+      <div class="row">
+        <div class="label">Alarme sonoro ao zerar</div>
+        <label class="switch">
+          <input type="checkbox" id="zeroAlarmEnabled" checked>
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+    </div>
+
+    <div id="stopwatchSettings" style="display:none;">
+      <h3>Alerta a cada intervalo (cronômetro)</h3>
+      <div class="row">
+        <div class="label">Bipar a cada X segundos</div>
+        <label class="switch">
+          <input type="checkbox" id="intervalEnabled">
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+      <div class="row">
+        <div class="label">Intervalo (segundos)</div>
+        <input class="small-input" type="number" id="intervalSeconds" value="60" min="1">
+      </div>
+
+      <h3>Alertas em momentos específicos</h3>
+      <p class="row hint" style="padding:0 0 .3rem;">Toca um bipe quando o cronômetro atingir X segundos.</p>
+      <div class="alert-list" id="stopwatchAlertList"></div>
+      <div class="add-alert">
+        <input type="number" id="stopwatchAlertInput" placeholder="segundos, ex: 90" min="1">
+        <button id="addStopwatchAlert">Adicionar</button>
+      </div>
+    </div>
+
+    <h3>Som</h3>
+    <div class="row">
+      <div class="label">Volume</div>
+      <button class="test-btn" id="testSound">Testar 🔊</button>
+    </div>
+    <input type="range" id="volumeSlider" min="0" max="100" value="70">
+    <div class="row">
+      <div class="label">Vibrar (celular)</div>
+      <label class="switch">
+        <input type="checkbox" id="vibrateEnabled" checked>
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+  </div>
+
+  <footer>Feito para durar a noite toda de jogo 🎲</footer>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  // ---------- Persisted settings ----------
+  const DEFAULTS = {
+    mode: 'countdown',
+    durationSec: 300,
+    countdownAlerts: [30, 10],
+    finalTickEnabled: true,
+    finalTickSeconds: 5,
+    zeroAlarmEnabled: true,
+    intervalEnabled: false,
+    intervalSeconds: 60,
+    stopwatchAlerts: [],
+    volume: 70,
+    vibrateEnabled: true,
+  };
+  let settings;
+  try {
+    settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('bgtimer_settings') || '{}') };
+  } catch (e) { settings = { ...DEFAULTS }; }
+
+  function saveSettings() {
+    localStorage.setItem('bgtimer_settings', JSON.stringify(settings));
+  }
+
+  // ---------- Audio ----------
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function tone(freq, startOffset, duration, type = 'sine', peakGain = 0.3) {
+    const ctx = ensureAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const vol = (settings.volume / 100) * peakGain;
+    const t0 = ctx.currentTime + startOffset;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.02);
+  }
+
+  function vibrate(pattern) {
+    if (settings.vibrateEnabled && navigator.vibrate) navigator.vibrate(pattern);
+  }
+
+  // distinct sound: normal alert (custom checkpoint)
+  function playAlertSound() {
+    tone(880, 0, 0.12, 'sine', 0.35);
+    tone(1175, 0.14, 0.14, 'sine', 0.35);
+    vibrate([80, 60, 80]);
+  }
+  // distinct sound: final countdown tick, pitch rises as it gets closer to zero
+  function playTickSound(remaining, totalTicks) {
+    const progress = totalTicks > 1 ? (totalTicks - remaining) / (totalTicks - 1) : 1;
+    const freq = 700 + progress * 500;
+    tone(freq, 0, 0.09, 'square', 0.22);
+    vibrate(40);
+  }
+  // distinct sound: zero / end alarm
+  function playAlarmSound() {
+    tone(660, 0, 0.18, 'sawtooth', 0.4);
+    tone(660, 0.22, 0.18, 'sawtooth', 0.4);
+    tone(880, 0.44, 0.35, 'sawtooth', 0.45);
+    vibrate([150, 80, 150, 80, 300]);
+  }
+
+  // ---------- Timer core ----------
+  let mode = settings.mode === 'stopwatch' ? 'stopwatch' : 'countdown';
+  let running = false;
+  let startTs = 0;
+  let elapsedBeforePause = 0;
+  let rafId = null;
+  let lastWholeSecond = null;
+  let triggeredCountdownAlerts = new Set();
+  let triggeredStopwatchAlerts = new Set();
+
+  const timeDisplay = $('timeDisplay');
+  const subText = $('subText');
+  const startBtn = $('startBtn');
+  const resetBtn = $('resetBtn');
+  const countdownSetup = $('countdownSetup');
+
+  function fmt(totalSec) {
+    totalSec = Math.max(0, Math.round(totalSec));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    const pad = n => String(n).padStart(2, '0');
+    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  }
+
+  function currentDurationSec() {
+    return settings.durationSec;
+  }
+
+  function updateStaticDisplay() {
+    if (mode === 'countdown') {
+      timeDisplay.textContent = fmt(currentDurationSec());
+    } else {
+      timeDisplay.textContent = '00:00';
+    }
+  }
+
+  function loop() {
+    if (!running) return;
+    const now = Date.now();
+    const elapsedMs = elapsedBeforePause + (now - startTs);
+
+    let displaySec, secondsForLogic, done = false;
+    if (mode === 'stopwatch') {
+      secondsForLogic = Math.floor(elapsedMs / 1000);
+      displaySec = secondsForLogic;
+    } else {
+      const remainingMs = currentDurationSec() * 1000 - elapsedMs;
+      if (remainingMs <= 0) {
+        secondsForLogic = 0;
+        displaySec = 0;
+        done = true;
+      } else {
+        secondsForLogic = Math.ceil(remainingMs / 1000);
+        displaySec = secondsForLogic;
+      }
+    }
+
+    timeDisplay.textContent = fmt(displaySec);
+
+    if (secondsForLogic !== lastWholeSecond) {
+      lastWholeSecond = secondsForLogic;
+      handleSecondTick(secondsForLogic);
+    }
+
+    if (mode === 'countdown') {
+      timeDisplay.classList.toggle('pulse', settings.finalTickEnabled && secondsForLogic > 0 && secondsForLogic <= settings.finalTickSeconds);
+    }
+
+    if (done) {
+      running = false;
+      timeDisplay.classList.remove('pulse');
+      if (settings.zeroAlarmEnabled) playAlarmSound();
+      subText.textContent = 'Tempo esgotado!';
+      startBtn.textContent = 'Iniciar';
+      startBtn.classList.remove('running');
+      updateResetVisibility();
+      return;
+    }
+
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function handleSecondTick(sec) {
+    if (mode === 'countdown') {
+      if (settings.countdownAlerts.includes(sec) && !triggeredCountdownAlerts.has(sec)) {
+        triggeredCountdownAlerts.add(sec);
+        playAlertSound();
+      }
+      if (settings.finalTickEnabled && sec > 0 && sec <= settings.finalTickSeconds) {
+        playTickSound(sec, settings.finalTickSeconds);
+      }
+    } else {
+      if (settings.intervalEnabled && sec > 0 && settings.intervalSeconds > 0 && sec % settings.intervalSeconds === 0) {
+        playAlertSound();
+      }
+      if (settings.stopwatchAlerts.includes(sec) && !triggeredStopwatchAlerts.has(sec)) {
+        triggeredStopwatchAlerts.add(sec);
+        playAlertSound();
+      }
+    }
+  }
+
+  function start() {
+    ensureAudio();
+    if (running) return;
+    running = true;
+    startTs = Date.now();
+    lastWholeSecond = mode === 'countdown' ? currentDurationSec() : -1;
+    startBtn.textContent = 'Pausar';
+    startBtn.classList.add('running');
+    subText.textContent = mode === 'countdown' ? 'Contando regressivamente…' : 'Contando…';
+    countdownSetup.style.pointerEvents = 'none';
+    countdownSetup.style.opacity = '0.5';
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function pause() {
+    running = false;
+    cancelAnimationFrame(rafId);
+    const now = Date.now();
+    elapsedBeforePause += (now - startTs);
+    startBtn.textContent = 'Continuar';
+    startBtn.classList.remove('running');
+    subText.textContent = 'Pausado';
+  }
+
+  function reset() {
+    running = false;
+    cancelAnimationFrame(rafId);
+    elapsedBeforePause = 0;
+    lastWholeSecond = null;
+    triggeredCountdownAlerts.clear();
+    triggeredStopwatchAlerts.clear();
+    timeDisplay.classList.remove('pulse');
+    startBtn.textContent = 'Iniciar';
+    startBtn.classList.remove('running');
+    subText.textContent = 'Pronto para começar';
+    countdownSetup.style.pointerEvents = '';
+    countdownSetup.style.opacity = '';
+    updateStaticDisplay();
+    updateResetVisibility();
+  }
+
+  function updateResetVisibility() {
+    resetBtn.style.display = (elapsedBeforePause > 0 || running) ? '' : 'none';
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (running) pause();
+    else start();
+    updateResetVisibility();
+  });
+  resetBtn.addEventListener('click', reset);
+
+  // ---------- Mode switch ----------
+  const tabStopwatch = $('tabStopwatch');
+  const tabCountdown = $('tabCountdown');
+  const countdownSettings = $('countdownSettings');
+  const stopwatchSettings = $('stopwatchSettings');
+
+  function setMode(newMode) {
+    reset();
+    mode = newMode;
+    settings.mode = newMode;
+    saveSettings();
+    tabStopwatch.classList.toggle('active', mode === 'stopwatch');
+    tabCountdown.classList.toggle('active', mode === 'countdown');
+    countdownSetup.style.display = mode === 'countdown' ? '' : 'none';
+    countdownSettings.style.display = mode === 'countdown' ? '' : 'none';
+    stopwatchSettings.style.display = mode === 'stopwatch' ? '' : 'none';
+    updateStaticDisplay();
+  }
+  tabStopwatch.addEventListener('click', () => setMode('stopwatch'));
+  tabCountdown.addEventListener('click', () => setMode('countdown'));
+
+  // ---------- Duration setup (countdown) ----------
+  const minInput = $('minInput');
+  const secInput = $('secInput');
+  const presets = $('presets');
+
+  function applyDurationFromInputs() {
+    let m = parseInt(minInput.value, 10) || 0;
+    let s = parseInt(secInput.value, 10) || 0;
+    if (s > 59) s = 59;
+    settings.durationSec = Math.max(1, m * 60 + s);
+    saveSettings();
+    updateStaticDisplay();
+    presets.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', parseInt(c.dataset.sec, 10) === settings.durationSec));
+  }
+  minInput.addEventListener('change', applyDurationFromInputs);
+  secInput.addEventListener('change', applyDurationFromInputs);
+
+  presets.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const sec = parseInt(chip.dataset.sec, 10);
+    settings.durationSec = sec;
+    saveSettings();
+    minInput.value = Math.floor(sec / 60);
+    secInput.value = String(sec % 60).padStart(2, '0');
+    presets.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    updateStaticDisplay();
+  });
+
+  // ---------- Settings panel ----------
+  const settingsPanel = $('settingsPanel');
+  $('settingsToggle').addEventListener('click', () => {
+    settingsPanel.classList.toggle('open');
+  });
+
+  function renderAlertChips(listEl, arr, onRemove) {
+    listEl.innerHTML = '';
+    arr.slice().sort((a, b) => a - b).forEach(sec => {
+      const chip = document.createElement('div');
+      chip.className = 'alert-chip';
+      chip.innerHTML = `<span>${sec}s</span>`;
+      const btn = document.createElement('button');
+      btn.textContent = '✕';
+      btn.addEventListener('click', () => onRemove(sec));
+      chip.appendChild(btn);
+      listEl.appendChild(chip);
+    });
+    if (arr.length === 0) {
+      listEl.innerHTML = '<span class="row hint" style="padding:0;">Nenhum alerta configurado</span>';
+    }
+  }
+
+  function refreshCountdownAlerts() {
+    renderAlertChips($('countdownAlertList'), settings.countdownAlerts, sec => {
+      settings.countdownAlerts = settings.countdownAlerts.filter(v => v !== sec);
+      saveSettings();
+      refreshCountdownAlerts();
+    });
+  }
+  function refreshStopwatchAlerts() {
+    renderAlertChips($('stopwatchAlertList'), settings.stopwatchAlerts, sec => {
+      settings.stopwatchAlerts = settings.stopwatchAlerts.filter(v => v !== sec);
+      saveSettings();
+      refreshStopwatchAlerts();
+    });
+  }
+
+  $('addCountdownAlert').addEventListener('click', () => {
+    const input = $('countdownAlertInput');
+    const v = parseInt(input.value, 10);
+    if (v > 0 && !settings.countdownAlerts.includes(v)) {
+      settings.countdownAlerts.push(v);
+      saveSettings();
+      refreshCountdownAlerts();
+    }
+    input.value = '';
+  });
+  $('addStopwatchAlert').addEventListener('click', () => {
+    const input = $('stopwatchAlertInput');
+    const v = parseInt(input.value, 10);
+    if (v > 0 && !settings.stopwatchAlerts.includes(v)) {
+      settings.stopwatchAlerts.push(v);
+      saveSettings();
+      refreshStopwatchAlerts();
+    }
+    input.value = '';
+  });
+
+  $('finalTickEnabled').addEventListener('change', e => {
+    settings.finalTickEnabled = e.target.checked;
+    saveSettings();
+  });
+  $('finalTickSeconds').addEventListener('change', e => {
+    settings.finalTickSeconds = Math.max(1, parseInt(e.target.value, 10) || 5);
+    e.target.value = settings.finalTickSeconds;
+    saveSettings();
+  });
+  $('zeroAlarmEnabled').addEventListener('change', e => {
+    settings.zeroAlarmEnabled = e.target.checked;
+    saveSettings();
+  });
+  $('intervalEnabled').addEventListener('change', e => {
+    settings.intervalEnabled = e.target.checked;
+    saveSettings();
+  });
+  $('intervalSeconds').addEventListener('change', e => {
+    settings.intervalSeconds = Math.max(1, parseInt(e.target.value, 10) || 60);
+    e.target.value = settings.intervalSeconds;
+    saveSettings();
+  });
+  $('volumeSlider').addEventListener('input', e => {
+    settings.volume = parseInt(e.target.value, 10);
+    saveSettings();
+  });
+  $('vibrateEnabled').addEventListener('change', e => {
+    settings.vibrateEnabled = e.target.checked;
+    saveSettings();
+  });
+  $('testSound').addEventListener('click', () => {
+    ensureAudio();
+    playAlertSound();
+  });
+
+  // ---------- Init ----------
+  function init() {
+    minInput.value = Math.floor(settings.durationSec / 60);
+    secInput.value = String(settings.durationSec % 60).padStart(2, '0');
+    presets.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', parseInt(c.dataset.sec, 10) === settings.durationSec));
+
+    $('finalTickEnabled').checked = settings.finalTickEnabled;
+    $('finalTickSeconds').value = settings.finalTickSeconds;
+    $('zeroAlarmEnabled').checked = settings.zeroAlarmEnabled;
+    $('intervalEnabled').checked = settings.intervalEnabled;
+    $('intervalSeconds').value = settings.intervalSeconds;
+    $('volumeSlider').value = settings.volume;
+    $('vibrateEnabled').checked = settings.vibrateEnabled;
+
+    refreshCountdownAlerts();
+    refreshStopwatchAlerts();
+
+    tabStopwatch.classList.toggle('active', mode === 'stopwatch');
+    tabCountdown.classList.toggle('active', mode === 'countdown');
+    countdownSetup.style.display = mode === 'countdown' ? '' : 'none';
+    countdownSettings.style.display = mode === 'countdown' ? '' : 'none';
+    stopwatchSettings.style.display = mode === 'stopwatch' ? '' : 'none';
+
+    updateStaticDisplay();
+    updateResetVisibility();
+  }
+  init();
+
+  // Prevent screen text selection during rapid taps
+  document.addEventListener('touchmove', e => {
+    if (e.target.closest('input[type=range]')) return;
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
