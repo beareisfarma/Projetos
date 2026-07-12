@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Cronômetro de Jogos</title>
 <meta name="theme-color" content="#0a0a0a">
+<meta name="color-scheme" content="dark">
 <style>
   :root{
     --bg:#0a0a0a;
@@ -19,16 +20,7 @@
     --danger:#ff2d2d;
     --ok:#00e676;
   }
-  @media (prefers-color-scheme: light){
-    :root{
-      --bg:#f2f2f0;
-      --bg2:#ffffff;
-      --card:#ffffff;
-      --border:rgba(0,0,0,0.14);
-      --text:#0a0a0a;
-      --muted:#5a5a5a;
-    }
-  }
+  /* Always dark — this look tested better than switching with system theme. */
   *{box-sizing:border-box;}
   html,body{
     margin:0;padding:0;
