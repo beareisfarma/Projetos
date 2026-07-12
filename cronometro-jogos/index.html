@@ -110,9 +110,57 @@
     align-items:center;
     justify-content:center;
   }
+  .stopwatch-frame{
+    position:relative;
+    width:min(66vw,52vh,300px);
+    aspect-ratio:1/1;
+  }
+  .stopwatch-svg{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    overflow:visible;
+  }
+  .sw-ring-outer{
+    fill:var(--bg2);
+    stroke:var(--accent);
+    stroke-width:4;
+    filter:drop-shadow(0 6px 20px rgba(0,0,0,.28));
+    transition:stroke .25s;
+  }
+  .sw-ring-inner{
+    fill:none;
+    stroke:var(--border);
+    stroke-width:1.5;
+  }
+  .sw-ticks line{
+    stroke:var(--muted);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    opacity:.6;
+  }
+  .sw-crown, .sw-btn{
+    fill:var(--muted);
+    transition:fill .25s;
+  }
+  .stopwatch-frame.running .sw-ring-outer{ stroke:var(--ok); }
+  .stopwatch-frame.danger .sw-ring-outer{ stroke:var(--danger); }
+  .stopwatch-frame.danger .sw-crown,
+  .stopwatch-frame.danger .sw-btn{ fill:var(--danger); }
+  .time-wrap{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:0 14%;
+  }
   .time{
     font-variant-numeric:tabular-nums;
-    font-size:min(22vw,34vh,7rem);
+    font-size:min(14vw,11vh,3.2rem);
     font-weight:700;
     letter-spacing:.02em;
     line-height:1;
@@ -122,12 +170,9 @@
   }
   .subtext{
     color:var(--muted);
-    font-size:.85rem;
+    font-size:.8rem;
     margin-top:.6rem;
     min-height:1.1rem;
-  }
-  .progress-ring-wrap{
-    display:flex;justify-content:center;margin-bottom:.5rem;
   }
   .duration-setter{
     display:flex;align-items:center;justify-content:center;gap:.5rem;
@@ -299,9 +344,8 @@
     margin-bottom:0;
   }
   body.focus .display{ padding:0; }
-  body.focus .time{
-    font-size:min(42vw,50vh);
-  }
+  body.focus .stopwatch-frame{ width:min(82vw,66vh,640px); }
+  body.focus .time{ font-size:min(19vw,15vh,7rem); }
   body.focus .subtext{ font-size:1rem; }
   body.focus .controls{ padding-bottom:.5rem; }
 
@@ -312,8 +356,10 @@
     .tabs{ margin-bottom:.5rem; }
     .card{ padding:.85rem 1.25rem; margin-bottom:.5rem; }
     .display{ padding:.5rem 0; }
-    .time{ font-size:min(16vw,44vh); }
-    body.focus .time{ font-size:min(38vw,68vh); }
+    .stopwatch-frame{ width:min(42vw,78vh,280px); }
+    .time{ font-size:min(9vw,13vh,2.6rem); }
+    body.focus .stopwatch-frame{ width:min(62vw,80vh,520px); }
+    body.focus .time{ font-size:min(15vw,20vh,6rem); }
   }
 </style>
 </head>
@@ -350,8 +396,33 @@
     </div>
 
     <div class="display">
-      <div class="time" id="timeDisplay">05:00</div>
-      <div class="subtext" id="subText">Pronto para começar</div>
+      <div class="stopwatch-frame" id="stopwatchFrame">
+        <svg class="stopwatch-svg" viewBox="0 0 200 200" aria-hidden="true">
+          <rect class="sw-btn" x="34" y="14" width="26" height="16" rx="5" transform="rotate(-40 47 22)"/>
+          <rect class="sw-btn" x="140" y="14" width="26" height="16" rx="5" transform="rotate(40 153 22)"/>
+          <rect class="sw-crown" x="86" y="2" width="28" height="20" rx="6"/>
+          <circle class="sw-ring-outer" cx="100" cy="100" r="90"/>
+          <circle class="sw-ring-inner" cx="100" cy="100" r="80"/>
+          <g class="sw-ticks">
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(0 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(30 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(60 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(90 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(120 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(150 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(180 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(210 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(240 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(270 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(300 100 100)"/>
+            <line x1="100" y1="16" x2="100" y2="28" transform="rotate(330 100 100)"/>
+          </g>
+        </svg>
+        <div class="time-wrap">
+          <div class="time" id="timeDisplay">05:00</div>
+          <div class="subtext" id="subText">Pronto para começar</div>
+        </div>
+      </div>
     </div>
 
     <div class="controls">
@@ -498,24 +569,24 @@
     tone(1175, 0.16, 0.16, 'square', 0.5);
     vibrate([100, 60, 100]);
   }
-  // distinct sound: final countdown tick, pitch rises as it gets closer to zero
-  function playTickSound(remaining, totalTicks) {
-    const progress = totalTicks > 1 ? (totalTicks - remaining) / (totalTicks - 1) : 1;
-    const freq = 700 + progress * 500;
-    tone(freq, 0, 0.11, 'square', 0.4);
-    vibrate(60);
+  // distinct sound: final countdown tick — same fixed tone every second, no pitch drift
+  function playTickSound() {
+    tone(900, 0, 0.11, 'square', 0.45);
+    vibrate(70);
   }
-  // distinct sound: zero / end alarm — loud, harsh, insistent siren-style blast
+  // distinct sound: zero / end alarm — loud, harsh, insistent siren, ending in the
+  // strongest, longest punch of the whole app so it clearly reads as "finished"
   function playAlarmSound() {
-    const notes = [988, 740, 988, 740, 988, 740, 1319];
+    const notes = [988, 740, 988, 740, 988, 740];
     let t = 0;
-    notes.forEach((freq, i) => {
-      const isLast = i === notes.length - 1;
-      tone(freq, t, isLast ? 0.5 : 0.24, 'sawtooth', 0.75);
-      tone(freq / 2, t, isLast ? 0.5 : 0.24, 'square', 0.4);
-      t += isLast ? 0 : 0.26;
+    notes.forEach(freq => {
+      tone(freq, t, 0.22, 'sawtooth', 0.8);
+      tone(freq / 2, t, 0.22, 'square', 0.45);
+      t += 0.24;
     });
-    vibrate([220, 90, 220, 90, 220, 90, 220, 90, 500]);
+    tone(1319, t, 0.8, 'sawtooth', 0.95);
+    tone(660, t, 0.8, 'square', 0.6);
+    vibrate([220, 90, 220, 90, 220, 90, 220, 90, 650]);
   }
 
   // ---------- Timer core ----------
@@ -528,11 +599,14 @@
   let triggeredCountdownAlerts = new Set();
   let triggeredStopwatchAlerts = new Set();
 
+  const RED_THRESHOLD_SEC = 10;
+
   const timeDisplay = $('timeDisplay');
   const subText = $('subText');
   const startBtn = $('startBtn');
   const resetBtn = $('resetBtn');
   const countdownSetup = $('countdownSetup');
+  const stopwatchFrame = $('stopwatchFrame');
 
   function fmt(totalSec) {
     totalSec = Math.max(0, Math.round(totalSec));
@@ -584,12 +658,15 @@
     }
 
     if (mode === 'countdown') {
-      timeDisplay.classList.toggle('pulse', settings.finalTickEnabled && secondsForLogic > 0 && secondsForLogic <= settings.finalTickSeconds);
+      const isDanger = secondsForLogic > 0 && secondsForLogic <= RED_THRESHOLD_SEC;
+      timeDisplay.classList.toggle('pulse', isDanger);
+      stopwatchFrame.classList.toggle('danger', isDanger);
     }
 
     if (done) {
       running = false;
       timeDisplay.classList.remove('pulse');
+      stopwatchFrame.classList.remove('danger');
       if (settings.zeroAlarmEnabled) playAlarmSound();
       subText.textContent = 'Tempo esgotado!';
       startBtn.textContent = 'Iniciar';
@@ -608,7 +685,7 @@
         playAlertSound();
       }
       if (settings.finalTickEnabled && sec > 0 && sec <= settings.finalTickSeconds) {
-        playTickSound(sec, settings.finalTickSeconds);
+        playTickSound();
       }
     } else {
       if (settings.intervalEnabled && sec > 0 && settings.intervalSeconds > 0 && sec % settings.intervalSeconds === 0) {
@@ -629,6 +706,7 @@
     lastWholeSecond = mode === 'countdown' ? currentDurationSec() : -1;
     startBtn.textContent = 'Pausar';
     startBtn.classList.add('running');
+    stopwatchFrame.classList.add('running');
     subText.textContent = mode === 'countdown' ? 'Contando regressivamente…' : 'Contando…';
     countdownSetup.style.pointerEvents = 'none';
     countdownSetup.style.opacity = '0.5';
@@ -642,6 +720,7 @@
     elapsedBeforePause += (now - startTs);
     startBtn.textContent = 'Continuar';
     startBtn.classList.remove('running');
+    stopwatchFrame.classList.remove('running');
     subText.textContent = 'Pausado';
   }
 
@@ -655,6 +734,7 @@
     timeDisplay.classList.remove('pulse');
     startBtn.textContent = 'Iniciar';
     startBtn.classList.remove('running');
+    stopwatchFrame.classList.remove('running', 'danger');
     subText.textContent = 'Pronto para começar';
     countdownSetup.style.pointerEvents = '';
     countdownSetup.style.opacity = '';
