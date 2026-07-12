@@ -574,19 +574,40 @@
     tone(900, 0, 0.11, 'square', 0.45);
     vibrate(70);
   }
-  // distinct sound: zero / end alarm — loud, harsh, insistent siren, ending in the
-  // strongest, longest punch of the whole app so it clearly reads as "finished"
+  // distinct sound: zero / end alarm — a single loud, sustained "peeeeen" —
+  // one long held tone instead of a pattern, so it clearly reads as "finished"
   function playAlarmSound() {
-    const notes = [988, 740, 988, 740, 988, 740];
-    let t = 0;
-    notes.forEach(freq => {
-      tone(freq, t, 0.22, 'sawtooth', 0.8);
-      tone(freq / 2, t, 0.22, 'square', 0.45);
-      t += 0.24;
-    });
-    tone(1319, t, 0.8, 'sawtooth', 0.95);
-    tone(660, t, 0.8, 'square', 0.6);
-    vibrate([220, 90, 220, 90, 220, 90, 220, 90, 650]);
+    const ctx = ensureAudio();
+    const t0 = ctx.currentTime;
+    const dur = 1.5;
+    const vol = (settings.volume / 100) * 0.9;
+
+    const osc = ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.value = 880;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.03);
+    gain.gain.setValueAtTime(vol, t0 + dur - 0.18);
+    gain.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.05);
+
+    // a lower sub-tone layered underneath for extra weight/loudness
+    const sub = ctx.createOscillator();
+    sub.type = 'sawtooth';
+    sub.frequency.value = 440;
+    const subGain = ctx.createGain();
+    subGain.gain.setValueAtTime(0, t0);
+    subGain.gain.linearRampToValueAtTime(vol * 0.6, t0 + 0.03);
+    subGain.gain.setValueAtTime(vol * 0.6, t0 + dur - 0.18);
+    subGain.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+    sub.connect(subGain).connect(ctx.destination);
+    sub.start(t0);
+    sub.stop(t0 + dur + 0.05);
+
+    vibrate(Math.round(dur * 1000));
   }
 
   // ---------- Timer core ----------
@@ -653,8 +674,14 @@
     timeDisplay.textContent = fmt(displaySec);
 
     if (secondsForLogic !== lastWholeSecond) {
+      // Catch up on every whole second passed since the last frame — a slow/backgrounded
+      // tab can skip straight over a checkpoint (e.g. 30s or 10s) otherwise.
+      if (mode === 'countdown') {
+        for (let s = lastWholeSecond - 1; s >= secondsForLogic; s--) handleSecondTick(s);
+      } else {
+        for (let s = lastWholeSecond + 1; s <= secondsForLogic; s++) handleSecondTick(s);
+      }
       lastWholeSecond = secondsForLogic;
-      handleSecondTick(secondsForLogic);
     }
 
     if (mode === 'countdown') {
