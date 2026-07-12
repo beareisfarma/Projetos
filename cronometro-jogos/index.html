@@ -494,23 +494,28 @@
 
   // distinct sound: normal alert (custom checkpoint)
   function playAlertSound() {
-    tone(880, 0, 0.12, 'sine', 0.35);
-    tone(1175, 0.14, 0.14, 'sine', 0.35);
-    vibrate([80, 60, 80]);
+    tone(880, 0, 0.14, 'square', 0.5);
+    tone(1175, 0.16, 0.16, 'square', 0.5);
+    vibrate([100, 60, 100]);
   }
   // distinct sound: final countdown tick, pitch rises as it gets closer to zero
   function playTickSound(remaining, totalTicks) {
     const progress = totalTicks > 1 ? (totalTicks - remaining) / (totalTicks - 1) : 1;
     const freq = 700 + progress * 500;
-    tone(freq, 0, 0.09, 'square', 0.22);
-    vibrate(40);
+    tone(freq, 0, 0.11, 'square', 0.4);
+    vibrate(60);
   }
-  // distinct sound: zero / end alarm
+  // distinct sound: zero / end alarm — loud, harsh, insistent siren-style blast
   function playAlarmSound() {
-    tone(660, 0, 0.18, 'sawtooth', 0.4);
-    tone(660, 0.22, 0.18, 'sawtooth', 0.4);
-    tone(880, 0.44, 0.35, 'sawtooth', 0.45);
-    vibrate([150, 80, 150, 80, 300]);
+    const notes = [988, 740, 988, 740, 988, 740, 1319];
+    let t = 0;
+    notes.forEach((freq, i) => {
+      const isLast = i === notes.length - 1;
+      tone(freq, t, isLast ? 0.5 : 0.24, 'sawtooth', 0.75);
+      tone(freq / 2, t, isLast ? 0.5 : 0.24, 'square', 0.4);
+      t += isLast ? 0 : 0.26;
+    });
+    vibrate([220, 90, 220, 90, 220, 90, 220, 90, 500]);
   }
 
   // ---------- Timer core ----------
