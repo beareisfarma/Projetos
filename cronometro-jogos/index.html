@@ -42,10 +42,16 @@
     margin:0 auto;
     padding:1rem 1rem 2.5rem;
     min-height:100dvh;
+    display:flex;
+    flex-direction:column;
   }
   header{
     display:flex;align-items:center;justify-content:space-between;
     padding:.5rem 0 1rem;
+    gap:.5rem;
+  }
+  .header-actions{
+    display:flex;gap:.5rem;
   }
   header h1{
     font-size:1.05rem;
@@ -98,10 +104,15 @@
   .display{
     text-align:center;
     padding:1.75rem 0 1.25rem;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
   }
   .time{
     font-variant-numeric:tabular-nums;
-    font-size:min(19vw,4.6rem);
+    font-size:min(22vw,34vh,7rem);
     font-weight:700;
     letter-spacing:.02em;
     line-height:1;
@@ -264,13 +275,56 @@
   footer{
     text-align:center;color:var(--muted);font-size:.75rem;margin-top:1.5rem;
   }
+
+  /* ---- Focus mode: giant display, minimal chrome, adapts to rotation ---- */
+  body.focus{ overflow:hidden; }
+  body.focus .wrap{
+    max-width:none;
+    padding:.75rem;
+    height:100dvh;
+  }
+  body.focus .app-title,
+  body.focus .tabs,
+  body.focus #countdownSetup,
+  body.focus footer{
+    display:none;
+  }
+  body.focus .card:first-of-type{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    border:none;
+    background:transparent;
+    padding:0;
+    margin-bottom:0;
+  }
+  body.focus .display{ padding:0; }
+  body.focus .time{
+    font-size:min(42vw,50vh);
+  }
+  body.focus .subtext{ font-size:1rem; }
+  body.focus .controls{ padding-bottom:.5rem; }
+
+  /* Phone landscape: use the wide viewport instead of a narrow centered column */
+  @media (orientation:landscape) and (max-height:500px){
+    .wrap{ max-width:900px; padding:.6rem 1.25rem 1rem; }
+    header{ padding:.25rem 0 .5rem; }
+    .tabs{ margin-bottom:.5rem; }
+    .card{ padding:.85rem 1.25rem; margin-bottom:.5rem; }
+    .display{ padding:.5rem 0; }
+    .time{ font-size:min(16vw,44vh); }
+    body.focus .time{ font-size:min(38vw,68vh); }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>🎲 Cronômetro de Jogos</h1>
-    <button class="icon-btn" id="settingsToggle" aria-label="Configurações">⚙️</button>
+    <h1 class="app-title">🎲 Cronômetro de Jogos</h1>
+    <div class="header-actions">
+      <button class="icon-btn" id="focusToggle" aria-label="Tela cheia / modo foco">⤢</button>
+      <button class="icon-btn" id="settingsToggle" aria-label="Configurações">⚙️</button>
+    </div>
   </header>
 
   <div class="tabs">
@@ -669,6 +723,31 @@
   const settingsPanel = $('settingsPanel');
   $('settingsToggle').addEventListener('click', () => {
     settingsPanel.classList.toggle('open');
+  });
+
+  // ---------- Focus mode (giant display, adapts to portrait/landscape) ----------
+  const focusToggle = $('focusToggle');
+  function setFocus(on) {
+    document.body.classList.toggle('focus', on);
+    focusToggle.textContent = on ? '⤡' : '⤢';
+    if (on) {
+      settingsPanel.classList.remove('open');
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } else if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+  focusToggle.addEventListener('click', () => setFocus(!document.body.classList.contains('focus')));
+  timeDisplay.addEventListener('click', () => {
+    if (document.body.classList.contains('focus')) setFocus(false);
+  });
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && document.body.classList.contains('focus')) {
+      document.body.classList.remove('focus');
+      focusToggle.textContent = '⤢';
+    }
   });
 
   function renderAlertChips(listEl, arr, onRemove) {
