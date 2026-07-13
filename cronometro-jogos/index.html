@@ -150,6 +150,17 @@
     stroke:var(--border);
     stroke-width:1.5;
   }
+  .sw-progress{
+    fill:none;
+    stroke:var(--ok);
+    stroke-width:5;
+    stroke-linecap:round;
+    stroke-dasharray:502.65;
+    stroke-dashoffset:0;
+    opacity:0;
+    transition:opacity .2s;
+  }
+  .stopwatch-frame.countdown-mode .sw-progress{ opacity:1; }
   .sw-ticks line{
     stroke:var(--text);
     stroke-width:3.5;
@@ -479,6 +490,7 @@
           <rect class="sw-crown" x="86" y="2" width="28" height="20" rx="6"/>
           <circle class="sw-ring-outer" cx="100" cy="100" r="90"/>
           <circle class="sw-ring-inner" cx="100" cy="100" r="80"/>
+          <circle class="sw-progress" id="swProgress" cx="100" cy="100" r="80" transform="rotate(-90 100 100)"/>
           <g class="sw-ticks">
             <line x1="100" y1="16" x2="100" y2="28" transform="rotate(0 100 100)"/>
             <line x1="100" y1="16" x2="100" y2="28" transform="rotate(30 100 100)"/>
@@ -796,6 +808,18 @@
   const resetBtn = $('resetBtn');
   const countdownSetup = $('countdownSetup');
   const stopwatchFrame = $('stopwatchFrame');
+  const swProgress = $('swProgress');
+
+  // Radial progress ring around the dial (countdown mode only): depletes from a full
+  // circle down to nothing as time runs out, sweeping green -> yellow -> orange -> red.
+  const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * 80;
+  function updateProgressRing(fraction, forceRed) {
+    const clamped = Math.max(0, Math.min(1, fraction));
+    swProgress.style.strokeDashoffset = PROGRESS_CIRCUMFERENCE * (1 - clamped);
+    // The last RED_THRESHOLD_SEC seconds are always pure red, regardless of how long
+    // the timer was — otherwise a short timer's final seconds wouldn't read as urgent.
+    swProgress.style.stroke = forceRed ? 'hsl(0deg 90% 50%)' : `hsl(${clamped * 120}deg 90% 50%)`;
+  }
 
   function fmt(totalSec) {
     totalSec = Math.max(0, Math.round(totalSec));
@@ -828,7 +852,8 @@
       secondsForLogic = Math.floor(elapsedMs / 1000);
       displaySec = secondsForLogic;
     } else {
-      const remainingMs = currentDurationSec() * 1000 - elapsedMs;
+      const totalMs = currentDurationSec() * 1000;
+      const remainingMs = totalMs - elapsedMs;
       if (remainingMs <= 0) {
         secondsForLogic = 0;
         displaySec = 0;
@@ -837,6 +862,8 @@
         secondsForLogic = Math.ceil(remainingMs / 1000);
         displaySec = secondsForLogic;
       }
+      const isDanger = secondsForLogic > 0 && secondsForLogic <= RED_THRESHOLD_SEC;
+      updateProgressRing(remainingMs / totalMs, isDanger);
     }
 
     timeDisplay.textContent = fmt(displaySec);
@@ -933,6 +960,7 @@
     subText.textContent = 'Pronto para começar';
     countdownSetup.style.pointerEvents = '';
     countdownSetup.style.opacity = '';
+    updateProgressRing(1);
     updateStaticDisplay();
     updateResetVisibility();
   }
@@ -961,6 +989,7 @@
     saveSettings();
     tabStopwatch.classList.toggle('active', mode === 'stopwatch');
     tabCountdown.classList.toggle('active', mode === 'countdown');
+    stopwatchFrame.classList.toggle('countdown-mode', mode === 'countdown');
     countdownSetup.style.display = mode === 'countdown' ? '' : 'none';
     countdownSettings.style.display = mode === 'countdown' ? '' : 'none';
     stopwatchSettings.style.display = mode === 'stopwatch' ? '' : 'none';
@@ -1166,10 +1195,12 @@
 
     tabStopwatch.classList.toggle('active', mode === 'stopwatch');
     tabCountdown.classList.toggle('active', mode === 'countdown');
+    stopwatchFrame.classList.toggle('countdown-mode', mode === 'countdown');
     countdownSetup.style.display = mode === 'countdown' ? '' : 'none';
     countdownSettings.style.display = mode === 'countdown' ? '' : 'none';
     stopwatchSettings.style.display = mode === 'stopwatch' ? '' : 'none';
 
+    updateProgressRing(1);
     updateStaticDisplay();
     updateResetVisibility();
   }
