@@ -101,6 +101,7 @@
     border-radius:.5rem;
     padding:.45rem .75rem;
     margin-bottom:.75rem;
+    cursor:pointer;
   }
   .sets-count{
     font-size:1.5rem;font-weight:900;font-variant-numeric:tabular-nums;
@@ -362,9 +363,21 @@
     footer{ display:none; }
     .tap-hint{ display:none; }
   }
-  /* Focus (fullscreen) trims the header brand for max board */
+  /* Focus (fullscreen): strip everything but the board and controls,
+     and let the scores grow into the reclaimed space. */
   body.focus .app-title{ display:none; }
   body.focus footer{ display:none; }
+  body.focus .wrap{ max-width:none; }
+  body.focus .tap-hint,
+  body.focus .set-history{ display:none; }
+  body.focus .score{ font-size:min(36vw,44vh,16rem); }
+  /* Landscape focus: shorter viewport, so cap by height and pin the layout
+     to exactly one screen so the control buttons never fall below the fold. */
+  @media (orientation:landscape) and (max-height:700px){
+    body.focus .wrap{ height:100dvh; overflow:hidden; }
+    body.focus .score{ font-size:min(20vw,32vh,12rem); }
+    body.focus .sets-bar{ margin-bottom:.4rem; }
+  }
 </style>
 </head>
 <body>
@@ -383,7 +396,7 @@
     </div>
   </header>
 
-  <div class="sets-bar">
+  <div class="sets-bar" id="setsBar" title="Toque para tela cheia">
     <div class="sets-count" id="setsA">0</div>
     <div class="sets-label">Sets<b id="setLabel">1º set · até 25</b></div>
     <div class="sets-count" id="setsB">0</div>
@@ -875,6 +888,9 @@
     }
   }
   focusToggle.addEventListener('click', () => setFocus(!document.body.classList.contains('focus')));
+  // Tapping the sets strip toggles fullscreen — the side panels can't do it,
+  // since tapping them is how points are scored.
+  $('setsBar').addEventListener('click', () => setFocus(!document.body.classList.contains('focus')));
   document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement && document.body.classList.contains('focus')) {
       document.body.classList.remove('focus');
