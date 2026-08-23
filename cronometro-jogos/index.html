@@ -6,6 +6,14 @@
 <title>Cronômetro de Jogos</title>
 <meta name="theme-color" content="#0a0a0a">
 <meta name="color-scheme" content="dark">
+<!-- PWA: added to the home screen, the app opens with zero browser chrome —
+     the only route to true fullscreen on iPhone, where the Fullscreen API is blocked. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jogos">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
   :root{
     --bg:#0a0a0a;
@@ -396,7 +404,9 @@
     padding:.75rem;
     height:100dvh;
   }
-  body.focus .app-title,
+  /* Hide the whole header too — nothing but the timer on screen; tapping the
+     dial is the way out of focus mode. */
+  body.focus header,
   body.focus .tabs,
   body.focus #countdownSetup,
   body.focus footer{
