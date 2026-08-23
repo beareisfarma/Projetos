@@ -435,6 +435,14 @@
   }
   footer{
     text-align:center;color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;margin-top:1.5rem;
+    position:relative;
+    min-height:2rem;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .theme-btn{
+    position:absolute;right:0;top:50%;
+    transform:translateY(-50%);
+    width:2rem;height:2rem;font-size:.95rem;
   }
 
   /* ---- Focus mode: giant display, minimal chrome, adapts to rotation ---- */
@@ -543,7 +551,6 @@
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="focusToggle" aria-label="Tela cheia / modo foco">⤢</button>
-      <button class="icon-btn" id="themeToggle" aria-label="Tema claro ou escuro">☀️</button>
       <button class="icon-btn" id="settingsToggle" aria-label="Configurações">⚙️</button>
     </div>
   </header>
@@ -705,7 +712,10 @@
     </div>
   </div>
 
-  <footer>Created by Beatriz C Reis</footer>
+  <footer>
+    <span>Created by Beatriz C Reis</span>
+    <button class="icon-btn theme-btn" id="themeToggle" aria-label="Tema claro ou escuro">☀️</button>
+  </footer>
 </div>
 
 <script>
