@@ -603,14 +603,43 @@
     });
     vibrate([250, 120, 400]);
   }
-  function playFanfare() {
-    withAudio(() => {
-      tone(880, 0, 0.18, 'square', 0.45);
-      tone(1109, 0.18, 0.18, 'square', 0.45);
-      tone(1319, 0.36, 0.5, 'square', 0.5);
-      tone(660, 0.36, 0.5, 'sawtooth', 0.3);
+  // One referee-whistle blast: bright dual tone with the fast tremolo of the
+  // "pea" rattling inside — much closer to a real whistle than a plain beep.
+  function whistleBlast(start, dur) {
+    const ctx = ensureAudio();
+    const t0 = ctx.currentTime + start;
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0, t0);
+    master.gain.linearRampToValueAtTime(0.55, t0 + 0.02);
+    master.gain.setValueAtTime(0.55, t0 + dur - 0.06);
+    master.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    master.connect(ctx.destination);
+    [[2150, 0.5], [2700, 0.22]].forEach(([f, g]) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'square';
+      osc.frequency.value = f;
+      const og = ctx.createGain();
+      og.gain.value = g;
+      osc.connect(og).connect(master);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
     });
-    vibrate([120, 60, 120, 60, 500]);
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 34;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.3;
+    lfo.connect(lfoGain).connect(master.gain);
+    lfo.start(t0);
+    lfo.stop(t0 + dur);
+  }
+  // Match point won: the classic end-of-game call — two short blasts, one long.
+  function playFinalWhistle() {
+    withAudio(() => {
+      whistleBlast(0, 0.28);
+      whistleBlast(0.42, 0.28);
+      whistleBlast(0.84, 1.5);
+    });
+    vibrate([250, 130, 250, 130, 1000]);
   }
 
   // ---------- Wake lock: keep the phone screen on during the game ----------
@@ -746,12 +775,12 @@
       els.overlayTitle.textContent = `🏆 ${state.names[winner]} venceu a partida!`;
       els.overlaySub.textContent = `Sets: ${state.sets[winner] + 1} a ${state.sets[1 - winner]}`;
       els.overlayNext.textContent = 'Nova partida';
-      playFanfare();
+      playFinalWhistle();
     } else if (state.bestOf === 1) {
       els.overlayTitle.textContent = `🏆 ${state.names[winner]} venceu!`;
       els.overlaySub.textContent = 'Bora a revanche?';
       els.overlayNext.textContent = 'Jogar de novo';
-      playFanfare();
+      playFinalWhistle();
     } else {
       els.overlayTitle.textContent = `${state.names[winner]} venceu o set!`;
       els.overlaySub.textContent = 'Os times trocam de lado para o próximo set.';
