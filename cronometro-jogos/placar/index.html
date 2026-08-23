@@ -1116,6 +1116,12 @@
   // Reopen straight into the clean fullscreen board if that's how it was left.
   try { if (localStorage.getItem('placar_focus')) setFocus(true); } catch (e) {}
   render();
+
+  // Offline: the service worker caches both apps so the installed PWA opens
+  // without a connection.
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('../sw.js').catch(() => {});
+  }
 })();
 </script>
 </body>

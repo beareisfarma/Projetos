@@ -1562,6 +1562,12 @@
   document.addEventListener('touchmove', e => {
     if (e.target.closest('input[type=range]')) return;
   }, { passive: true });
+
+  // Offline: the service worker caches both apps so the installed PWA opens
+  // without a connection.
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 })();
 </script>
 </body>
