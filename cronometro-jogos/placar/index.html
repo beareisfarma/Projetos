@@ -58,6 +58,30 @@
   header h1{
     font-size:1.05rem;font-weight:900;letter-spacing:.03em;text-transform:uppercase;margin:0;
   }
+  /* App switcher: cronômetro <-> placar live under the same link */
+  .app-switch{
+    display:flex;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:.45rem;
+    padding:.2rem;
+    gap:.2rem;
+  }
+  .app-opt{
+    color:var(--muted);
+    text-decoration:none;
+    font-weight:900;
+    font-size:.72rem;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    padding:.45rem .55rem;
+    border-radius:.3rem;
+    white-space:nowrap;
+  }
+  .app-opt.active{
+    background:var(--accent);
+    color:var(--text-on-accent);
+  }
   .icon-btn{
     background:var(--card);
     border:1.5px solid var(--border);
@@ -327,6 +351,7 @@
     .wrap{ max-width:none; padding:.4rem .75rem .5rem; }
     header{ padding:.1rem 0 .4rem; }
     .icon-btn{ width:2rem;height:2rem;font-size:1rem; }
+    .app-opt{ padding:.3rem .45rem; font-size:.66rem; }
     .sets-bar{ padding:.25rem .75rem; margin-bottom:.4rem; }
     .sets-count{ font-size:1.2rem; }
     .set-history{ display:none; }
@@ -346,7 +371,10 @@
   <header>
     <div class="brand app-title">
       <span class="stripes"><span></span><span></span><span></span></span>
-      <h1>Placar de Jogos</h1>
+      <nav class="app-switch" aria-label="Escolher app">
+        <a class="app-opt" href="../">⏱ Cronômetro</a>
+        <a class="app-opt active" href="./" aria-current="page">🏐 Placar</a>
+      </nav>
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="focusToggle" aria-label="Tela cheia">⤢</button>

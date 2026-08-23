@@ -72,6 +72,30 @@
     text-transform:uppercase;
     margin:0;
   }
+  /* App switcher: cronômetro <-> placar live under the same link */
+  .app-switch{
+    display:flex;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:.45rem;
+    padding:.2rem;
+    gap:.2rem;
+  }
+  .app-opt{
+    color:var(--muted);
+    text-decoration:none;
+    font-weight:900;
+    font-size:.72rem;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    padding:.45rem .55rem;
+    border-radius:.3rem;
+    white-space:nowrap;
+  }
+  .app-opt.active{
+    background:var(--accent);
+    color:var(--text-on-accent);
+  }
   .icon-btn{
     background:var(--card);
     border:1.5px solid var(--border);
@@ -402,6 +426,7 @@
     .wrap{ max-width:960px; padding:.4rem 1rem .6rem; }
     header{ padding:.15rem 0 .35rem; }
     .icon-btn{ width:2rem; height:2rem; font-size:1rem; }
+    .app-opt{ padding:.3rem .45rem; font-size:.66rem; }
     .tabs{ margin-bottom:.35rem; padding:.15rem; }
     .tab{ padding:.4rem .5rem; font-size:.68rem; }
     .card{ padding:.5rem .9rem; margin-bottom:.35rem; }
@@ -458,7 +483,10 @@
   <header>
     <div class="brand app-title">
       <span class="stripes"><span></span><span></span><span></span></span>
-      <h1>Cronômetro de Jogos</h1>
+      <nav class="app-switch" aria-label="Escolher app">
+        <a class="app-opt active" href="./" aria-current="page">⏱ Cronômetro</a>
+        <a class="app-opt" href="./placar/">🏐 Placar</a>
+      </nav>
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="focusToggle" aria-label="Tela cheia / modo foco">⤢</button>
