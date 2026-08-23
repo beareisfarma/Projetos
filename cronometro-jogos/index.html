@@ -36,7 +36,18 @@
     --danger:#ff2d2d;
     --ok:#00e676;
   }
-  /* Always dark — this look tested better than switching with system theme. */
+  /* Light theme: same identity, inverted ground. Toggled by the ☀️/🌙 button,
+     stored in localStorage and shared by the timer and the scoreboard. */
+  html.light{
+    --bg:#f2f2ef;
+    --bg2:#e6e6e1;
+    --card:#ffffff;
+    --border:rgba(0,0,0,0.16);
+    --text:#141414;
+    --text-on-accent:#141414;
+    --muted:#6b6b6b;
+    --ok:#00b85c;
+  }
   *{box-sizing:border-box;}
   html,body{
     margin:0;padding:0;
@@ -60,7 +71,7 @@
     gap:.5rem;
   }
   .header-actions{
-    display:flex;gap:.5rem;
+    display:flex;gap:.35rem;
   }
   .brand{
     display:flex;
@@ -116,11 +127,12 @@
     background:var(--card);
     border:1.5px solid var(--border);
     color:var(--text);
-    width:2.5rem;height:2.5rem;
+    width:2.25rem;height:2.25rem;
     border-radius:.4rem;
     display:flex;align-items:center;justify-content:center;
-    font-size:1.15rem;
+    font-size:1.05rem;
     cursor:pointer;
+    flex:none;
   }
   .tabs{
     display:flex;
@@ -531,6 +543,7 @@
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="focusToggle" aria-label="Tela cheia / modo foco">⤢</button>
+      <button class="icon-btn" id="themeToggle" aria-label="Tema claro ou escuro">☀️</button>
       <button class="icon-btn" id="settingsToggle" aria-label="Configurações">⚙️</button>
     </div>
   </header>
@@ -692,7 +705,7 @@
     </div>
   </div>
 
-  <footer>Feito para durar a noite toda de jogo 🎲</footer>
+  <footer>Created by Beatriz C Reis</footer>
 </div>
 
 <script>
@@ -1462,6 +1475,22 @@
   });
   $('testAlertSound').addEventListener('click', () => withAudio(playAlertSound));
   $('testAlarmSound').addEventListener('click', () => withAudio(playAlarmSound));
+
+  // ---------- Theme (shared with the scoreboard via localStorage) ----------
+  const themeToggle = $('themeToggle');
+  function applyTheme(light) {
+    document.documentElement.classList.toggle('light', light);
+    // The button shows the theme you'd switch TO.
+    themeToggle.textContent = light ? '🌙' : '☀️';
+    const metaTheme = document.querySelector('meta[name=theme-color]');
+    if (metaTheme) metaTheme.content = light ? '#f2f2ef' : '#0a0a0a';
+    const metaScheme = document.querySelector('meta[name=color-scheme]');
+    if (metaScheme) metaScheme.content = light ? 'light' : 'dark';
+    try { localStorage.setItem('jogos_theme', light ? 'light' : 'dark'); } catch (e) {}
+  }
+  themeToggle.addEventListener('click', () =>
+    applyTheme(!document.documentElement.classList.contains('light')));
+  try { applyTheme(localStorage.getItem('jogos_theme') === 'light'); } catch (e) {}
 
   // ---------- Init ----------
   function init() {

@@ -37,6 +37,22 @@
     --danger:#ff2d2d;
     --ok:#00e676;
   }
+  /* Light theme: same identity, inverted ground. Toggled by the ☀️/🌙 button,
+     stored in localStorage and shared by the timer and the scoreboard. */
+  html.light{
+    --bg:#f2f2ef;
+    --bg2:#e6e6e1;
+    --card:#ffffff;
+    --border:rgba(0,0,0,0.16);
+    --text:#141414;
+    --text-on-accent:#141414;
+    --muted:#6b6b6b;
+    --ok:#00b85c;
+  }
+  /* Neon lime and bright orange vanish as text on white — darken the team
+     colors just in light mode. */
+  html.light .side.a{ --team-color:#7d9900; }
+  html.light .side.b{ --team-color:#d95c00; }
   *{box-sizing:border-box;}
   html,body{
     margin:0;padding:0;
@@ -61,7 +77,7 @@
     padding:.35rem 0 .75rem;
     gap:.5rem;
   }
-  .header-actions{ display:flex;gap:.5rem; }
+  .header-actions{ display:flex;gap:.35rem; }
   .brand{ display:flex;align-items:center;gap:.6rem; }
   .stripes{
     display:flex;align-items:flex-end;gap:3px;height:1.1rem;
@@ -103,11 +119,12 @@
     background:var(--card);
     border:1.5px solid var(--border);
     color:var(--text);
-    width:2.5rem;height:2.5rem;
+    width:2.25rem;height:2.25rem;
     border-radius:.4rem;
     display:flex;align-items:center;justify-content:center;
-    font-size:1.15rem;
+    font-size:1.05rem;
     cursor:pointer;
+    flex:none;
   }
 
   /* ---- Set score strip ---- */
@@ -432,6 +449,7 @@
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="focusToggle" aria-label="Tela cheia">⤢</button>
+      <button class="icon-btn" id="themeToggle" aria-label="Tema claro ou escuro">☀️</button>
       <button class="icon-btn" id="settingsToggle" aria-label="Configurações">⚙️</button>
     </div>
   </header>
@@ -543,7 +561,7 @@
     <p class="row hint" style="padding:.2rem 0 0;">Toque no nome do time para renomear.</p>
   </div>
 
-  <footer>Feito para durar a noite toda de jogo 🎲</footer>
+  <footer>Created by Beatriz C Reis</footer>
 </div>
 
 <div class="overlay" id="overlay">
@@ -1057,6 +1075,22 @@
       focusToggle.textContent = '⤢';
     }
   });
+
+  // ---------- Theme (shared with the timer via localStorage) ----------
+  const themeToggle = $('themeToggle');
+  function applyTheme(light) {
+    document.documentElement.classList.toggle('light', light);
+    // The button shows the theme you'd switch TO.
+    themeToggle.textContent = light ? '🌙' : '☀️';
+    const metaTheme = document.querySelector('meta[name=theme-color]');
+    if (metaTheme) metaTheme.content = light ? '#f2f2ef' : '#0a0a0a';
+    const metaScheme = document.querySelector('meta[name=color-scheme]');
+    if (metaScheme) metaScheme.content = light ? 'light' : 'dark';
+    try { localStorage.setItem('jogos_theme', light ? 'light' : 'dark'); } catch (e) {}
+  }
+  themeToggle.addEventListener('click', () =>
+    applyTheme(!document.documentElement.classList.contains('light')));
+  try { applyTheme(localStorage.getItem('jogos_theme') === 'light'); } catch (e) {}
 
   // ---------- Init ----------
   // A refresh mid-set-end reopens the overlay so the set isn't lost.
