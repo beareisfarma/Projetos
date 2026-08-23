@@ -29,6 +29,9 @@ Padrão de aplicação em rodapé (copiar dos apps existentes): SVG inline com
   "Placar de Jogos" (vôlei) vivem em `cronometro-jogos/` (placar em
   `cronometro-jogos/placar/`), publicados na Vercel (projeto
   `cronometro-gamer`, deploy automático da branch `main`).
+- **URL oficial: https://marqueseujogo.vercel.app** (domínio adicionado pela
+  Beatriz em 23/08/2026; os endereços antigos `cronometro-gamer.vercel.app`
+  e `projetos-6q65.vercel.app` continuam ativos no mesmo projeto).
 - Identidade visual: tema escuro padrão + tema claro (toggle ☀️/🌙 no rodapé),
   amarelo neon `#d7ff1a`, fonte Anton inclinada (-6°) nos números, PWA
   instalável com funcionamento offline (service worker em
