@@ -592,54 +592,64 @@
     withAudio(() => tone(1200, 0, 0.07, 'square', 0.35));
     vibrate(35);
   }
-  function playWhistle() {
-    if (!state.whistleSound) return;
-    withAudio(() => {
-      // Referee-whistle feel: sharp high trill, twice.
-      tone(2100, 0, 0.35, 'square', 0.5);
-      tone(2350, 0, 0.35, 'square', 0.35);
-      tone(2100, 0.45, 0.55, 'square', 0.5);
-      tone(2350, 0.45, 0.55, 'square', 0.35);
-    });
-    vibrate([250, 120, 400]);
-  }
-  // One referee-whistle blast: bright dual tone with the fast tremolo of the
-  // "pea" rattling inside — much closer to a real whistle than a plain beep.
+  // One professional referee-whistle blast, modeled on the pealess Fox 40 used
+  // in football/handball: three chambers emit close frequencies (~3.5–4.1 kHz)
+  // whose beating produces the harsh, piercing shrill; band-passed breath noise
+  // adds the "chiff" of a real blow.
   function whistleBlast(start, dur) {
     const ctx = ensureAudio();
     const t0 = ctx.currentTime + start;
     const master = ctx.createGain();
     master.gain.setValueAtTime(0, t0);
-    master.gain.linearRampToValueAtTime(0.55, t0 + 0.02);
-    master.gain.setValueAtTime(0.55, t0 + dur - 0.06);
-    master.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    master.gain.linearRampToValueAtTime(0.85, t0 + 0.012);
+    master.gain.setValueAtTime(0.85, t0 + dur - 0.04);
+    master.gain.exponentialRampToValueAtTime(0.001, t0 + dur + 0.05);
     master.connect(ctx.destination);
-    [[2150, 0.5], [2700, 0.22]].forEach(([f, g]) => {
+
+    [[3556, 0.5], [3822, 0.45], [4102, 0.3]].forEach(([f, g]) => {
       const osc = ctx.createOscillator();
-      osc.type = 'square';
-      osc.frequency.value = f;
+      osc.type = 'triangle';
+      // Pitch settles up into place over the first ~30ms, like a real blow.
+      osc.frequency.setValueAtTime(f * 0.97, t0);
+      osc.frequency.linearRampToValueAtTime(f, t0 + 0.03);
       const og = ctx.createGain();
       og.gain.value = g;
       osc.connect(og).connect(master);
       osc.start(t0);
-      osc.stop(t0 + dur + 0.02);
+      osc.stop(t0 + dur + 0.08);
     });
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = 34;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.3;
-    lfo.connect(lfoGain).connect(master.gain);
-    lfo.start(t0);
-    lfo.stop(t0 + dur);
+
+    const noiseDur = dur + 0.08;
+    const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * noiseDur), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 3900;
+    bp.Q.value = 1.2;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.4, t0);
+    ng.gain.exponentialRampToValueAtTime(0.12, t0 + 0.08);
+    noise.connect(bp).connect(ng).connect(master);
+    noise.start(t0);
+    noise.stop(t0 + noiseDur);
   }
-  // Match point won: the classic end-of-game call — two short blasts, one long.
+  // Set won mid-match: one firm blast.
+  function playWhistle() {
+    if (!state.whistleSound) return;
+    withAudio(() => whistleBlast(0, 0.75));
+    vibrate([250, 120, 400]);
+  }
+  // Match point won: the classic full-time call — two short blasts, one long.
   function playFinalWhistle() {
     withAudio(() => {
-      whistleBlast(0, 0.28);
-      whistleBlast(0.42, 0.28);
-      whistleBlast(0.84, 1.5);
+      whistleBlast(0, 0.32);
+      whistleBlast(0.46, 0.32);
+      whistleBlast(0.92, 1.6);
     });
-    vibrate([250, 130, 250, 130, 1000]);
+    vibrate([250, 130, 250, 130, 1100]);
   }
 
   // ---------- Wake lock: keep the phone screen on during the game ----------
