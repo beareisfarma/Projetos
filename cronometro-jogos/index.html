@@ -134,16 +134,17 @@
   .tab{
     flex:1;
     text-align:center;
-    padding:.65rem .5rem;
+    padding:.65rem .25rem;
     border-radius:.35rem;
     font-weight:800;
-    font-size:.78rem;
+    font-size:.72rem;
     text-transform:uppercase;
-    letter-spacing:.04em;
+    letter-spacing:.03em;
     color:var(--muted);
     cursor:pointer;
     border:none;
     background:transparent;
+    white-space:nowrap;
   }
   .tab.active{
     background:var(--accent);
@@ -261,6 +262,22 @@
     padding:.4rem 0;
   }
   .colon{font-family:'Anton',sans-serif;font-size:1.5rem;font-weight:400;color:var(--muted);}
+  .hiit-fields{
+    display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;
+    margin-bottom:.5rem;
+  }
+  .hiit-fields label{
+    display:flex;flex-direction:column;align-items:center;gap:.25rem;
+    font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+    color:var(--muted);
+  }
+  .hiit-input{ width:3.6rem;font-size:1.25rem; }
+  .hiit-summary{
+    text-align:center;color:var(--muted);
+    font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;
+    margin-bottom:.5rem;
+    min-height:1rem;
+  }
   .presets{
     display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;
     margin-bottom:.5rem;
@@ -420,6 +437,7 @@
   body.focus header,
   body.focus .tabs,
   body.focus #countdownSetup,
+  body.focus #hiitSetup,
   body.focus footer{
     display:none;
   }
@@ -460,7 +478,9 @@
       align-items:center;
       gap:.3rem 1rem;
     }
-    #countdownSetup{ grid-area:setup; }
+    #countdownSetup, #hiitSetup{ grid-area:setup; }
+    .hiit-input{ width:3rem;font-size:1.05rem; }
+    .tab{ font-size:.6rem; }
     .duration-setter{ margin-bottom:.35rem; }
     .presets{ gap:.3rem; margin-bottom:0; }
     .chip{ padding:.3rem .55rem; font-size:.65rem; }
@@ -516,8 +536,10 @@
   </header>
 
   <div class="tabs">
-    <button class="tab active" id="tabStopwatch">Cronômetro (crescente)</button>
-    <button class="tab" id="tabCountdown">Temporizador (regressivo)</button>
+    <button class="tab active" id="tabStopwatch">Cronômetro</button>
+    <button class="tab" id="tabCountdown">Timer</button>
+    <button class="tab" id="tabHiit">HIIT</button>
+    <button class="tab" id="tabTabata">Tabata</button>
   </div>
 
   <div class="card main-card">
@@ -535,6 +557,16 @@
         <button class="chip" data-sec="900">15 min</button>
         <button class="chip" data-sec="1800">30 min</button>
       </div>
+    </div>
+
+    <div id="hiitSetup" style="display:none;">
+      <div class="hiit-fields" id="hiitFields">
+        <label>Preparo<input class="num-input hiit-input" id="hiitPrep" type="tel" inputmode="numeric" value="10"></label>
+        <label>Treino<input class="num-input hiit-input" id="hiitWork" type="tel" inputmode="numeric" value="30"></label>
+        <label>Descanso<input class="num-input hiit-input" id="hiitRest" type="tel" inputmode="numeric" value="15"></label>
+        <label>Rodadas<input class="num-input hiit-input" id="hiitRounds" type="tel" inputmode="numeric" value="8"></label>
+      </div>
+      <div class="hiit-summary" id="hiitSummary"></div>
     </div>
 
     <div class="display">
@@ -682,6 +714,10 @@
     vibrateEnabled: true,
     alertSound: 'classic',
     alarmSound: 'peeen',
+    hiitPrep: 10,
+    hiitWork: 30,
+    hiitRest: 15,
+    hiitRounds: 8,
   };
   let settings;
   try {
@@ -853,7 +889,8 @@
   }
 
   // ---------- Timer core ----------
-  let mode = settings.mode === 'stopwatch' ? 'stopwatch' : 'countdown';
+  const MODES = ['stopwatch', 'countdown', 'hiit', 'tabata'];
+  let mode = MODES.includes(settings.mode) ? settings.mode : 'countdown';
   let running = false;
   let startTs = 0;
   let elapsedBeforePause = 0;
@@ -876,12 +913,13 @@
   // Radial progress ring around the dial (countdown mode only): depletes from a full
   // circle down to nothing as time runs out, sweeping green -> yellow -> orange -> red.
   const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * 80;
-  function updateProgressRing(fraction, forceRed) {
+  function updateProgressRing(fraction, forceRed, colorOverride) {
     const clamped = Math.max(0, Math.min(1, fraction));
     swProgress.style.strokeDashoffset = PROGRESS_CIRCUMFERENCE * (1 - clamped);
     // The last RED_THRESHOLD_SEC seconds are always pure red, regardless of how long
     // the timer was — otherwise a short timer's final seconds wouldn't read as urgent.
-    swProgress.style.stroke = forceRed ? 'hsl(0deg 90% 50%)' : `hsl(${clamped * 120}deg 90% 50%)`;
+    swProgress.style.stroke = colorOverride ||
+      (forceRed ? 'hsl(0deg 90% 50%)' : `hsl(${clamped * 120}deg 90% 50%)`);
   }
 
   function fmt(totalSec) {
@@ -897,9 +935,44 @@
     return settings.durationSec;
   }
 
+  // ---------- Interval training (HIIT / Tabata) ----------
+  // Tabata is the fixed classic protocol; HIIT reads the user's fields.
+  function hiitConfig() {
+    const cfg = mode === 'tabata'
+      ? { prep: 10, work: 20, rest: 10, rounds: 8 }
+      : { prep: Math.max(0, settings.hiitPrep), work: Math.max(1, settings.hiitWork),
+          rest: Math.max(0, settings.hiitRest), rounds: Math.max(1, settings.hiitRounds) };
+    // No rest after the final work interval.
+    cfg.total = cfg.prep + cfg.rounds * cfg.work + (cfg.rounds - 1) * cfg.rest;
+    return cfg;
+  }
+  function hiitPhaseAt(tSec, cfg) {
+    if (tSec < cfg.prep) {
+      return { key: 'prep', kind: 'prep', remaining: cfg.prep - tSec, dur: cfg.prep, round: 0 };
+    }
+    const t = tSec - cfg.prep;
+    const cycle = cfg.work + cfg.rest;
+    const idx = Math.min(cfg.rounds - 1, Math.floor(t / cycle));
+    const within = t - idx * cycle;
+    if (within < cfg.work) {
+      return { key: 'work' + idx, kind: 'work', remaining: cfg.work - within, dur: cfg.work, round: idx + 1 };
+    }
+    return { key: 'rest' + idx, kind: 'rest', remaining: cycle - within, dur: cfg.rest, round: idx + 1 };
+  }
+  let hiitLastPhase = null;
+  let hiitLastSec = null;
+
+  function totalDurationSec() {
+    if (mode === 'countdown') return currentDurationSec();
+    if (mode === 'hiit' || mode === 'tabata') return hiitConfig().total;
+    return Infinity;
+  }
+
   function updateStaticDisplay() {
     if (mode === 'countdown') {
       timeDisplay.textContent = fmt(currentDurationSec());
+    } else if (mode === 'hiit' || mode === 'tabata') {
+      timeDisplay.textContent = fmt(hiitConfig().work);
     } else {
       timeDisplay.textContent = '00:00';
     }
@@ -950,10 +1023,60 @@
     if (running) rafId = requestAnimationFrame(loop);
   }
 
+  function finish(message) {
+    running = false;
+    stopTicking();
+    releaseWakeLock();
+    // Record the full duration as elapsed so the finished state is unambiguous:
+    // Zerar/Reiniciar stay visible, and the next start knows to begin fresh.
+    elapsedBeforePause = totalDurationSec() * 1000;
+    timeDisplay.classList.remove('pulse');
+    stopwatchFrame.classList.remove('danger');
+    if (settings.zeroAlarmEnabled) playAlarmSound();
+    subText.textContent = message;
+    startBtn.textContent = 'Iniciar';
+    startBtn.classList.remove('running');
+    updateResetVisibility();
+  }
+
+  function hiitTick(elapsedMs) {
+    const cfg = hiitConfig();
+    if (elapsedMs >= cfg.total * 1000) {
+      timeDisplay.textContent = fmt(0);
+      updateProgressRing(0, true);
+      finish('Treino concluído! 🔥');
+      return;
+    }
+    const ph = hiitPhaseAt(elapsedMs / 1000, cfg);
+    const secNow = Math.ceil(ph.remaining);
+    timeDisplay.textContent = fmt(secNow);
+    const frac = ph.dur > 0 ? ph.remaining / ph.dur : 0;
+    if (ph.kind === 'work') updateProgressRing(frac, ph.remaining <= 3);
+    else updateProgressRing(frac, false, ph.kind === 'rest' ? '#4dc3ff' : 'var(--accent)');
+    subText.textContent =
+      ph.kind === 'prep' ? 'Prepare-se…' :
+      (ph.kind === 'work' ? '💪 Treino' : '😮‍💨 Descanso') + ` · rodada ${ph.round}/${cfg.rounds}`;
+    // Phase-change beep plus 3-2-1 ticks at the tail of every phase.
+    if (hiitLastPhase !== null && ph.key !== hiitLastPhase) playAlertSound();
+    hiitLastPhase = ph.key;
+    if (secNow !== hiitLastSec) {
+      if (settings.finalTickEnabled && secNow >= 1 && secNow <= 3) playTickSound();
+      hiitLastSec = secNow;
+    }
+    const urgent = ph.kind === 'work' && ph.remaining <= 3;
+    timeDisplay.classList.toggle('pulse', urgent);
+    stopwatchFrame.classList.toggle('danger', urgent);
+  }
+
   function tick() {
     if (!running) return;
     const now = Date.now();
     const elapsedMs = elapsedBeforePause + (now - startTs);
+
+    if (mode === 'hiit' || mode === 'tabata') {
+      hiitTick(elapsedMs);
+      return;
+    }
 
     let displaySec, secondsForLogic, done = false;
     if (mode === 'stopwatch') {
@@ -993,21 +1116,7 @@
       stopwatchFrame.classList.toggle('danger', isDanger);
     }
 
-    if (done) {
-      running = false;
-      stopTicking();
-      releaseWakeLock();
-      // Record the full duration as elapsed so the finished state is unambiguous:
-      // Zerar/Reiniciar stay visible, and the next start knows to begin fresh.
-      elapsedBeforePause = currentDurationSec() * 1000;
-      timeDisplay.classList.remove('pulse');
-      stopwatchFrame.classList.remove('danger');
-      if (settings.zeroAlarmEnabled) playAlarmSound();
-      subText.textContent = 'Tempo esgotado!';
-      startBtn.textContent = 'Iniciar';
-      startBtn.classList.remove('running');
-      updateResetVisibility();
-    }
+    if (done) finish('Tempo esgotado!');
   }
 
   function handleSecondTick(sec) {
@@ -1033,7 +1142,7 @@
   function start() {
     withAudio(() => {});
     if (running) return;
-    if (mode === 'countdown' && elapsedBeforePause >= currentDurationSec() * 1000) {
+    if (mode !== 'stopwatch' && elapsedBeforePause >= totalDurationSec() * 1000) {
       // Timer already finished — Iniciar begins a fresh run instead of resuming
       // a clock that would expire instantly.
       elapsedBeforePause = 0;
@@ -1046,12 +1155,19 @@
     lastWholeSecond = mode === 'countdown'
       ? Math.ceil((currentDurationSec() * 1000 - elapsedBeforePause) / 1000)
       : Math.floor(elapsedBeforePause / 1000);
+    // Null phase = the first hiit tick sets it without firing a change beep.
+    hiitLastPhase = null;
+    hiitLastSec = null;
     startBtn.textContent = 'Pausar';
     startBtn.classList.add('running');
     stopwatchFrame.classList.add('running');
-    subText.textContent = mode === 'countdown' ? 'Contando regressivamente…' : 'Contando…';
+    subText.textContent =
+      mode === 'countdown' ? 'Contando regressivamente…' :
+      (mode === 'hiit' || mode === 'tabata') ? 'Prepare-se…' : 'Contando…';
     countdownSetup.style.pointerEvents = 'none';
     countdownSetup.style.opacity = '0.5';
+    hiitSetup.style.pointerEvents = 'none';
+    hiitSetup.style.opacity = '0.5';
     acquireWakeLock();
     startTicking();
   }
@@ -1074,6 +1190,8 @@
     releaseWakeLock();
     elapsedBeforePause = 0;
     lastWholeSecond = null;
+    hiitLastPhase = null;
+    hiitLastSec = null;
     triggeredCountdownAlerts.clear();
     triggeredStopwatchAlerts.clear();
     timeDisplay.classList.remove('pulse');
@@ -1083,6 +1201,8 @@
     subText.textContent = 'Pronto para começar';
     countdownSetup.style.pointerEvents = '';
     countdownSetup.style.opacity = '';
+    hiitSetup.style.pointerEvents = '';
+    hiitSetup.style.opacity = '';
     updateProgressRing(1);
     updateStaticDisplay();
     updateResetVisibility();
@@ -1109,24 +1229,61 @@
   // ---------- Mode switch ----------
   const tabStopwatch = $('tabStopwatch');
   const tabCountdown = $('tabCountdown');
+  const tabHiit = $('tabHiit');
+  const tabTabata = $('tabTabata');
   const countdownSettings = $('countdownSettings');
   const stopwatchSettings = $('stopwatchSettings');
+  const hiitSetup = $('hiitSetup');
+  const hiitFields = $('hiitFields');
+  const hiitSummary = $('hiitSummary');
+
+  function refreshHiitSummary() {
+    if (mode !== 'hiit' && mode !== 'tabata') return;
+    const cfg = hiitConfig();
+    hiitSummary.textContent = mode === 'tabata'
+      ? `Clássico: 20s treino · 10s descanso · 8 rodadas · total ${fmt(cfg.total)}`
+      : `Total do treino: ${fmt(cfg.total)}`;
+  }
+
+  function applyModeUI() {
+    const isHiit = mode === 'hiit' || mode === 'tabata';
+    tabStopwatch.classList.toggle('active', mode === 'stopwatch');
+    tabCountdown.classList.toggle('active', mode === 'countdown');
+    tabHiit.classList.toggle('active', mode === 'hiit');
+    tabTabata.classList.toggle('active', mode === 'tabata');
+    stopwatchFrame.classList.toggle('countdown-mode', mode !== 'stopwatch');
+    countdownSetup.style.display = mode === 'countdown' ? '' : 'none';
+    hiitSetup.style.display = isHiit ? '' : 'none';
+    hiitFields.style.display = mode === 'hiit' ? '' : 'none';
+    countdownSettings.style.display = mode === 'countdown' ? '' : 'none';
+    stopwatchSettings.style.display = mode === 'stopwatch' ? '' : 'none';
+    refreshHiitSummary();
+    updateStaticDisplay();
+  }
 
   function setMode(newMode) {
     reset();
     mode = newMode;
     settings.mode = newMode;
     saveSettings();
-    tabStopwatch.classList.toggle('active', mode === 'stopwatch');
-    tabCountdown.classList.toggle('active', mode === 'countdown');
-    stopwatchFrame.classList.toggle('countdown-mode', mode === 'countdown');
-    countdownSetup.style.display = mode === 'countdown' ? '' : 'none';
-    countdownSettings.style.display = mode === 'countdown' ? '' : 'none';
-    stopwatchSettings.style.display = mode === 'stopwatch' ? '' : 'none';
-    updateStaticDisplay();
+    applyModeUI();
   }
   tabStopwatch.addEventListener('click', () => setMode('stopwatch'));
   tabCountdown.addEventListener('click', () => setMode('countdown'));
+  tabHiit.addEventListener('click', () => setMode('hiit'));
+  tabTabata.addEventListener('click', () => setMode('tabata'));
+
+  // HIIT fields: prep/rest may be zero, work/rounds at least 1.
+  [['hiitPrep', 0, 10], ['hiitWork', 1, 30], ['hiitRest', 0, 15], ['hiitRounds', 1, 8]].forEach(([id, min, dflt]) => {
+    $(id).addEventListener('change', e => {
+      const v = parseInt(e.target.value, 10);
+      settings[id] = Math.max(min, isNaN(v) ? dflt : v);
+      e.target.value = settings[id];
+      saveSettings();
+      refreshHiitSummary();
+      updateStaticDisplay();
+    });
+  });
 
   // ---------- Duration setup (countdown) ----------
   const minInput = $('minInput');
@@ -1325,12 +1482,11 @@
     refreshAlertSoundOptions();
     refreshAlarmSoundOptions();
 
-    tabStopwatch.classList.toggle('active', mode === 'stopwatch');
-    tabCountdown.classList.toggle('active', mode === 'countdown');
-    stopwatchFrame.classList.toggle('countdown-mode', mode === 'countdown');
-    countdownSetup.style.display = mode === 'countdown' ? '' : 'none';
-    countdownSettings.style.display = mode === 'countdown' ? '' : 'none';
-    stopwatchSettings.style.display = mode === 'stopwatch' ? '' : 'none';
+    $('hiitPrep').value = settings.hiitPrep;
+    $('hiitWork').value = settings.hiitWork;
+    $('hiitRest').value = settings.hiitRest;
+    $('hiitRounds').value = settings.hiitRounds;
+    applyModeUI();
 
     updateProgressRing(1);
     updateStaticDisplay();
