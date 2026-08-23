@@ -479,7 +479,10 @@
 
     <h3>Pontos por set</h3>
     <div class="chip-row" id="pointsChips">
+      <button class="chip" data-v="10">10</button>
+      <button class="chip" data-v="12">12</button>
       <button class="chip" data-v="15">15</button>
+      <button class="chip" data-v="18">18</button>
       <button class="chip" data-v="21">21</button>
       <button class="chip active" data-v="25">25</button>
     </div>
@@ -1032,6 +1035,9 @@
   function setFocus(on) {
     document.body.classList.toggle('focus', on);
     focusToggle.textContent = on ? '⤡' : '⤢';
+    // Remember the choice: a reload (a deploy, reopening the app) used to drop
+    // back to the full layout with the header — focus now survives restarts.
+    try { localStorage.setItem('placar_focus', on ? '1' : ''); } catch (e) {}
     if (on) {
       settingsPanel.classList.remove('open');
       if (document.documentElement.requestFullscreen) {
@@ -1063,6 +1069,8 @@
   syncPoints();
   if (state.matchWinner !== null) newMatch(true);
   else if (state.pendingSet) showSetOverlay();
+  // Reopen straight into the clean fullscreen board if that's how it was left.
+  try { if (localStorage.getItem('placar_focus')) setFocus(true); } catch (e) {}
   render();
 })();
 </script>

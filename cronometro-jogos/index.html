@@ -15,6 +15,14 @@
 <meta name="apple-mobile-web-app-title" content="Jogos">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
+  /* Same athletic display face as the scoreboard (self-hosted for offline PWA). */
+  @font-face{
+    font-family:'Anton';
+    src:url('fonts/anton-latin-400-normal.woff2') format('woff2');
+    font-weight:400;
+    font-style:normal;
+    font-display:swap;
+  }
   :root{
     --bg:#0a0a0a;
     --bg2:#161616;
@@ -219,11 +227,13 @@
     padding:0 14%;
   }
   .time{
+    font-family:'Anton',sans-serif;
     font-variant-numeric:tabular-nums;
-    font-size:min(14vw,11vh,3.2rem);
-    font-weight:900;
+    font-size:min(15vw,12vh,3.6rem);
+    font-weight:400;
     letter-spacing:.02em;
     line-height:1;
+    transform:skewX(-6deg);
   }
   .time.pulse{
     color:var(--danger);
@@ -241,15 +251,16 @@
   .num-input{
     width:4.2rem;
     text-align:center;
-    font-size:1.4rem;
-    font-weight:900;
+    font-family:'Anton',sans-serif;
+    font-size:1.5rem;
+    font-weight:400;
     background:var(--bg2);
     border:1.5px solid var(--border);
     border-radius:.35rem;
     color:var(--text);
     padding:.4rem 0;
   }
-  .colon{font-size:1.4rem;font-weight:900;color:var(--muted);}
+  .colon{font-family:'Anton',sans-serif;font-size:1.5rem;font-weight:400;color:var(--muted);}
   .presets{
     display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;
     margin-bottom:.5rem;
@@ -1158,6 +1169,8 @@
   function setFocus(on) {
     document.body.classList.toggle('focus', on);
     focusToggle.textContent = on ? '⤡' : '⤢';
+    // Remember the choice so a reload/reopen comes back to the clean view.
+    try { localStorage.setItem('bgtimer_focus', on ? '1' : ''); } catch (e) {}
     if (on) {
       settingsPanel.classList.remove('open');
       if (document.documentElement.requestFullscreen) {
@@ -1322,6 +1335,7 @@
     updateProgressRing(1);
     updateStaticDisplay();
     updateResetVisibility();
+    try { if (localStorage.getItem('bgtimer_focus')) setFocus(true); } catch (e) {}
   }
   init();
 
