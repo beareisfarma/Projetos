@@ -15,6 +15,15 @@
 <meta name="apple-mobile-web-app-title" content="Jogos">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <style>
+  /* Athletic display face for the board (self-hosted so the installed PWA
+     keeps it offline). Anton: condensed, heavy, Nike-poster energy. */
+  @font-face{
+    font-family:'Anton';
+    src:url('../fonts/anton-latin-400-normal.woff2') format('woff2');
+    font-weight:400;
+    font-style:normal;
+    font-display:swap;
+  }
   :root{
     --bg:#0a0a0a;
     --bg2:#161616;
@@ -112,7 +121,8 @@
     cursor:pointer;
   }
   .sets-count{
-    font-size:1.5rem;font-weight:900;font-variant-numeric:tabular-nums;
+    font-family:'Anton',sans-serif;
+    font-size:1.8rem;font-weight:400;font-variant-numeric:tabular-nums;
     min-width:1.5rem;text-align:center;
   }
   .sets-label{
@@ -157,7 +167,8 @@
     padding:.6rem .5rem .2rem;
   }
   .team-name{
-    font-size:.9rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;
+    font-family:'Anton',sans-serif;
+    font-size:1.25rem;font-weight:400;text-transform:uppercase;letter-spacing:.06em;
     color:var(--team-color);
     text-align:center;
     max-width:100%;
@@ -184,18 +195,22 @@
   .score{
     flex:1;
     display:flex;align-items:center;justify-content:center;
-    font-size:min(31vw,34vh,11rem);
-    font-weight:900;
+    font-family:'Anton',sans-serif;
+    /* 38vw is the widest that keeps a wide two-digit pair ("44") inside the panel */
+    font-size:min(38vw,42vh,14rem);
+    font-weight:400;
     font-variant-numeric:tabular-nums;
     line-height:1;
     padding-bottom:.25rem;
     color:var(--team-color);
+    transform:skewX(-6deg);
   }
   .score.flash{ animation:pop .18s ease-out; }
+  /* Keep the Nike-style slant through the whole pop animation. */
   @keyframes pop{
-    0%{ transform:scale(1); }
-    45%{ transform:scale(1.12); color:var(--team-color); }
-    100%{ transform:scale(1); }
+    0%{ transform:skewX(-6deg) scale(1); }
+    45%{ transform:skewX(-6deg) scale(1.12); color:var(--team-color); }
+    100%{ transform:skewX(-6deg) scale(1); }
   }
   .setpoint-tag{
     position:absolute;
@@ -280,8 +295,10 @@
     font-size:1.35rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;
   }
   .overlay-card .big-result{
-    font-size:2.6rem;font-weight:900;font-variant-numeric:tabular-nums;
+    font-family:'Anton',sans-serif;
+    font-size:3rem;font-weight:400;font-variant-numeric:tabular-nums;
     margin:.4rem 0 .2rem;
+    transform:skewX(-6deg);
   }
   .overlay-card p{ color:var(--muted); margin:.3rem 0 1rem; font-size:.85rem; }
   .overlay-actions{ display:flex;flex-direction:column;gap:.5rem; }
@@ -378,7 +395,7 @@
     .sets-bar{ padding:.25rem .75rem; margin-bottom:.4rem; }
     .sets-count{ font-size:1.2rem; }
     .set-history{ display:none; }
-    .score{ font-size:min(17vw,40vh,9rem); }
+    .score{ font-size:min(22vw,44vh,10rem); }
     .controls{ grid-template-columns:repeat(4,1fr); margin-top:.5rem; }
     .btn{ padding:.55rem .4rem; font-size:.72rem; }
     footer{ display:none; }
@@ -393,12 +410,12 @@
   body.focus .wrap{ max-width:none; }
   body.focus .tap-hint,
   body.focus .set-history{ display:none; }
-  body.focus .score{ font-size:min(36vw,44vh,16rem); }
+  body.focus .score{ font-size:min(38vw,48vh,18rem); }
   /* Landscape focus: shorter viewport, so cap by height and pin the layout
      to exactly one screen so the control buttons never fall below the fold. */
   @media (orientation:landscape) and (max-height:700px){
     body.focus .wrap{ height:100dvh; overflow:hidden; }
-    body.focus .score{ font-size:min(20vw,32vh,12rem); }
+    body.focus .score{ font-size:min(25vw,36vh,13rem); }
     body.focus .sets-bar{ margin-bottom:.4rem; }
   }
 </style>
