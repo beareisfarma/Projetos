@@ -324,6 +324,19 @@
   }
   .row .label{ font-size:.92rem; }
   .row .hint{ font-size:.75rem;color:var(--muted);margin-top:.15rem; }
+  .row-controls{ display:flex;align-items:center;gap:.6rem;flex:none; }
+  .test-btn{
+    background:var(--bg2);
+    border:1.5px solid var(--border);
+    color:var(--text);
+    border-radius:.35rem;
+    padding:.4rem .7rem;
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    cursor:pointer;
+  }
   .switch{ position:relative;width:2.9rem;height:1.6rem;flex:none; }
   .switch input{ opacity:0;width:0;height:0; }
   .slider-toggle{
@@ -488,10 +501,17 @@
     </div>
     <div class="row">
       <div class="label">Apito no fim do set</div>
-      <label class="switch">
-        <input type="checkbox" id="whistleSound" checked>
-        <span class="slider-toggle"></span>
-      </label>
+      <div class="row-controls">
+        <button class="test-btn" id="testWhistle">Testar 🔊</button>
+        <label class="switch">
+          <input type="checkbox" id="whistleSound" checked>
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">Apito de fim de jogo (vitória)</div>
+      <button class="test-btn" id="testFinalWhistle">Testar 🔊</button>
     </div>
     <div class="row">
       <div class="label">Vibrar (celular)</div>
@@ -592,62 +612,82 @@
     withAudio(() => tone(1200, 0, 0.07, 'square', 0.35));
     vibrate(35);
   }
-  // One professional referee-whistle blast, modeled on the pealess Fox 40 used
-  // in football/handball: three chambers emit close frequencies (~3.5–4.1 kHz)
-  // whose beating produces the harsh, piercing shrill; band-passed breath noise
-  // adds the "chiff" of a real blow.
+  // One referee trill-whistle blast — the classic "trrrrrr" every football/
+  // handball fan knows. The identity of that sound is the pea: deep amplitude
+  // modulation that spins up over the first tenth of a second and also wobbles
+  // the pitch, over a ~2 kHz carrier thickened by a detuned partner (beating)
+  // and breath noise. A flat continuous tone reads as a toy, not a referee.
   function whistleBlast(start, dur) {
     const ctx = ensureAudio();
     const t0 = ctx.currentTime + start;
+    const F = 2080;
+
     const master = ctx.createGain();
     master.gain.setValueAtTime(0, t0);
-    master.gain.linearRampToValueAtTime(0.85, t0 + 0.012);
-    master.gain.setValueAtTime(0.85, t0 + dur - 0.04);
-    master.gain.exponentialRampToValueAtTime(0.001, t0 + dur + 0.05);
+    master.gain.linearRampToValueAtTime(0.9, t0 + 0.015);
+    master.gain.setValueAtTime(0.9, t0 + dur - 0.05);
+    master.gain.exponentialRampToValueAtTime(0.001, t0 + dur + 0.06);
     master.connect(ctx.destination);
 
-    [[3556, 0.5], [3822, 0.45], [4102, 0.3]].forEach(([f, g]) => {
+    // The pea: near-total amplitude modulation, accelerating as it gets going.
+    const trill = ctx.createGain();
+    trill.gain.value = 0.55;
+    trill.connect(master);
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(19, t0);
+    lfo.frequency.linearRampToValueAtTime(31, t0 + Math.min(0.18, dur));
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.45;
+    lfo.connect(lfoGain).connect(trill.gain);
+    lfo.start(t0);
+    lfo.stop(t0 + dur + 0.06);
+
+    [[F, 'triangle', 0.55], [F * 1.028, 'triangle', 0.4], [F * 2, 'square', 0.06]].forEach(([f, type, g]) => {
       const osc = ctx.createOscillator();
-      osc.type = 'triangle';
-      // Pitch settles up into place over the first ~30ms, like a real blow.
-      osc.frequency.setValueAtTime(f * 0.97, t0);
-      osc.frequency.linearRampToValueAtTime(f, t0 + 0.03);
+      osc.type = type;
+      osc.frequency.setValueAtTime(f * 0.98, t0);
+      osc.frequency.linearRampToValueAtTime(f, t0 + 0.025);
+      // The pea also shakes the pitch a little on each pass.
+      const fmDepth = ctx.createGain();
+      fmDepth.gain.value = f * 0.012;
+      lfo.connect(fmDepth).connect(osc.frequency);
       const og = ctx.createGain();
       og.gain.value = g;
-      osc.connect(og).connect(master);
+      osc.connect(og).connect(trill);
       osc.start(t0);
-      osc.stop(t0 + dur + 0.08);
+      osc.stop(t0 + dur + 0.06);
     });
 
-    const noiseDur = dur + 0.08;
+    const noiseDur = dur + 0.06;
     const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * noiseDur), ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     const noise = ctx.createBufferSource();
     noise.buffer = buf;
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
-    bp.frequency.value = 3900;
-    bp.Q.value = 1.2;
+    bp.frequency.value = F;
+    bp.Q.value = 1.5;
     const ng = ctx.createGain();
-    ng.gain.setValueAtTime(0.4, t0);
-    ng.gain.exponentialRampToValueAtTime(0.12, t0 + 0.08);
-    noise.connect(bp).connect(ng).connect(master);
+    ng.gain.setValueAtTime(0.3, t0);
+    ng.gain.exponentialRampToValueAtTime(0.1, t0 + 0.1);
+    noise.connect(bp).connect(ng).connect(trill);
     noise.start(t0);
     noise.stop(t0 + noiseDur);
   }
-  // Set won mid-match: one firm blast.
+  // Set won mid-match: one firm rolled blast.
   function playWhistle() {
     if (!state.whistleSound) return;
-    withAudio(() => whistleBlast(0, 0.75));
+    withAudio(() => whistleBlast(0, 0.8));
     vibrate([250, 120, 400]);
   }
   // Match point won: the classic full-time call — two short blasts, one long.
   function playFinalWhistle() {
     withAudio(() => {
-      whistleBlast(0, 0.32);
-      whistleBlast(0.46, 0.32);
-      whistleBlast(0.92, 1.6);
+      whistleBlast(0, 0.35);
+      whistleBlast(0.5, 0.35);
+      whistleBlast(1.0, 1.8);
     });
     vibrate([250, 130, 250, 130, 1100]);
   }
@@ -921,6 +961,12 @@
    ['whistleSound', 'whistleSound'], ['vibrateEnabled', 'vibrateEnabled']].forEach(([id, key]) => {
     $(id).addEventListener('change', e => { state[key] = e.target.checked; render(); });
   });
+  // Previews ignore the on/off toggle — they exist to audition the sound.
+  $('testWhistle').addEventListener('click', () => {
+    withAudio(() => whistleBlast(0, 0.8));
+    vibrate([250, 120, 400]);
+  });
+  $('testFinalWhistle').addEventListener('click', playFinalWhistle);
 
   // ---------- Fullscreen ----------
   const focusToggle = $('focusToggle');
