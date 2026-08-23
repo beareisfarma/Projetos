@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Placar de Jogos</title>
+<meta name="theme-color" content="#0a0a0a">
+<meta name="color-scheme" content="dark">
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --bg2:#161616;
+    --card:#121212;
+    --border:rgba(255,255,255,0.14);
+    --text:#ffffff;
+    --text-on-accent:#0a0a0a;
+    --muted:#9a9a9a;
+    --accent:#d7ff1a;
+    --accent2:#ff7a1f;
+    --danger:#ff2d2d;
+    --ok:#00e676;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:.75rem .75rem 1rem;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:.35rem 0 .75rem;
+    gap:.5rem;
+  }
+  .header-actions{ display:flex;gap:.5rem; }
+  .brand{ display:flex;align-items:center;gap:.6rem; }
+  .stripes{
+    display:flex;align-items:flex-end;gap:3px;height:1.1rem;
+  }
+  .stripes span{
+    width:5px;background:var(--accent);transform:skewX(-18deg);
+  }
+  .stripes span:nth-child(1){ height:55%; }
+  .stripes span:nth-child(2){ height:78%; }
+  .stripes span:nth-child(3){ height:100%; }
+  header h1{
+    font-size:1.05rem;font-weight:900;letter-spacing:.03em;text-transform:uppercase;margin:0;
+  }
+  .icon-btn{
+    background:var(--card);
+    border:1.5px solid var(--border);
+    color:var(--text);
+    width:2.5rem;height:2.5rem;
+    border-radius:.4rem;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.15rem;
+    cursor:pointer;
+  }
+
+  /* ---- Set score strip ---- */
+  .sets-bar{
+    display:flex;align-items:center;justify-content:center;gap:1rem;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:.5rem;
+    padding:.45rem .75rem;
+    margin-bottom:.75rem;
+  }
+  .sets-count{
+    font-size:1.5rem;font-weight:900;font-variant-numeric:tabular-nums;
+    min-width:1.5rem;text-align:center;
+  }
+  .sets-label{
+    text-align:center;color:var(--muted);
+    font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  }
+  .sets-label b{
+    display:block;color:var(--text);font-size:.8rem;letter-spacing:.04em;
+  }
+  .set-history{
+    text-align:center;color:var(--muted);
+    font-size:.7rem;letter-spacing:.03em;
+    margin:-.35rem 0 .6rem;
+    min-height:1rem;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---- Court: the two big tap panels ---- */
+  .court{
+    flex:1;
+    display:flex;
+    gap:.6rem;
+    min-height:0;
+  }
+  .side{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-top:4px solid var(--team-color);
+    border-radius:.6rem;
+    overflow:hidden;
+    cursor:pointer;
+    position:relative;
+  }
+  .side.a{ --team-color:var(--accent); }
+  .side.b{ --team-color:var(--accent2); }
+  .side:active{ background:var(--bg2); }
+  .team-head{
+    display:flex;align-items:center;justify-content:center;gap:.4rem;
+    padding:.6rem .5rem .2rem;
+  }
+  .team-name{
+    font-size:.9rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;
+    color:var(--team-color);
+    text-align:center;
+    max-width:100%;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .team-name-input{
+    width:90%;
+    text-align:center;
+    font-size:.9rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;
+    background:var(--bg2);
+    border:1.5px solid var(--team-color);
+    border-radius:.35rem;
+    color:var(--text);
+    padding:.25rem;
+  }
+  .serve{
+    font-size:.85rem;
+    min-height:1.2rem;
+    text-align:center;
+    opacity:0;
+    transition:opacity .15s;
+  }
+  .side.serving .serve{ opacity:1; }
+  .score{
+    flex:1;
+    display:flex;align-items:center;justify-content:center;
+    font-size:min(31vw,34vh,11rem);
+    font-weight:900;
+    font-variant-numeric:tabular-nums;
+    line-height:1;
+    padding-bottom:.25rem;
+  }
+  .score.flash{ animation:pop .18s ease-out; }
+  @keyframes pop{
+    0%{ transform:scale(1); }
+    45%{ transform:scale(1.12); color:var(--team-color); }
+    100%{ transform:scale(1); }
+  }
+  .setpoint-tag{
+    position:absolute;
+    top:.45rem;left:50%;
+    transform:translateX(-50%);
+    background:var(--danger);
+    color:#fff;
+    font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;
+    padding:.2rem .5rem;
+    border-radius:.3rem;
+    display:none;
+    animation:blink 1s step-end infinite;
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  .side.setpoint .setpoint-tag{ display:block; }
+  .side.setpoint .team-head{ margin-top:1rem; }
+  @keyframes blink{ 50%{ opacity:.35; } }
+  .minus-btn{
+    align-self:center;
+    margin:0 0 .6rem;
+    background:var(--bg2);
+    border:1.5px solid var(--border);
+    color:var(--text);
+    width:3rem;height:2.2rem;
+    border-radius:.4rem;
+    font-size:1.2rem;font-weight:900;
+    cursor:pointer;
+    flex:none;
+  }
+  .tap-hint{
+    text-align:center;color:var(--muted);
+    font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;
+    padding-bottom:.5rem;
+  }
+
+  /* ---- Bottom controls ---- */
+  .controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:.5rem;
+    margin-top:.75rem;
+  }
+  .btn{
+    border:none;
+    border-radius:.4rem;
+    padding:.8rem .5rem;
+    font-size:.8rem;
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    cursor:pointer;
+    background:var(--bg2);
+    color:var(--text);
+    border:1.5px solid var(--border);
+  }
+  .btn:disabled{ opacity:.35; cursor:default; }
+  .btn-danger{ border-color:rgba(255,45,45,.5); color:#ff8a8a; }
+
+  /* ---- Overlay (set / match end) ---- */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.82);
+    display:none;
+    align-items:center;justify-content:center;
+    z-index:50;
+    padding:1rem;
+  }
+  .overlay.open{ display:flex; }
+  .overlay-card{
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-top:4px solid var(--accent);
+    border-radius:.6rem;
+    padding:1.5rem 1.25rem;
+    max-width:26rem;
+    width:100%;
+    text-align:center;
+  }
+  .overlay-card h2{
+    margin:0 0 .3rem;
+    font-size:1.35rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;
+  }
+  .overlay-card .big-result{
+    font-size:2.6rem;font-weight:900;font-variant-numeric:tabular-nums;
+    margin:.4rem 0 .2rem;
+  }
+  .overlay-card p{ color:var(--muted); margin:.3rem 0 1rem; font-size:.85rem; }
+  .overlay-actions{ display:flex;flex-direction:column;gap:.5rem; }
+  .overlay-actions .btn-primary{
+    background:var(--accent);color:var(--text-on-accent);border:none;
+    padding:1rem;font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
+    border-radius:.4rem;cursor:pointer;
+  }
+
+  /* ---- Settings panel ---- */
+  .settings{
+    display:none;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-top:4px solid var(--accent);
+    border-radius:.6rem;
+    padding:1rem 1.25rem;
+    margin-top:.75rem;
+  }
+  .settings.open{ display:block; }
+  .settings h3{
+    font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    margin:1rem 0 .5rem;
+  }
+  .settings h3:first-child{ margin-top:0; }
+  .chip-row{ display:flex;flex-wrap:wrap;gap:.5rem; }
+  .chip{
+    background:var(--bg2);
+    border:1.5px solid var(--border);
+    color:var(--text);
+    padding:.4rem .8rem;
+    border-radius:.35rem;
+    font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;
+    cursor:pointer;
+  }
+  .chip.active{ background:var(--accent); color:var(--text-on-accent); border-color:var(--accent); }
+  .row{
+    display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+    padding:.55rem 0;
+  }
+  .row .label{ font-size:.92rem; }
+  .row .hint{ font-size:.75rem;color:var(--muted);margin-top:.15rem; }
+  .switch{ position:relative;width:2.9rem;height:1.6rem;flex:none; }
+  .switch input{ opacity:0;width:0;height:0; }
+  .slider-toggle{
+    position:absolute;inset:0;
+    background:var(--bg2);
+    border:1px solid var(--border);
+    border-radius:999px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .slider-toggle:before{
+    content:"";position:absolute;
+    height:1.15rem;width:1.15rem;left:.2rem;top:.19rem;
+    background:var(--muted);border-radius:50%;transition:.15s;
+  }
+  input:checked + .slider-toggle{ background:var(--accent);border-color:var(--accent); }
+  input:checked + .slider-toggle:before{ transform:translateX(1.3rem);background:#fff; }
+  .small-input{
+    width:3.6rem;text-align:center;
+    background:var(--bg2);
+    border:1.5px solid var(--border);
+    border-radius:.35rem;
+    color:var(--text);
+    padding:.35rem 0;
+    font-size:.95rem;font-weight:700;
+  }
+  footer{
+    text-align:center;color:var(--muted);
+    font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;
+    margin-top:.9rem;
+  }
+
+  /* ---- Landscape: hide chrome, let the panels dominate ---- */
+  @media (orientation:landscape) and (max-height:700px){
+    .wrap{ max-width:none; padding:.4rem .75rem .5rem; }
+    header{ padding:.1rem 0 .4rem; }
+    .icon-btn{ width:2rem;height:2rem;font-size:1rem; }
+    .sets-bar{ padding:.25rem .75rem; margin-bottom:.4rem; }
+    .sets-count{ font-size:1.2rem; }
+    .set-history{ display:none; }
+    .score{ font-size:min(17vw,40vh,9rem); }
+    .controls{ grid-template-columns:repeat(4,1fr); margin-top:.5rem; }
+    .btn{ padding:.55rem .4rem; font-size:.72rem; }
+    footer{ display:none; }
+    .tap-hint{ display:none; }
+  }
+  /* Focus (fullscreen) trims the header brand for max board */
+  body.focus .app-title{ display:none; }
+  body.focus footer{ display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand app-title">
+      <span class="stripes"><span></span><span></span><span></span></span>
+      <h1>Placar de Jogos</h1>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="focusToggle" aria-label="Tela cheia">⤢</button>
+      <button class="icon-btn" id="settingsToggle" aria-label="Configurações">⚙️</button>
+    </div>
+  </header>
+
+  <div class="sets-bar">
+    <div class="sets-count" id="setsA">0</div>
+    <div class="sets-label">Sets<b id="setLabel">1º set · até 25</b></div>
+    <div class="sets-count" id="setsB">0</div>
+  </div>
+  <div class="set-history" id="setHistory"></div>
+
+  <div class="court" id="court">
+    <div class="side a" id="sideA" data-team="0">
+      <div class="setpoint-tag" id="tagA">Set point</div>
+      <div class="team-head"><div class="team-name" id="nameA">Time A</div></div>
+      <div class="serve">🏐 saque</div>
+      <div class="score" id="scoreA">0</div>
+      <button class="minus-btn" id="minusA" aria-label="Tirar ponto">−</button>
+      <div class="tap-hint">Toque para marcar ponto</div>
+    </div>
+    <div class="side b" id="sideB" data-team="1">
+      <div class="setpoint-tag" id="tagB">Set point</div>
+      <div class="team-head"><div class="team-name" id="nameB">Time B</div></div>
+      <div class="serve">🏐 saque</div>
+      <div class="score" id="scoreB">0</div>
+      <button class="minus-btn" id="minusB" aria-label="Tirar ponto">−</button>
+      <div class="tap-hint">Toque para marcar ponto</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="undoBtn">↩ Desfazer</button>
+    <button class="btn" id="swapBtn">⇄ Trocar lados</button>
+    <button class="btn" id="resetSetBtn">Zerar pontos</button>
+    <button class="btn btn-danger" id="resetMatchBtn">Nova partida</button>
+  </div>
+
+  <div class="settings" id="settingsPanel">
+    <h3>Partida (melhor de quantos sets?)</h3>
+    <div class="chip-row" id="bestOfChips">
+      <button class="chip" data-v="1">Set único</button>
+      <button class="chip active" data-v="3">Melhor de 3</button>
+      <button class="chip" data-v="5">Melhor de 5</button>
+    </div>
+
+    <h3>Pontos por set</h3>
+    <div class="chip-row" id="pointsChips">
+      <button class="chip" data-v="15">15</button>
+      <button class="chip" data-v="21">21</button>
+      <button class="chip active" data-v="25">25</button>
+    </div>
+    <div class="row">
+      <div class="label">Outro valor</div>
+      <input class="small-input" type="number" id="customPoints" min="1" placeholder="25">
+    </div>
+    <div class="row">
+      <div>
+        <div class="label">Set decisivo até 15</div>
+        <div class="hint">Como no vôlei: o último set vai só até 15</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="tieBreak15" checked>
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+    <div class="row">
+      <div>
+        <div class="label">Vantagem de 2 pontos</div>
+        <div class="hint">O set só fecha com 2 pontos de diferença</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="winBy2" checked>
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+
+    <h3>Som e vibração</h3>
+    <div class="row">
+      <div class="label">Som ao marcar ponto</div>
+      <label class="switch">
+        <input type="checkbox" id="pointSound" checked>
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+    <div class="row">
+      <div class="label">Apito no fim do set</div>
+      <label class="switch">
+        <input type="checkbox" id="whistleSound" checked>
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+    <div class="row">
+      <div class="label">Vibrar (celular)</div>
+      <label class="switch">
+        <input type="checkbox" id="vibrateEnabled" checked>
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+    <p class="row hint" style="padding:.2rem 0 0;">Toque no nome do time para renomear.</p>
+  </div>
+
+  <footer>Feito para durar a noite toda de jogo 🎲</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <h2 id="overlayTitle">Fim do set!</h2>
+    <div class="big-result" id="overlayScore">25–23</div>
+    <p id="overlaySub">Os times trocam de lado.</p>
+    <div class="overlay-actions">
+      <button class="btn-primary" id="overlayNext">Próximo set</button>
+      <button class="btn" id="overlayUndo">↩ Desfazer último ponto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  // ---------- State ----------
+  // Always build defaults through a factory — a shared DEFAULT_STATE object would
+  // alias its arrays into the live state, and in-game mutations would corrupt the
+  // "clean slate" that a new match starts from.
+  function freshState() {
+    return {
+      names: ['Time A', 'Time B'],
+      scores: [0, 0],
+      sets: [0, 0],
+      setResults: [],          // e.g. [[25,23],[20,25]]
+      serving: null,           // 0 | 1 | null (no one served yet)
+      swapped: false,          // visual side swap
+      bestOf: 3,
+      pointsPerSet: 25,
+      tieBreak15: true,
+      winBy2: true,
+      pointSound: true,
+      whistleSound: true,
+      vibrateEnabled: true,
+      pendingSet: null,        // {winner, scores:[a,b]} while the set-end overlay is open
+      matchWinner: null,
+    };
+  }
+  let state;
+  try {
+    state = { ...freshState(), ...JSON.parse(localStorage.getItem('placar_state') || '{}') };
+  } catch (e) { state = freshState(); }
+  let history = [];          // snapshot stack for undo (not persisted)
+
+  function save() {
+    localStorage.setItem('placar_state', JSON.stringify(state));
+  }
+  function snapshot() {
+    history.push(JSON.stringify(state));
+    if (history.length > 100) history.shift();
+  }
+
+  // ---------- Audio ----------
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function withAudio(fn) {
+    const ctx = ensureAudio();
+    if (ctx.state === 'running') fn();
+    else ctx.resume().then(fn).catch(() => {});
+  }
+  function tone(freq, startOffset, duration, type = 'sine', peakGain = 0.3) {
+    const ctx = ensureAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const t0 = ctx.currentTime + startOffset;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(peakGain, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.02);
+  }
+  function vibrate(pattern) {
+    if (state.vibrateEnabled && navigator.vibrate) navigator.vibrate(pattern);
+  }
+  function playPoint() {
+    if (!state.pointSound) return;
+    withAudio(() => tone(1200, 0, 0.07, 'square', 0.35));
+    vibrate(35);
+  }
+  function playWhistle() {
+    if (!state.whistleSound) return;
+    withAudio(() => {
+      // Referee-whistle feel: sharp high trill, twice.
+      tone(2100, 0, 0.35, 'square', 0.5);
+      tone(2350, 0, 0.35, 'square', 0.35);
+      tone(2100, 0.45, 0.55, 'square', 0.5);
+      tone(2350, 0.45, 0.55, 'square', 0.35);
+    });
+    vibrate([250, 120, 400]);
+  }
+  function playFanfare() {
+    withAudio(() => {
+      tone(880, 0, 0.18, 'square', 0.45);
+      tone(1109, 0.18, 0.18, 'square', 0.45);
+      tone(1319, 0.36, 0.5, 'square', 0.5);
+      tone(660, 0.36, 0.5, 'sawtooth', 0.3);
+    });
+    vibrate([120, 60, 120, 60, 500]);
+  }
+
+  // ---------- Wake lock: keep the phone screen on during the game ----------
+  let wakeLock = null;
+  function acquireWakeLock() {
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then(l => { wakeLock = l; }).catch(() => {});
+    }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      acquireWakeLock();
+      if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+    }
+  });
+
+  // ---------- Rules ----------
+  function setsToWin() { return Math.floor(state.bestOf / 2) + 1; }
+  function isTieBreakSet() {
+    // Last possible set (e.g. 5th in best-of-5, 3rd in best-of-3)
+    return state.bestOf > 1 && state.tieBreak15 &&
+      state.sets[0] === setsToWin() - 1 && state.sets[1] === setsToWin() - 1;
+  }
+  function currentTarget() {
+    return isTieBreakSet() ? 15 : state.pointsPerSet;
+  }
+  function setWonBy(i) {
+    const target = currentTarget();
+    const a = state.scores[i], b = state.scores[1 - i];
+    return a >= target && (!state.winBy2 || a - b >= 2);
+  }
+  function isSetPoint(i) {
+    const target = currentTarget();
+    const a = state.scores[i], b = state.scores[1 - i];
+    return a + 1 >= target && (!state.winBy2 || a + 1 - b >= 2);
+  }
+
+  // ---------- Elements ----------
+  const els = {
+    scoreA: $('scoreA'), scoreB: $('scoreB'),
+    nameA: $('nameA'), nameB: $('nameB'),
+    sideA: $('sideA'), sideB: $('sideB'),
+    setsA: $('setsA'), setsB: $('setsB'),
+    setLabel: $('setLabel'), setHistory: $('setHistory'),
+    court: $('court'),
+    overlay: $('overlay'),
+    overlayTitle: $('overlayTitle'), overlayScore: $('overlayScore'), overlaySub: $('overlaySub'),
+    overlayNext: $('overlayNext'), overlayUndo: $('overlayUndo'),
+    undoBtn: $('undoBtn'),
+  };
+
+  // With sides swapped, panel A shows team 1 and vice versa.
+  function teamAt(panel) { return state.swapped ? 1 - panel : panel; }
+
+  function render() {
+    const tA = teamAt(0), tB = teamAt(1);
+    els.scoreA.textContent = state.scores[tA];
+    els.scoreB.textContent = state.scores[tB];
+    els.nameA.textContent = state.names[tA];
+    els.nameB.textContent = state.names[tB];
+    els.setsA.textContent = state.sets[tA];
+    els.setsB.textContent = state.sets[tB];
+    els.sideA.classList.toggle('serving', state.serving === tA);
+    els.sideB.classList.toggle('serving', state.serving === tB);
+
+    const setNo = state.setResults.length + 1;
+    els.setLabel.textContent = `${setNo}º set · até ${currentTarget()}`;
+    els.setHistory.textContent = state.setResults
+      .map(r => `${r[tA]}–${r[tB]}`).join('  ·  ');
+
+    const inPlay = !state.pendingSet && !state.matchWinner;
+    const decisive = setsToWin() - 1;
+    [[els.sideA, tA], [els.sideB, tB]].forEach(([el, t]) => {
+      const sp = inPlay && isSetPoint(t);
+      el.classList.toggle('setpoint', sp);
+      el.querySelector('.setpoint-tag').textContent =
+        (state.bestOf > 1 && state.sets[t] === decisive) ? 'Match point' : 'Set point';
+    });
+
+    els.undoBtn.disabled = history.length === 0;
+    save();
+  }
+
+  function flash(panel) {
+    const el = panel === 0 ? els.scoreA : els.scoreB;
+    el.classList.remove('flash');
+    void el.offsetWidth;           // restart the animation
+    el.classList.add('flash');
+  }
+
+  // ---------- Scoring ----------
+  function addPoint(panel) {
+    if (state.pendingSet || state.matchWinner) return;
+    const t = teamAt(panel);
+    snapshot();
+    state.scores[t]++;
+    state.serving = t;             // vôlei: quem ganha o ponto saca o próximo
+    flash(panel);
+
+    if (setWonBy(t)) {
+      state.pendingSet = { winner: t, scores: [...state.scores] };
+      showSetOverlay();
+    } else {
+      playPoint();
+    }
+    render();
+    acquireWakeLock();
+  }
+
+  function subPoint(panel) {
+    if (state.pendingSet || state.matchWinner) return;
+    const t = teamAt(panel);
+    if (state.scores[t] === 0) return;
+    snapshot();
+    state.scores[t]--;
+    render();
+  }
+
+  function undo() {
+    if (history.length === 0) return;
+    state = JSON.parse(history.pop());
+    hideOverlay();
+    render();
+  }
+
+  // ---------- Set / match end ----------
+  function showSetOverlay() {
+    const { winner, scores } = state.pendingSet;
+    const loserScore = scores[1 - winner];
+    const willWinMatch = state.sets[winner] + 1 >= setsToWin();
+    els.overlayScore.textContent = `${scores[winner]}–${loserScore}`;
+    if (willWinMatch && state.bestOf > 1) {
+      els.overlayTitle.textContent = `🏆 ${state.names[winner]} venceu a partida!`;
+      els.overlaySub.textContent = `Sets: ${state.sets[winner] + 1} a ${state.sets[1 - winner]}`;
+      els.overlayNext.textContent = 'Nova partida';
+      playFanfare();
+    } else if (state.bestOf === 1) {
+      els.overlayTitle.textContent = `🏆 ${state.names[winner]} venceu!`;
+      els.overlaySub.textContent = 'Bora a revanche?';
+      els.overlayNext.textContent = 'Jogar de novo';
+      playFanfare();
+    } else {
+      els.overlayTitle.textContent = `${state.names[winner]} venceu o set!`;
+      els.overlaySub.textContent = 'Os times trocam de lado para o próximo set.';
+      els.overlayNext.textContent = 'Próximo set';
+      playWhistle();
+    }
+    els.overlay.classList.add('open');
+  }
+  function hideOverlay() {
+    els.overlay.classList.remove('open');
+  }
+
+  function confirmSet() {
+    const { winner, scores } = state.pendingSet;
+    state.sets[winner]++;
+    state.setResults.push(scores);
+    state.pendingSet = null;
+
+    if (state.bestOf === 1 || state.sets[winner] >= setsToWin()) {
+      // Match over: keep sets/history on screen, start fresh on demand.
+      state.matchWinner = winner;
+      newMatch(true);
+      return;
+    }
+    state.scores = [0, 0];
+    state.serving = null;
+    state.swapped = !state.swapped;  // troca de lado entre sets, como no vôlei
+    hideOverlay();
+    render();
+  }
+
+  function newMatch(keepNames) {
+    const names = state.names, swapped = state.swapped;
+    const prefs = {
+      bestOf: state.bestOf, pointsPerSet: state.pointsPerSet,
+      tieBreak15: state.tieBreak15, winBy2: state.winBy2,
+      pointSound: state.pointSound, whistleSound: state.whistleSound,
+      vibrateEnabled: state.vibrateEnabled,
+    };
+    state = { ...freshState(), ...prefs, names: keepNames ? names : ['Time A', 'Time B'], swapped };
+    history = [];
+    hideOverlay();
+    render();
+  }
+
+  els.overlayNext.addEventListener('click', confirmSet);
+  els.overlayUndo.addEventListener('click', undo);
+
+  // ---------- Interactions ----------
+  // The whole panel scores a point, except its inner controls (name, minus).
+  [els.sideA, els.sideB].forEach((el, panel) => {
+    el.addEventListener('click', e => {
+      if (e.target.closest('.minus-btn') || e.target.closest('.team-name') ||
+          e.target.closest('.team-name-input')) return;
+      addPoint(panel);
+    });
+  });
+  $('minusA').addEventListener('click', () => subPoint(0));
+  $('minusB').addEventListener('click', () => subPoint(1));
+  els.undoBtn.addEventListener('click', undo);
+
+  $('swapBtn').addEventListener('click', () => {
+    state.swapped = !state.swapped;
+    render();
+  });
+  $('resetSetBtn').addEventListener('click', () => {
+    snapshot();
+    state.scores = [0, 0];
+    state.serving = null;
+    render();
+  });
+  $('resetMatchBtn').addEventListener('click', () => {
+    if (state.scores[0] || state.scores[1] || state.sets[0] || state.sets[1]) {
+      snapshot();
+    }
+    newMatch(true);
+  });
+
+  // Tap a team name to rename it inline.
+  [[els.nameA, 0], [els.nameB, 1]].forEach(([nameEl, panel]) => {
+    nameEl.addEventListener('click', () => {
+      const t = teamAt(panel);
+      const input = document.createElement('input');
+      input.className = 'team-name-input';
+      input.value = state.names[t];
+      input.maxLength = 20;
+      nameEl.replaceWith(input);
+      input.focus();
+      input.select();
+      const done = () => {
+        state.names[t] = input.value.trim() || (t === 0 ? 'Time A' : 'Time B');
+        input.replaceWith(nameEl);
+        render();
+      };
+      input.addEventListener('blur', done);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
+    });
+  });
+
+  // ---------- Settings ----------
+  const settingsPanel = $('settingsPanel');
+  $('settingsToggle').addEventListener('click', () => settingsPanel.classList.toggle('open'));
+
+  function bindChips(containerId, get, set) {
+    const box = $(containerId);
+    const sync = () => box.querySelectorAll('.chip').forEach(c =>
+      c.classList.toggle('active', parseInt(c.dataset.v, 10) === get()));
+    box.addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      set(parseInt(chip.dataset.v, 10));
+      sync();
+      render();
+    });
+    sync();
+    return sync;
+  }
+  const syncBestOf = bindChips('bestOfChips', () => state.bestOf, v => { state.bestOf = v; });
+  const syncPoints = bindChips('pointsChips', () => state.pointsPerSet, v => {
+    state.pointsPerSet = v;
+    $('customPoints').value = '';
+  });
+  $('customPoints').addEventListener('change', e => {
+    const v = parseInt(e.target.value, 10);
+    if (v > 0) { state.pointsPerSet = v; syncPoints(); render(); }
+  });
+  [['tieBreak15', 'tieBreak15'], ['winBy2', 'winBy2'], ['pointSound', 'pointSound'],
+   ['whistleSound', 'whistleSound'], ['vibrateEnabled', 'vibrateEnabled']].forEach(([id, key]) => {
+    $(id).addEventListener('change', e => { state[key] = e.target.checked; render(); });
+  });
+
+  // ---------- Fullscreen ----------
+  const focusToggle = $('focusToggle');
+  function setFocus(on) {
+    document.body.classList.toggle('focus', on);
+    focusToggle.textContent = on ? '⤡' : '⤢';
+    if (on) {
+      settingsPanel.classList.remove('open');
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } else if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+  focusToggle.addEventListener('click', () => setFocus(!document.body.classList.contains('focus')));
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && document.body.classList.contains('focus')) {
+      document.body.classList.remove('focus');
+      focusToggle.textContent = '⤢';
+    }
+  });
+
+  // ---------- Init ----------
+  // A refresh mid-set-end reopens the overlay so the set isn't lost.
+  $('tieBreak15').checked = state.tieBreak15;
+  $('winBy2').checked = state.winBy2;
+  $('pointSound').checked = state.pointSound;
+  $('whistleSound').checked = state.whistleSound;
+  $('vibrateEnabled').checked = state.vibrateEnabled;
+  syncBestOf();
+  syncPoints();
+  if (state.matchWinner !== null) newMatch(true);
+  else if (state.pendingSet) showSetOverlay();
+  render();
+})();
+</script>
+</body>
+</html>
