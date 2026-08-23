@@ -130,6 +130,7 @@
     position:relative;
     width:min(66vw,52vh,300px);
     aspect-ratio:1/1;
+    cursor:pointer;
   }
   .stopwatch-svg{
     position:absolute;
@@ -235,8 +236,11 @@
   }
   .chip.active{ background:var(--accent); color:var(--text-on-accent); border-color:var(--accent);}
   .controls{
-    display:flex;gap:.75rem;margin-top:1rem;
+    display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1rem;
   }
+  /* Reiniciar occupies its own full-width row below Iniciar/Zerar (and stacks
+     naturally when .controls switches to a column in landscape/focus). */
+  #restartBtn{ width:100%; flex:none; }
   .btn{
     flex:1;
     border:none;
@@ -374,7 +378,9 @@
   body.focus footer{
     display:none;
   }
-  body.focus .card:first-of-type{
+  /* Target the timer card by class — .card:first-of-type never matched because
+     .tabs is the first div sibling, so focus mode wasn't actually expanding. */
+  body.focus .main-card{
     flex:1;
     display:flex;
     flex-direction:column;
@@ -429,7 +435,7 @@
     .stopwatch-frame{ width:min(26vw,56vh,190px); }
     .time{ font-size:min(6vw,9vh,1.7rem); }
 
-    body.focus .card:first-of-type{
+    body.focus .main-card{
       flex-direction:row;
       align-items:center;
       gap:1.5rem;
@@ -465,7 +471,7 @@
     <button class="tab" id="tabCountdown">Temporizador (regressivo)</button>
   </div>
 
-  <div class="card">
+  <div class="card main-card">
     <div id="countdownSetup">
       <div class="duration-setter">
         <input class="num-input" id="minInput" type="tel" inputmode="numeric" maxlength="3" value="5">
@@ -516,6 +522,7 @@
     <div class="controls">
       <button class="btn btn-primary" id="startBtn">Iniciar</button>
       <button class="btn btn-secondary" id="resetBtn">Zerar</button>
+      <button class="btn btn-secondary" id="restartBtn">Reiniciar</button>
     </div>
   </div>
 
@@ -776,18 +783,24 @@
     },
   };
 
+  // Every player goes through withAudio: the OS can suspend the AudioContext at any
+  // moment (tab in background, screen dimmed, interruption by outra mídia), and notes
+  // scheduled on a suspended context are silently dropped. Resuming first guarantees
+  // the alarm is actually audible.
   // distinct sound: normal alert (custom checkpoint) — style chosen in settings
   function playAlertSound() {
-    (ALERT_PRESETS[settings.alertSound] || ALERT_PRESETS.classic).play();
+    withAudio(() => (ALERT_PRESETS[settings.alertSound] || ALERT_PRESETS.classic).play());
   }
   // distinct sound: final countdown tick — same fixed tone every second, no pitch drift
   function playTickSound() {
-    tone(900, 0, 0.11, 'square', 0.45);
-    vibrate(70);
+    withAudio(() => {
+      tone(900, 0, 0.11, 'square', 0.45);
+      vibrate(70);
+    });
   }
   // distinct sound: zero / end alarm — style chosen in settings
   function playAlarmSound() {
-    (ALARM_PRESETS[settings.alarmSound] || ALARM_PRESETS.peeen).play();
+    withAudio(() => (ALARM_PRESETS[settings.alarmSound] || ALARM_PRESETS.peeen).play());
   }
 
   // ---------- Timer core ----------
@@ -806,6 +819,7 @@
   const subText = $('subText');
   const startBtn = $('startBtn');
   const resetBtn = $('resetBtn');
+  const restartBtn = $('restartBtn');
   const countdownSetup = $('countdownSetup');
   const stopwatchFrame = $('stopwatchFrame');
   const swProgress = $('swProgress');
@@ -842,7 +856,52 @@
     }
   }
 
+  // Ticking runs on two clocks at once: requestAnimationFrame for a smooth display,
+  // plus a setInterval fallback — rAF freezes completely in a background tab, and
+  // without the interval the alarm would only fire when the user came back.
+  let tickIntervalId = null;
+  function startTicking() {
+    rafId = requestAnimationFrame(loop);
+    tickIntervalId = setInterval(tick, 250);
+  }
+  function stopTicking() {
+    cancelAnimationFrame(rafId);
+    clearInterval(tickIntervalId);
+    tickIntervalId = null;
+  }
+
+  // Keep the screen awake while the timer runs — on mobile, a locked screen kills
+  // all timers and audio, so the end alarm would never sound.
+  let wakeLock = null;
+  function acquireWakeLock() {
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen')
+        .then(lock => { wakeLock = lock; })
+        .catch(() => {});
+    }
+  }
+  function releaseWakeLock() {
+    if (wakeLock) {
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      // The OS drops the wake lock and may suspend audio whenever the page is
+      // hidden; re-arm both as soon as we're visible again.
+      if (running) acquireWakeLock();
+      if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+    }
+  });
+
   function loop() {
+    if (!running) return;
+    tick();
+    if (running) rafId = requestAnimationFrame(loop);
+  }
+
+  function tick() {
     if (!running) return;
     const now = Date.now();
     const elapsedMs = elapsedBeforePause + (now - startTs);
@@ -887,6 +946,11 @@
 
     if (done) {
       running = false;
+      stopTicking();
+      releaseWakeLock();
+      // Record the full duration as elapsed so the finished state is unambiguous:
+      // Zerar/Reiniciar stay visible, and the next start knows to begin fresh.
+      elapsedBeforePause = currentDurationSec() * 1000;
       timeDisplay.classList.remove('pulse');
       stopwatchFrame.classList.remove('danger');
       if (settings.zeroAlarmEnabled) playAlarmSound();
@@ -894,10 +958,7 @@
       startBtn.textContent = 'Iniciar';
       startBtn.classList.remove('running');
       updateResetVisibility();
-      return;
     }
-
-    rafId = requestAnimationFrame(loop);
   }
 
   function handleSecondTick(sec) {
@@ -923,21 +984,33 @@
   function start() {
     withAudio(() => {});
     if (running) return;
+    if (mode === 'countdown' && elapsedBeforePause >= currentDurationSec() * 1000) {
+      // Timer already finished — Iniciar begins a fresh run instead of resuming
+      // a clock that would expire instantly.
+      elapsedBeforePause = 0;
+      triggeredCountdownAlerts.clear();
+    }
     running = true;
     startTs = Date.now();
-    lastWholeSecond = mode === 'countdown' ? currentDurationSec() : -1;
+    // Anchor to the second we're actually resuming from — anchoring to the initial
+    // value made the catch-up loop replay every alert since the start after a pause.
+    lastWholeSecond = mode === 'countdown'
+      ? Math.ceil((currentDurationSec() * 1000 - elapsedBeforePause) / 1000)
+      : Math.floor(elapsedBeforePause / 1000);
     startBtn.textContent = 'Pausar';
     startBtn.classList.add('running');
     stopwatchFrame.classList.add('running');
     subText.textContent = mode === 'countdown' ? 'Contando regressivamente…' : 'Contando…';
     countdownSetup.style.pointerEvents = 'none';
     countdownSetup.style.opacity = '0.5';
-    rafId = requestAnimationFrame(loop);
+    acquireWakeLock();
+    startTicking();
   }
 
   function pause() {
     running = false;
-    cancelAnimationFrame(rafId);
+    stopTicking();
+    releaseWakeLock();
     const now = Date.now();
     elapsedBeforePause += (now - startTs);
     startBtn.textContent = 'Continuar';
@@ -948,7 +1021,8 @@
 
   function reset() {
     running = false;
-    cancelAnimationFrame(rafId);
+    stopTicking();
+    releaseWakeLock();
     elapsedBeforePause = 0;
     lastWholeSecond = null;
     triggeredCountdownAlerts.clear();
@@ -966,7 +1040,9 @@
   }
 
   function updateResetVisibility() {
-    resetBtn.style.display = (elapsedBeforePause > 0 || running) ? '' : 'none';
+    const show = (elapsedBeforePause > 0 || running) ? '' : 'none';
+    resetBtn.style.display = show;
+    restartBtn.style.display = show;
   }
 
   startBtn.addEventListener('click', () => {
@@ -975,6 +1051,11 @@
     updateResetVisibility();
   });
   resetBtn.addEventListener('click', reset);
+  restartBtn.addEventListener('click', () => {
+    reset();
+    start();
+    updateResetVisibility();
+  });
 
   // ---------- Mode switch ----------
   const tabStopwatch = $('tabStopwatch');
@@ -1049,9 +1130,9 @@
     }
   }
   focusToggle.addEventListener('click', () => setFocus(!document.body.classList.contains('focus')));
-  timeDisplay.addEventListener('click', () => {
-    if (document.body.classList.contains('focus')) setFocus(false);
-  });
+  // Tapping the dial itself toggles focus mode: opens the giant full-screen view,
+  // and a second tap brings the normal layout back.
+  stopwatchFrame.addEventListener('click', () => setFocus(!document.body.classList.contains('focus')));
   document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement && document.body.classList.contains('focus')) {
       document.body.classList.remove('focus');
