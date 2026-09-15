@@ -197,12 +197,20 @@ npm install
 npm test          # 28 testes: fuso, escada de avisos, fluxo completo, requisição da API
 npm run gen:vapid # chaves de push
 npm run gen:icons # regenera os ícones do PWA
+npm run build:demo # gera uma versão clicável do app, sem backend
 ```
 
 Os testes sobem um PostgREST falso em memória e um serviço de push falso em HTTPS
 (com certificado local confiado apenas no processo de teste — a verificação de
 TLS continua ligada). O teste da Claude API usa um `fetch` controlado: verifica o
 formato da requisição e a desserialização sem gastar chamada.
+
+### A demonstração clicável
+`npm run build:demo` gera um `demo.html` autossuficiente: é o `index.html` real
+com o backend trocado por uma simulação no navegador que usa os módulos de
+produção `tempo.js`, `agenda.js` e `interpretador-local.js` sem alteração. Serve
+para ver e testar a interface — inclusive a qualidade da leitura de datas — sem
+precisar de banco, chave ou deploy. Rode de novo depois de mexer na interface.
 
 ### Estrutura
 ```
