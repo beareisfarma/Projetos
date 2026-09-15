@@ -1,5 +1,5 @@
 // Service worker: casca offline + recepção de push + ações da notificação.
-const CACHE = 'lembretes-v4';
+const CACHE = 'hd-externo-v5';
 const CASCA = [
   './', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
@@ -54,7 +54,15 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  e.respondWith(caches.match(req).then((cache) => cache || fetch(req)));
+  // Serve do cache e revalida em segundo plano. Antes era só cache: uma vez
+  // guardado, um ícone ou uma fonte NUNCA mais atualizava, nem com deploy novo.
+  e.respondWith(caches.match(req).then((guardado) => {
+    const daRede = fetch(req).then((res) => {
+      if (res && res.ok) { const c = res.clone(); caches.open(CACHE).then((k) => k.put(req, c)); }
+      return res;
+    }).catch(() => guardado);
+    return guardado || daRede;
+  }));
 });
 
 self.addEventListener('push', (e) => {
