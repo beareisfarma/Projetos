@@ -133,5 +133,10 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   (o construtor não exibe nada no iOS).
 - Endpoints em `api/*.js` são a variante Vercel, mantida porque os 41 testes a
   exercitam e ela serve de reserva; o que está publicado é a Edge Function.
+- **Ícone: um cérebro** (memória). A fonte é `lembretes/logo-cerebro.svg`; os
+  PNGs saem de `npm run gen:icons` (usa `sharp`, devDependency) e ficam
+  commitados porque a tela de início do iPhone precisa deles. O mesmo SVG vai
+  inline no cabeçalho do app. As listras inclinadas antigas foram aposentadas
+  aqui — seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
 - `npm test` em `lembretes/` roda 41 testes com PostgREST e serviço de push falsos.
