@@ -2,16 +2,17 @@
 // (o plano Hobby da Vercel só permite cron uma vez por dia, o que é inútil
 // para lembretes — o README explica o arranjo).
 //
-// Ordem das operações: tira o aviso da fila ANTES de disparar. Se o processo
+// Ordem das operações: o aviso sai da fila ANTES de ser disparado. Se o processo
 // morrer no meio, o pior caso é um lembrete perdido em vez de um aparelho
-// recebendo a mesma notificação em loop. Entrega que não chega a ninguém é
-// reenfileirada até 3 vezes — silêncio aqui é exatamente o que quebra a confiança
-// no sistema.
+// recebendo a mesma notificação em loop. Essa retirada é atômica dentro do banco
+// (função pegar_avisos_vencidos), então dois ticks sobrepostos nunca pegam o
+// mesmo aviso. Entrega que não chega a ninguém é reenfileirada até 3 vezes —
+// silêncio aqui é exatamente o que quebra a confiança no sistema.
 import { json, erro, autorizadoCron, comErros } from './_lib/http.js';
 import { textoDoAviso } from './_lib/lembrete.js';
 import { despachar, canaisAtivos } from './_lib/canais.js';
 import {
-  avisosVencidos, tirarDaFila, obter, gravarAvisos, reenfileirar,
+  avisosVencidos, obter, gravarAvisos, reenfileirar,
   armazenamentoConfigurado,
 } from './_lib/store.js';
 
@@ -28,9 +29,6 @@ export default comErros(async (req, res) => {
   if (vencidos.length === 0) {
     return json(res, 200, { agora: new Date(agora).toISOString(), disparados: 0, canais: canaisAtivos().map((c) => c.nome) });
   }
-
-  // Sai da fila primeiro: evita que dois ticks sobrepostos notifiquem duas vezes.
-  await tirarDaFila(vencidos.map((v) => v.membro));
 
   const relatorio = [];
   for (const vencido of vencidos) {

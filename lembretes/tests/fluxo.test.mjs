@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
-import { redisFalso, pushFalso, pushDisponivel, fingirRequisicao, fingirResposta } from './apoio.mjs';
+import { bancoFalso, pushFalso, pushDisponivel, fingirRequisicao, fingirResposta } from './apoio.mjs';
 
 const PIN = 'pin-de-teste-123';
 const SEGREDO_CRON = 'segredo-cron-456';
@@ -30,17 +30,17 @@ async function chamar(handler, req) {
 const comPin = (extra = {}) => ({ 'x-lembretes-pin': PIN, ...extra });
 
 test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl indisponível para o push falso' }, async (t) => {
-  const redis = redisFalso();
+  const banco = bancoFalso();
   const push = pushFalso();
-  const urlRedis = await redis.subir();
+  const urlBanco = await banco.subir();
   const urlPush = await push.subir();
-  t.after(async () => { await redis.parar(); await push.parar(); });
+  t.after(async () => { await banco.parar(); await push.parar(); });
 
   // Ambiente montado ANTES do import: os módulos leem process.env ao carregar.
   const { publicKey, privateKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
   const jwkPriv = privateKey.export({ format: 'jwk' });
-  process.env.UPSTASH_REDIS_REST_URL = urlRedis;
-  process.env.UPSTASH_REDIS_REST_TOKEN = 'token-de-teste';
+  process.env.SUPABASE_URL = urlBanco;
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'chave-de-teste';
   process.env.APP_PIN = PIN;
   process.env.CRON_SECRET = SEGREDO_CRON;
   process.env.VAPID_SUBJECT = 'mailto:teste@exemplo.com';
@@ -145,7 +145,7 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
     const lembrete = await store.obter(id);
     const enviado = lembrete.avisos.find((a) => a.enviadoEm);
     assert.ok(enviado);
-    const fila = [...(redis.espiar.zsets.get('lem:fila')?.keys() || [])];
+    const fila = [...banco.espiar.avisos_fila.keys()];
     assert.ok(!fila.includes(`${id}#${enviado.chave}`), 'aviso já enviado voltou para a fila');
   });
 
@@ -157,9 +157,9 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
 
     const r = await chamar(tick, fingirRequisicao({ url: `/api/tick?chave=${SEGREDO_CRON}` }));
     assert.equal(r.corpo.relatorio[0].resultado, 'sem entrega, retentativa agendada');
-    const fila = redis.espiar.zsets.get('lem:fila');
-    assert.ok(fila.has(`${id}#${pendente.chave}`), 'o aviso não entregue foi perdido');
-    assert.ok(fila.get(`${id}#${pendente.chave}`) > Date.now(), 'retentativa não foi para o futuro');
+    const naFila = banco.espiar.avisos_fila.get(`${id}#${pendente.chave}`);
+    assert.ok(naFila, 'o aviso não entregue foi perdido');
+    assert.ok(Date.parse(naFila.disparar_em) > Date.now(), 'retentativa não foi para o futuro');
   });
 
   await t.test('concluir tira dos pendentes, limpa a fila e guarda no histórico', async () => {
@@ -173,7 +173,7 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
     assert.equal(lista.corpo.feitos.length, 1);
     assert.equal(lista.corpo.feitos[0].id, id);
 
-    const fila = [...(redis.espiar.zsets.get('lem:fila')?.keys() || [])];
+    const fila = [...banco.espiar.avisos_fila.keys()];
     assert.equal(fila.filter((m) => m.startsWith(id + '#')).length, 0, 'sobrou aviso na fila de um lembrete concluído');
   });
 

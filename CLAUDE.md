@@ -49,10 +49,16 @@ a Claude API interpreta a data, o sistema agenda uma **escada de avisos**
 Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 
 - **O projeto é de custo zero, e isso é um requisito, não um detalhe.** Tudo roda
-  em camada gratuita: Vercel Hobby, Upstash free, cron-job.org, Web Push (VAPID,
+  em camada gratuita: Vercel Hobby, Supabase free, cron-job.org, Web Push (VAPID,
   sem intermediário) e Groq Whisper free (2.000 transcrições/dia).
-- Stack: funções serverless Node + Upstash Redis (REST) + Web Push (VAPID) +
-  Whisper (Groq/OpenAI) para o áudio.
+- Stack: funções serverless Node + **Supabase Postgres via PostgREST** (projeto
+  `lembretes`, ref `oyyruucruevoefxzrzpj`, em sa-east-1/São Paulo) + Web Push
+  (VAPID) + Whisper (Groq/OpenAI) para o áudio. Acesso pela `service_role`: as
+  três tabelas têm RLS ligado **sem nenhuma policy**, de propósito — a chave
+  anônima não acessa nada. Não criar policy permissiva "para facilitar".
+- A retirada do aviso da fila é atômica no banco (`pegar_avisos_vencidos`,
+  `DELETE ... RETURNING` com `FOR UPDATE SKIP LOCKED`). Não trocar isso por
+  ler-depois-apagar: é o que impede dois ticks de notificarem o mesmo aviso.
 - **Quem lê a data é o `api/_lib/interpretador-local.js`**, determinístico e
   gratuito (cobre "sexta às 14h", "dia 20", "amanhã de manhã", "em 2 semanas").
   A Claude API é **opcional** e só entra em recado sem data reconhecível;
@@ -71,5 +77,5 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - Regras que não devem ser quebradas em manutenções futuras: adiar move o
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
-- Setup completo (chaves, Upstash, cron) em `lembretes/README.md`.
-- `npm test` em `lembretes/` roda 41 testes com Redis e serviço de push falsos.
+- Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
+- `npm test` em `lembretes/` roda 41 testes com PostgREST e serviço de push falsos.

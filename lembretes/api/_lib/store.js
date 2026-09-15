@@ -1,175 +1,198 @@
-// Persistência em Redis (Upstash) pela API REST — sem driver, sem conexão
-// persistente, que é o que funciona bem em função serverless. Três estruturas:
+// Persistência em Postgres (Supabase), acessada pela API REST (PostgREST) com
+// fetch puro — sem driver e sem conexão persistente, que é o que funciona bem
+// em função serverless.
 //
-//   lem:<id>    string JSON  — o lembrete
-//   lem:index   zset         — pendentes, ordenados pelo prazo (para a lista)
-//   lem:fila    zset         — avisos a disparar, ordenados pela hora do aviso
-//   lem:feitos  zset         — histórico do que foi concluído
-//   push:subs   hash         — inscrições de push, por endpoint
+//   lembretes        o lembrete, com seus avisos em jsonb
+//   avisos_fila      um registro por aviso a disparar, indexado pela hora
+//   push_inscricoes  aparelhos inscritos no push
 //
-// A fila guarda um membro por aviso ("<id>#<chave>"), então o tick é idempotente:
-// dispara, remove o membro, e um disparo repetido não encontra mais nada.
-const URL_BASE = process.env.UPSTASH_REDIS_REST_URL;
-const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// A chave usada é a service_role, que ignora RLS. As tabelas têm RLS ligado e
+// nenhuma policy permissiva, então a chave anônima não acessa nada.
+const URL_BASE = process.env.SUPABASE_URL;
+const CHAVE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export function armazenamentoConfigurado() {
-  return Boolean(URL_BASE && TOKEN);
+  return Boolean(URL_BASE && CHAVE);
 }
 
-async function chamar(caminho, corpo) {
+async function rest(caminho, opcoes = {}) {
   if (!armazenamentoConfigurado()) {
-    throw new Error('UPSTASH_REDIS_REST_URL/TOKEN não configurados — veja o README.');
+    throw new Error('SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY não configurados — veja o README.');
   }
-  const resposta = await fetch(`${URL_BASE.replace(/\/$/, '')}${caminho}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(corpo),
+  const resposta = await fetch(`${URL_BASE.replace(/\/$/, '')}/rest/v1${caminho}`, {
+    ...opcoes,
+    headers: {
+      apikey: CHAVE,
+      Authorization: `Bearer ${CHAVE}`,
+      'Content-Type': 'application/json',
+      ...(opcoes.headers || {}),
+    },
   });
   const texto = await resposta.text();
-  if (!resposta.ok) throw new Error(`Redis ${resposta.status}: ${texto.slice(0, 300)}`);
-  return JSON.parse(texto);
+  if (!resposta.ok) throw new Error(`Supabase ${resposta.status}: ${texto.slice(0, 300)}`);
+  return texto ? JSON.parse(texto) : null;
 }
 
-const cmd = async (...partes) => (await chamar('/', partes)).result;
-const pipeline = async (comandos) => {
-  if (comandos.length === 0) return [];
-  const saida = await chamar('/pipeline', comandos);
-  const erro = saida.find((r) => r.error);
-  if (erro) throw new Error(`Redis pipeline: ${erro.error}`);
-  return saida.map((r) => r.result);
-};
+const selecionar = (caminho) => rest(caminho, { method: 'GET' });
 
-const chaveLembrete = (id) => `lem:${id}`;
-const membroAviso = (id, chave) => `${id}#${chave}`;
+const inserir = (tabela, linhas, { upsert = false } = {}) =>
+  rest(`/${tabela}`, {
+    method: 'POST',
+    headers: { Prefer: upsert ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal' },
+    body: JSON.stringify(linhas),
+  });
+
+const atualizar = (caminho, campos) =>
+  rest(caminho, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(campos) });
+
+const apagar = (caminho) => rest(caminho, { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
 
 export function novoId() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// ─── Tradução entre a linha do banco e o objeto que o app usa ────────────────
+const paraLinha = (l) => ({
+  id: l.id,
+  titulo: l.titulo,
+  detalhes: l.detalhes || '',
+  prazo: l.prazo,
+  status: l.status,
+  origem: l.origem || 'texto',
+  motor: l.motor || 'manual',
+  confianca: l.confianca || 'alta',
+  observacao: l.observacao || '',
+  avisos: l.avisos || [],
+  criado_em: l.criadoEm,
+  atualizado_em: l.atualizadoEm,
+  concluido_em: l.concluidoEm || null,
+});
+
+const daLinha = (r) => ({
+  id: r.id,
+  titulo: r.titulo,
+  detalhes: r.detalhes || '',
+  // O Postgres devolve o timestamptz no formato dele; o app fala ISO 8601.
+  prazo: new Date(r.prazo).toISOString(),
+  status: r.status,
+  origem: r.origem,
+  motor: r.motor,
+  confianca: r.confianca,
+  observacao: r.observacao || '',
+  avisos: r.avisos || [],
+  criadoEm: r.criado_em ? new Date(r.criado_em).toISOString() : undefined,
+  atualizadoEm: r.atualizado_em ? new Date(r.atualizado_em).toISOString() : undefined,
+  ...(r.concluido_em ? { concluidoEm: new Date(r.concluido_em).toISOString() } : {}),
+});
+
+/** Só vai para a fila o aviso que ainda não foi enviado. */
+const linhasDaFila = (id, avisos) =>
+  avisos.filter((a) => !a.enviadoEm)
+    .map((a) => ({ lembrete_id: id, chave: a.chave, disparar_em: a.em }));
+
+// ─── Lembretes ───────────────────────────────────────────────────────────────
 export async function salvar(lembrete) {
-  const prazoMs = Date.parse(lembrete.prazo);
-  const comandos = [
-    ['SET', chaveLembrete(lembrete.id), JSON.stringify(lembrete)],
-    ['ZADD', 'lem:index', prazoMs, lembrete.id],
-  ];
-  for (const aviso of lembrete.avisos) {
-    comandos.push(['ZADD', 'lem:fila', Date.parse(aviso.em), membroAviso(lembrete.id, aviso.chave)]);
-  }
-  await pipeline(comandos);
+  await inserir('lembretes', paraLinha(lembrete), { upsert: true });
+  const fila = linhasDaFila(lembrete.id, lembrete.avisos);
+  if (fila.length) await inserir('avisos_fila', fila, { upsert: true });
   return lembrete;
 }
 
 export async function obter(id) {
-  const bruto = await cmd('GET', chaveLembrete(id));
-  return bruto ? JSON.parse(bruto) : null;
+  const linhas = await selecionar(`/lembretes?id=eq.${encodeURIComponent(id)}&select=*&limit=1`);
+  return linhas?.length ? daLinha(linhas[0]) : null;
 }
 
-/** Substitui os avisos de um lembrete: limpa os antigos da fila e enfileira os novos. */
+/** Troca os avisos de um lembrete: limpa a fila dele e enfileira os novos. */
 export async function reagendar(lembrete, avisos) {
-  const antigos = lembrete.avisos.map((a) => ['ZREM', 'lem:fila', membroAviso(lembrete.id, a.chave)]);
   const atualizado = { ...lembrete, avisos, atualizadoEm: new Date().toISOString() };
-  // Só volta para a fila o aviso que ainda não foi enviado e cuja hora não passou:
-  // o histórico fica no registro, mas nada já disparado dispara de novo.
-  const novos = avisos
-    .filter((a) => !a.enviadoEm)
-    .map((a) => ['ZADD', 'lem:fila', Date.parse(a.em), membroAviso(lembrete.id, a.chave)]);
-  await pipeline([
-    ...antigos,
-    ['SET', chaveLembrete(lembrete.id), JSON.stringify(atualizado)],
-    ['ZADD', 'lem:index', Date.parse(atualizado.prazo), lembrete.id],
-    ...novos,
-  ]);
+  await inserir('lembretes', paraLinha(atualizado), { upsert: true });
+  await apagar(`/avisos_fila?lembrete_id=eq.${encodeURIComponent(lembrete.id)}`);
+  const fila = linhasDaFila(lembrete.id, avisos);
+  if (fila.length) await inserir('avisos_fila', fila, { upsert: true });
   return atualizado;
 }
 
 export async function listarPendentes() {
-  const ids = await cmd('ZRANGE', 'lem:index', 0, -1);
-  if (!ids || ids.length === 0) return [];
-  const brutos = await cmd('MGET', ...ids.map(chaveLembrete));
-  return brutos.filter(Boolean).map((b) => JSON.parse(b));
+  const linhas = await selecionar('/lembretes?status=eq.pendente&select=*&order=prazo.asc');
+  return (linhas || []).map(daLinha);
 }
 
 export async function listarFeitosRecentes(limite = 30) {
-  const ids = await cmd('ZRANGE', 'lem:feitos', 0, limite - 1, 'REV');
-  if (!ids || ids.length === 0) return [];
-  const brutos = await cmd('MGET', ...ids.map(chaveLembrete));
-  return brutos.filter(Boolean).map((b) => JSON.parse(b));
+  const linhas = await selecionar(`/lembretes?status=eq.feito&select=*&order=concluido_em.desc&limit=${limite}`);
+  return (linhas || []).map(daLinha);
 }
 
 export async function concluir(lembrete) {
   const agora = new Date().toISOString();
-  const atualizado = { ...lembrete, status: 'feito', concluidoEm: agora };
-  await pipeline([
-    ['SET', chaveLembrete(lembrete.id), JSON.stringify(atualizado)],
-    ['ZREM', 'lem:index', lembrete.id],
-    ...lembrete.avisos.map((a) => ['ZREM', 'lem:fila', membroAviso(lembrete.id, a.chave)]),
-    ['ZADD', 'lem:feitos', Date.parse(agora), lembrete.id],
-  ]);
+  const atualizado = { ...lembrete, status: 'feito', concluidoEm: agora, atualizadoEm: agora };
+  await atualizar(`/lembretes?id=eq.${encodeURIComponent(lembrete.id)}`,
+    { status: 'feito', concluido_em: agora, atualizado_em: agora });
+  await apagar(`/avisos_fila?lembrete_id=eq.${encodeURIComponent(lembrete.id)}`);
   return atualizado;
 }
 
 export async function remover(lembrete) {
-  await pipeline([
-    ['DEL', chaveLembrete(lembrete.id)],
-    ['ZREM', 'lem:index', lembrete.id],
-    ['ZREM', 'lem:feitos', lembrete.id],
-    ...lembrete.avisos.map((a) => ['ZREM', 'lem:fila', membroAviso(lembrete.id, a.chave)]),
-  ]);
+  // A fila cai junto pelo ON DELETE CASCADE.
+  await apagar(`/lembretes?id=eq.${encodeURIComponent(lembrete.id)}`);
 }
 
-/** Avisos cuja hora já chegou. Cada um sai da fila assim que é lido. */
-export async function avisosVencidos(agoraMs = Date.now(), limite = 50) {
-  const membros = await cmd('ZRANGE', 'lem:fila', 0, agoraMs, 'BYSCORE', 'LIMIT', 0, limite);
-  return (membros || []).map((m) => {
-    const corte = m.lastIndexOf('#');
-    return { membro: m, id: m.slice(0, corte), chave: m.slice(corte + 1) };
-  });
-}
-
-export async function tirarDaFila(membros) {
-  if (membros.length === 0) return;
-  await pipeline(membros.map((m) => ['ZREM', 'lem:fila', m]));
+export async function gravarAvisos(lembrete, avisos) {
+  const atualizado = { ...lembrete, avisos, atualizadoEm: new Date().toISOString() };
+  await atualizar(`/lembretes?id=eq.${encodeURIComponent(lembrete.id)}`,
+    { avisos, atualizado_em: atualizado.atualizadoEm });
+  return atualizado;
 }
 
 export async function marcarAvisoEnviado(lembrete, chave) {
   const avisos = lembrete.avisos.map((a) =>
     a.chave === chave ? { ...a, enviadoEm: new Date().toISOString() } : a);
-  const atualizado = { ...lembrete, avisos };
-  await cmd('SET', chaveLembrete(lembrete.id), JSON.stringify(atualizado));
-  return atualizado;
+  return gravarAvisos(lembrete, avisos);
+}
+
+// ─── Fila de avisos ──────────────────────────────────────────────────────────
+/**
+ * Pega os avisos vencidos E os tira da fila no mesmo passo, dentro do banco.
+ * Antes isso eram duas chamadas seguidas; aqui é atômico, então dois ticks
+ * sobrepostos nunca disparam o mesmo aviso duas vezes.
+ */
+export async function avisosVencidos(agoraMs = Date.now(), limite = 50) {
+  const linhas = await rest('/rpc/pegar_avisos_vencidos', {
+    method: 'POST',
+    body: JSON.stringify({ limite }),
+  });
+  return (linhas || []).map((r) => ({
+    membro: `${r.lembrete_id}#${r.chave}`,
+    id: r.lembrete_id,
+    chave: r.chave,
+  }));
+}
+
+export async function reenfileirar(id, chave, quandoMs) {
+  await inserir('avisos_fila',
+    { lembrete_id: id, chave, disparar_em: new Date(quandoMs).toISOString() },
+    { upsert: true });
 }
 
 // ─── Inscrições de push ──────────────────────────────────────────────────────
-const idDaInscricao = (endpoint) =>
-  Buffer.from(endpoint).toString('base64url').slice(-48);
+const idDaInscricao = (endpoint) => Buffer.from(endpoint).toString('base64url').slice(-48);
 
 export async function guardarInscricao(inscricao, apelido = '') {
-  await cmd('HSET', 'push:subs', idDaInscricao(inscricao.endpoint),
-    JSON.stringify({ inscricao, apelido, criadaEm: new Date().toISOString() }));
+  await inserir('push_inscricoes', {
+    id: idDaInscricao(inscricao.endpoint),
+    inscricao,
+    apelido,
+    criada_em: new Date().toISOString(),
+  }, { upsert: true });
 }
 
 export async function listarInscricoes() {
-  const mapa = await cmd('HGETALL', 'push:subs');
-  if (!mapa) return [];
-  // O Upstash devolve HGETALL como objeto ou como lista plana, dependendo da versão.
-  const entradas = Array.isArray(mapa)
-    ? mapa.reduce((acc, v, i) => (i % 2 ? acc : [...acc, [mapa[i], mapa[i + 1]]]), [])
-    : Object.entries(mapa);
-  return entradas.map(([id, valor]) => ({ id, ...JSON.parse(valor) }));
+  const linhas = await selecionar('/push_inscricoes?select=*');
+  return (linhas || []).map((r) => ({
+    id: r.id, inscricao: r.inscricao, apelido: r.apelido, criadaEm: r.criada_em,
+  }));
 }
 
 export async function descartarInscricao(id) {
-  await cmd('HDEL', 'push:subs', id);
-}
-
-/** Recoloca um aviso na fila (retentativa ou cobrança de atraso). */
-export async function reenfileirar(id, chave, quandoMs) {
-  await cmd('ZADD', 'lem:fila', quandoMs, membroAviso(id, chave));
-}
-
-/** Grava a lista de avisos de um lembrete sem mexer na fila. */
-export async function gravarAvisos(lembrete, avisos) {
-  const atualizado = { ...lembrete, avisos, atualizadoEm: new Date().toISOString() };
-  await cmd('SET', chaveLembrete(lembrete.id), JSON.stringify(atualizado));
-  return atualizado;
+  await apagar(`/push_inscricoes?id=eq.${encodeURIComponent(id)}`);
 }

@@ -14,7 +14,7 @@ O app inteiro roda em camada gratuita, sem cartão de crédito em lugar nenhum.
 | Peça | Serviço | Custo |
 |---|---|---|
 | Hospedagem e API | Vercel Hobby | grátis |
-| Banco | Upstash Redis (free) | grátis |
+| Banco | Supabase Postgres (free), em São Paulo | grátis |
 | Relógio | cron-job.org | grátis |
 | **Notificação** | **Web Push (VAPID), direto do navegador** | **grátis, sem intermediário** |
 | Transcrição do áudio | Groq Whisper (free) — 2.000 transcrições/dia | grátis |
@@ -39,10 +39,10 @@ Para garantir custo zero absoluto, defina `MODO_INTERPRETACAO=local`: a IA nunca
         ├─ áudio → /api/transcribe ──→ Whisper (Groq ou OpenAI)
         │
         ▼
-  /api/reminders (POST) ──→ interpretar.js ──→ Claude API (saída estruturada)
-        │                                        {título, prazo, confiança}
+  /api/reminders (POST) ──→ interpretar.js ──→ interpretador-local.js (grátis)
+        │                                        └─ sem data? → Claude API (opcional)
         ▼
-  Redis (Upstash): lembrete + fila de avisos ordenada pela hora
+  Postgres (Supabase): lembrete + fila de avisos indexada pela hora
         │
         ▼
   cron externo (a cada minuto) ──→ /api/tick ──→ canais.js ──→ Web Push ──→ 📱
@@ -71,8 +71,11 @@ pelo menos um aviso — **nenhum lembrete nasce mudo**.
   que adia o prazo junto com o aviso começa a mentir para você.
 - **Se a notificação não chega em ninguém, ela é reenfileirada** (até 3 tentativas,
   de 5 em 5 minutos). Falha silenciosa é o que destrói a confiança no sistema.
-- **O aviso sai da fila antes de ser disparado.** Se o processo morrer no meio, o
-  pior caso é um aviso perdido, e não o celular tocando em loop.
+- **O aviso sai da fila antes de ser disparado**, e essa retirada é atômica
+  dentro do banco (`pegar_avisos_vencidos`, um `DELETE ... RETURNING` com
+  `FOR UPDATE SKIP LOCKED`). Se o processo morrer no meio, o pior caso é um aviso
+  perdido — e não o celular tocando em loop. Dois ticks sobrepostos nunca pegam
+  o mesmo aviso.
 - **O núcleo é agnóstico de canal.** `api/_lib/canais.js` é uma lista de
   adaptadores `{nome, disponivel(), enviar()}`. Acrescentar Telegram ou WhatsApp
   é acrescentar um objeto ali — o resto do sistema não muda.
@@ -98,10 +101,14 @@ de instalado — mas ele não pode se instalar sozinho.
 
 ## Setup (uma vez, ~20 minutos)
 
-### 1. Banco — Upstash Redis (grátis)
-1. Crie um banco em [console.upstash.com](https://console.upstash.com/) (região
-   mais perto do Brasil, ex.: `us-east-1`).
-2. Na aba **REST API**, copie `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN`.
+### 1. Banco — Supabase (grátis, já provisionado)
+O projeto `lembretes` já existe em `sa-east-1` (São Paulo), com as tabelas e a
+função criadas. Você só precisa de duas coisas:
+
+- **URL**: `https://oyyruucruevoefxzrzpj.supabase.co`
+- **Chave secreta**: Supabase → Project Settings → API Keys → `service_role`
+  (ou uma *secret key* nova). **Não** use a chave anônima: as tabelas têm RLS
+  ligado sem nenhuma policy, então só a `service_role` acessa.
 
 ### 2. Chaves de push (VAPID)
 ```bash
@@ -142,8 +149,8 @@ Em **Settings → Environment Variables**, cadastre:
 
 | Variável | Para quê |
 |---|---|
-| `UPSTASH_REDIS_REST_URL` | banco |
-| `UPSTASH_REDIS_REST_TOKEN` | banco |
+| `SUPABASE_URL` | banco |
+| `SUPABASE_SERVICE_ROLE_KEY` | banco (segredo) |
 | `ANTHROPIC_API_KEY` *(opcional)* | só para recados sem data reconhecível |
 | `MODO_INTERPRETACAO` *(opcional)* | `auto` (padrão), `local` (nunca chama IA) ou `ia` |
 | `VAPID_PUBLIC_KEY` | push |
@@ -192,7 +199,7 @@ npm run gen:vapid # chaves de push
 npm run gen:icons # regenera os ícones do PWA
 ```
 
-Os testes sobem um Redis falso em memória e um serviço de push falso em HTTPS
+Os testes sobem um PostgREST falso em memória e um serviço de push falso em HTTPS
 (com certificado local confiado apenas no processo de teste — a verificação de
 TLS continua ligada). O teste da Claude API usa um `fetch` controlado: verifica o
 formato da requisição e a desserialização sem gastar chamada.
@@ -203,7 +210,7 @@ api/
   _lib/
     tempo.js        conversão fuso local ↔ UTC (lê o offset do ICU)
     agenda.js       escada de avisos, faixas e texto relativo
-    store.js        Redis via REST (lembretes, fila de avisos, inscrições)
+    store.js        Postgres via REST (lembretes, fila de avisos, inscrições)
     interpretar.js  Claude API, saída estruturada
     canais.js       despacho — a costura para Telegram/WhatsApp
     lembrete.js     forma canônica do lembrete
