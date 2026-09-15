@@ -38,3 +38,25 @@ Padrão de aplicação em rodapé (copiar dos apps existentes): SVG inline com
   `cronometro-jogos/sw.js`).
 - Fluxo de publicação: commitar na branch de trabalho, push, e fazer
   fast-forward merge para `main` (a Vercel publica sozinha).
+
+## App "Lembretes" (`lembretes/`)
+
+Assistente pessoal de prazos da Beatriz: ela manda um recado por texto ou áudio,
+a Claude API interpreta a data, o sistema agenda uma **escada de avisos**
+(7d/3d/1d/no dia/3h/30min/na hora/+2h se atrasado) e notifica por Web Push.
+
+**É um projeto Vercel separado** do `cronometro-gamer` — tem backend, então o
+Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
+
+- Stack: funções serverless Node + Upstash Redis (REST) + Web Push (VAPID) +
+  Claude API (saída estruturada) + Whisper (Groq/OpenAI) para o áudio.
+- **O cron é externo** (cron-job.org, de minuto em minuto, batendo em
+  `/api/tick`): o plano Hobby da Vercel só permite cron 1x/dia.
+- **O núcleo é agnóstico de canal**: `api/_lib/canais.js` é uma lista de
+  adaptadores. Plugar Telegram ou WhatsApp é acrescentar um objeto ali — o
+  README traz o exemplo pronto do Telegram.
+- Regras que não devem ser quebradas em manutenções futuras: adiar move o
+  aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
+  o aviso sai da fila antes de disparar (evita notificar em loop).
+- Setup completo (chaves, Upstash, cron) em `lembretes/README.md`.
+- `npm test` em `lembretes/` roda 28 testes com Redis e serviço de push falsos.
