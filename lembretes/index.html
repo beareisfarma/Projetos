@@ -508,23 +508,36 @@ const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const instalado = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
+// No Safari do iPhone fora da tela de início, window.Notification NÃO EXISTE.
+// Ler Notification.permission direto lança ReferenceError e derruba o desenho
+// dos avisos inteiro — foi assim que a tela ficou sem nenhuma orientação.
+const permissao = () => ('Notification' in window ? Notification.permission : 'indisponivel');
+const podePush = () => ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
+
 function renderBanners(){
   const caixa = $('banners');
   const partes = [];
 
   if (ehIOS && !instalado){
     partes.push(`<div class="banner grave">
-      <div><strong>No iPhone, instale na tela de início</strong>
-      <p>Enquanto o app estiver só numa aba do Safari, o iOS não entrega nenhuma
-      notificação. Toque em Compartilhar → Adicionar à Tela de Início e abra por lá.</p></div>
+      <div><strong>Falta instalar na tela de início</strong>
+      <p>Você está numa aba do Safari, e aqui o iPhone não entrega notificação
+      nenhuma — é regra da Apple, não do app.</p>
+      <p style="margin-top:.5rem;color:var(--text);">
+        1. Toque em <strong>Compartilhar</strong> (o quadrado com a seta para cima,
+        na barra de baixo)<br>
+        2. Role e toque em <strong>Adicionar à Tela de Início</strong><br>
+        3. Feche o Safari e abra pelo <strong>ícone novo</strong><br>
+        4. O botão de ativar notificações vai aparecer aqui
+      </p></div>
     </div>`);
-  } else if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)){
+  } else if (!podePush()){
     partes.push(`<div class="banner grave">
       <div><strong>Este navegador não recebe notificações</strong>
       <p>A lista continua funcionando, mas nada vai te avisar. Use Chrome no Android
       ou o app instalado na tela de início no iPhone.</p></div>
     </div>`);
-  } else if (Notification.permission === 'denied'){
+  } else if (permissao() === 'denied'){
     partes.push(`<div class="banner grave">
       <div><strong>Notificações bloqueadas</strong>
       <p>Você negou a permissão. Libere nos ajustes do site/app — sem isso nenhum
@@ -537,8 +550,7 @@ function renderBanners(){
       direto na notificação não vão funcionar — toque nela para abrir o app.</p></div>
     </div>`);
   }
-  if (Notification.permission !== 'granted' && Notification.permission !== 'denied'
-      && !(ehIOS && !instalado) && ('PushManager' in window)){
+  if (podePush() && permissao() === 'default' && !(ehIOS && !instalado)){
     partes.push(`<div class="banner">
       <div><strong>Ative as notificações</strong>
       <p>Sem isso o app é só uma lista: nada chega até você.</p></div>
@@ -558,9 +570,12 @@ function paraUint8(base64){
 }
 
 async function ativarPush(){
+  if (!podePush()) return renderBanners();
   try {
-    const permissao = await Notification.requestPermission();
-    if (permissao !== 'granted') return renderBanners();
+    // Nome diferente de propósito: `permissao` é a função do escopo de fora, e
+    // declarar um const homônimo aqui a deixaria inacessível na função inteira.
+    const resposta = await Notification.requestPermission();
+    if (resposta !== 'granted') return renderBanners();
 
     const registro = await navigator.serviceWorker.ready;
     const { chavePublica } = await api('api/subscribe');
@@ -574,7 +589,10 @@ async function ativarPush(){
       body: JSON.stringify({ inscricao: inscricao.toJSON(), apelido: navigator.platform || 'aparelho' }),
     });
     renderBanners();
-    new Notification('Notificações ativadas', { body: 'Os prazos vão chegar aqui.', icon:'icons/icon-192.png' });
+    // Pelo registro, não por `new Notification`: no iOS o construtor não exibe nada.
+    await registro.showNotification('Notificações ativadas', {
+      body: 'Os prazos vão chegar aqui.', icon: 'icons/icon-192.png', tag: 'boas-vindas',
+    });
   } catch (e){
     alert('Não consegui ativar: ' + e.message);
   }

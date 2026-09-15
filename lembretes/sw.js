@@ -1,5 +1,5 @@
 // Service worker: casca offline + recepção de push + ações da notificação.
-const CACHE = 'lembretes-v1';
+const CACHE = 'lembretes-v2';
 const CASCA = [
   './', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
