@@ -134,8 +134,12 @@ async function reminders(req, url) {
   if (req.method === 'POST') {
     const corpo = await req.json();
     let lembrete;
+    // Ela disse dia E hora? Então a tela não precisa pedir confirmação nenhuma.
+    // Estes dois campos só existem na resposta da criação; não são guardados.
+    let explicito = { dataExplicita: true, horaExplicita: true };
     if (corpo.recado) {
       const lido = interpretar(corpo.recado, new Date(agora));
+      explicito = { dataExplicita: Boolean(lido.dataExplicita), horaExplicita: Boolean(lido.horaExplicita) };
       // A observação que ela escreveu vence a que o interpretador deduziu.
       lembrete = criarLembrete({ ...lido,
         detalhes: corpo.detalhes !== undefined ? String(corpo.detalhes).slice(0, 500) : lido.detalhes,
@@ -150,7 +154,7 @@ async function reminders(req, url) {
       return erro(400, 'Envie "recado" (texto livre) ou "titulo" + "prazo".');
     }
     await salvar({ ...lembrete, usuario });
-    return json({ lembrete: enriquecer(lembrete, agora) }, 201);
+    return json({ lembrete: { ...enriquecer(lembrete, agora), ...explicito } }, 201);
   }
 
   if (!id) return erro(400, 'Informe ?id=');

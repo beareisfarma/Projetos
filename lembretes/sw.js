@@ -1,5 +1,5 @@
 // Service worker: casca offline + recepção de push + ações da notificação.
-const CACHE = 'hd-externo-v5';
+const CACHE = 'hd-externo-v6';
 const CASCA = [
   './', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',

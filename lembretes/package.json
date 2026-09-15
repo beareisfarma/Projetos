@@ -10,8 +10,9 @@
   "scripts": {
     "gen:vapid": "node scripts/gerar-vapid.mjs",
     "gen:icons": "node scripts/gerar-icones.mjs",
-    "test": "node scripts/testar.mjs",
-    "build:demo": "node scripts/montar-demo.mjs"
+    "build:funcao": "node scripts/montar-funcao.mjs",
+    "build:demo": "node scripts/montar-demo.mjs",
+    "test": "node scripts/testar.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

@@ -153,7 +153,9 @@ function acharData(texto, trechos, agora) {
       // "sexta que vem" pode ser esta sexta ou a da semana seguinte. O erro não é
       // simétrico: adiantar o lembrete uma semana incomoda, atrasar faz perder o
       // prazo. Fica na data MAIS CEDO e marca confiança média para ela conferir.
-      return { ...somarDias(delta), certeza: m[1] ? 'media' : 'alta' };
+      // `diaSemana` diz a quem chamou que dá para rolar uma semana se a hora
+      // dita já passou — "terça às 14h" numa terça às 15h é a terça seguinte.
+      return { ...somarDias(delta), certeza: m[1] ? 'media' : 'alta', fonte: 'diaSemana' };
     }
   }
   return null;
@@ -185,7 +187,7 @@ function limparTitulo(original, trechos) {
 }
 
 /**
- * @returns {null|{titulo, detalhes, prazo, horaExplicita, confianca, observacao, motor}}
+ * @returns {null|{titulo, detalhes, prazo, horaExplicita, dataExplicita, confianca, observacao, motor}}
  *   null = nada reconhecido; quem chamou decide se aciona a IA.
  */
 export function interpretarLocal(recado, agora = new Date()) {
@@ -211,6 +213,14 @@ export function interpretarLocal(recado, agora = new Date()) {
     prazo = new Date(prazo.getTime() + DIA_MS);
     observacao = 'Entendi como amanhã, já que esse horário de hoje passou.';
   }
+  // Dia da semana pelo nome, com a hora já vencida: ela quer o da semana que
+  // vem. Só vale para o nome solto — quem escreve "hoje" ou "dia 20" disse uma
+  // data, e inventar outra em cima disso seria pior do que avisar que passou.
+  if (data && data.fonte === 'diaSemana' && prazo.getTime() <= agora.getTime()) {
+    prazo = new Date(prazo.getTime() + 7 * DIA_MS);
+    confianca = 'alta';
+    observacao = 'Esse dia já passou nesta semana — marquei o da semana que vem.';
+  }
   if (prazo.getTime() <= agora.getTime()) {
     confianca = 'baixa';
     observacao = 'A data que entendi já passou — confira.';
@@ -226,6 +236,7 @@ export function interpretarLocal(recado, agora = new Date()) {
     detalhes: '',
     prazo,
     horaExplicita: Boolean(hora),
+    dataExplicita: Boolean(data),
     confianca,
     observacao,
     motor: 'local',

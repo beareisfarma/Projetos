@@ -113,3 +113,39 @@ test('nenhum prazo interpretado nasce no passado sem ser sinalizado', () => {
   assert.equal(r.confianca, 'baixa');
   assert.match(r.observacao, /passou/);
 });
+
+test('frase com dia e hora não deixa nada em aberto', () => {
+  // O caso que motivou isto: dia e hora ditos na frase já viram o prazo, e a
+  // tela não tem por que pedir confirmação.
+  const r = confere('preciso me arrumar hoje às 19h para o treino', '15/09/2026 19:00');
+  assert.equal(r.titulo, 'Me arrumar para o treino');
+  assert.equal(r.dataExplicita, true);
+  assert.equal(r.horaExplicita, true);
+  assert.equal(r.confianca, 'alta');
+  assert.equal(r.observacao, '');
+
+  const s = confere('reunião com o contador amanhã às 9h30', '16/09/2026 09:30');
+  assert.equal(s.dataExplicita, true);
+  assert.equal(s.horaExplicita, true);
+  assert.equal(s.confianca, 'alta');
+});
+
+test('dia da semana com a hora já vencida vira o da semana que vem', () => {
+  // Hoje é terça, meio-dia. "Terça às 9h" só pode ser a terça seguinte.
+  const r = confere('dentista terça às 9h', '22/09/2026 09:00');
+  assert.equal(r.confianca, 'alta');
+  assert.match(r.observacao, /semana que vem/);
+});
+
+test('"hoje" com hora vencida avisa em vez de inventar outro dia', () => {
+  // Ela disse hoje. Empurrar para amanhã por conta própria seria mentir.
+  const r = confere('pagar o boleto hoje às 9h', '15/09/2026 09:00');
+  assert.equal(r.confianca, 'baixa');
+  assert.match(r.observacao, /já passou/);
+});
+
+test('só a hora, sem dia, não conta como data explícita', () => {
+  const r = confere('treino às 19h', '15/09/2026 19:00');
+  assert.equal(r.dataExplicita, false);
+  assert.equal(r.horaExplicita, true);
+});

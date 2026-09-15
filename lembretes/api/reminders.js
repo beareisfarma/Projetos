@@ -35,10 +35,14 @@ async function criar(req, res, usuario) {
   const corpo = await lerJson(req);
   const agora = new Date();
   let lembrete;
+  // Ela disse dia E hora? Então a tela não precisa pedir confirmação nenhuma.
+  // Estes dois campos só existem na resposta da criação; não são guardados.
+  let explicito = { dataExplicita: true, horaExplicita: true };
 
   if (corpo.recado) {
     // Caminho normal: texto solto ou transcrição de áudio.
     const lido = await interpretar(corpo.recado, agora);
+    explicito = { dataExplicita: Boolean(lido.dataExplicita), horaExplicita: Boolean(lido.horaExplicita) };
     // A observação que ela escreveu vence a que o interpretador deduziu.
     lembrete = criarLembrete({ ...lido,
       detalhes: corpo.detalhes !== undefined ? String(corpo.detalhes).slice(0, 500) : lido.detalhes,
@@ -57,7 +61,8 @@ async function criar(req, res, usuario) {
   }
 
   await salvar({ ...lembrete, usuario });
-  json(res, 201, { lembrete: enriquecer(lembrete, agora.getTime()), recadoOriginal: corpo.recado || null });
+  json(res, 201, { lembrete: { ...enriquecer(lembrete, agora.getTime()), ...explicito },
+                   recadoOriginal: corpo.recado || null });
 }
 
 async function alterar(req, res, id, usuario) {

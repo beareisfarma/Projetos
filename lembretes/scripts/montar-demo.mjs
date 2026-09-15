@@ -135,7 +135,10 @@ ${nucleo}
           prazo: new Date(Date.now() + 86400e3), confianca: 'baixa', motor: 'palpite',
           observacao: 'Não identifiquei data no recado — deixei para amanhã. Ajuste o prazo.',
         };
-        return responder({ lembrete: enriquecer(montar(lido, corpo.origem || 'texto', corpo.antecedencias, corpo.detalhes)) }, 201);
+        return responder({ lembrete: {
+          ...enriquecer(montar(lido, corpo.origem || 'texto', corpo.antecedencias, corpo.detalhes)),
+          dataExplicita: Boolean(lido.dataExplicita), horaExplicita: Boolean(lido.horaExplicita),
+        } }, 201);
       }
       const l = banco.get(id);
       if (!l) return responder({ erro: 'Lembrete não encontrado.' }, 404);

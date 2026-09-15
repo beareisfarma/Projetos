@@ -28,6 +28,7 @@
     --crit:#c2410c;
     --crit-suave:rgba(194,65,12,.09);
     --ok:#15803d;
+    --ok-suave:rgba(21,128,61,.10);
     --alerta:#a16207;
     --alerta-suave:rgba(161,98,7,.10);
     --sombra:0 1px 2px rgba(22,35,63,.05), 0 8px 24px rgba(22,35,63,.05);
@@ -47,6 +48,7 @@
     --crit:#ff8a5c;
     --crit-suave:rgba(255,138,92,.12);
     --ok:#4ade80;
+    --ok-suave:rgba(74,222,128,.13);
     --alerta:#eab308;
     --alerta-suave:rgba(234,179,8,.12);
     --sombra:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
@@ -229,6 +231,19 @@
     .abas button{font-size:.83rem;}
   }
   @media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important;} }
+  .marcado{
+    display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+    margin:-.4rem 0 .9rem; padding:.75rem .9rem; border-radius:14px;
+    background:var(--ok-suave); color:var(--ok);
+    font-size:.94rem; font-weight:600;
+  }
+  /* `display:flex` vence o `display:none` que o atributo hidden traz de fábrica:
+     sem esta linha a faixa nunca some. */
+  .marcado[hidden]{display:none;}
+  .marcado button{
+    background:none; border:none; padding:0; font:inherit; font-weight:600;
+    color:inherit; text-decoration:underline; cursor:pointer; opacity:.85;
+  }
 </style>
 </head>
 <body>
@@ -279,6 +294,8 @@
       <p class="erro" id="erroCaptura" hidden></p>
       <p class="carregando" id="statusCaptura" hidden></p>
     </section>
+
+    <p class="marcado" id="marcado" hidden></p>
 
     <section class="cartao" id="confirmacao" hidden>
       <label>Confira antes de salvar</label>
@@ -614,8 +631,24 @@ async function carregar(){
 const statusCaptura = (t) => { $('statusCaptura').textContent = t || ''; $('statusCaptura').hidden = !t; };
 const erroCaptura = (t) => { $('erroCaptura').textContent = t || ''; $('erroCaptura').hidden = !t; };
 
+// Dia e hora ditos na frase, sem ressalva: não há o que conferir.
+const certeiro = (l) => Boolean(l.dataExplicita && l.horaExplicita && l.confianca === 'alta');
+
+function esconderMarcado(){ $('marcado').hidden = true; $('marcado').innerHTML = ''; }
+
+function mostrarMarcado(lembrete){
+  $('confirmacao').hidden = true;
+  const quando = fmtPrazo.format(new Date(lembrete.prazo));
+  $('marcado').innerHTML =
+    `<span aria-hidden="true">\u2713</span>`
+    + `<span>Marcado: ${esc(lembrete.titulo)} — ${esc(quando)}</span>`
+    + `<button type="button" id="btnAjustar">ajustar</button>`;
+  $('marcado').hidden = false;
+  $('btnAjustar').onclick = () => { $('marcado').hidden = true; $('confirmacao').hidden = false; };
+}
+
 async function interpretarRecado(texto, origem){
-  erroCaptura(''); statusCaptura('Interpretando…');
+  erroCaptura(''); esconderMarcado(); statusCaptura('Interpretando…');
   $('btnAdicionar').disabled = true;
   try {
     const { lembrete } = await api('api/reminders', {
@@ -642,7 +675,12 @@ async function interpretarRecado(texto, origem){
     const obs = lembrete.confianca === 'alta' ? '' : `⚠️ Confirme a data. ${lembrete.observacao || ''}`.trim();
     $('confObs').textContent = obs;
     $('confObs').hidden = !obs;
-    $('confirmacao').hidden = false;
+    // Ela disse o dia E a hora: está marcado, ponto. Abrir o formulário de
+    // conferência aqui faz um recado completo parecer um rascunho, e ainda
+    // convida a um segundo toque que ninguém dá. Só a faixa curta, com
+    // "ajustar" para quem quiser mudar algo.
+    if (certeiro(lembrete)) mostrarMarcado(lembrete);
+    else { esconderMarcado(); $('confirmacao').hidden = false; }
     await carregar();
   } catch(e){
     if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
@@ -664,7 +702,7 @@ $('btnDescartar').onclick = async () => {
     try { await api(`api/reminders?id=${encodeURIComponent(estado.proposta.id)}`, { method:'DELETE' }); } catch(e){}
     await carregar();
   }
-  $('confirmacao').hidden = true; estado.proposta = null;
+  $('confirmacao').hidden = true; esconderMarcado(); estado.proposta = null;
 };
 
 $('btnSalvar').onclick = async () => {
@@ -683,7 +721,7 @@ $('btnSalvar').onclick = async () => {
     });
     // O que ela escolheu aqui vira o padrão do próximo recado.
     estado.antecedenciasNovas = escolhidas;
-    $('confirmacao').hidden = true; estado.proposta = null;
+    $('confirmacao').hidden = true; esconderMarcado(); estado.proposta = null;
     await carregar();
   } catch(e){ alert(e.message); }
   finally { $('btnSalvar').disabled = false; }
