@@ -5,7 +5,7 @@
 //   DELETE /api/reminders?id=...     → apaga de vez
 import { json, erro, autorizado, lerJson, comErros } from './_lib/http.js';
 import { criarLembrete } from './_lib/lembrete.js';
-import { montarAvisos, comoFalta, faixa } from './_lib/agenda.js';
+import { montarAvisos, comoFalta, faixa, normalizarAntecedencias } from './_lib/agenda.js';
 import { interpretar } from './_lib/interpretar.js';
 import {
   salvar, obter, reagendar, listarPendentes, listarFeitosRecentes,
@@ -38,7 +38,7 @@ async function criar(req, res) {
   if (corpo.recado) {
     // Caminho normal: texto solto ou transcrição de áudio.
     const lido = await interpretar(corpo.recado, agora);
-    lembrete = criarLembrete({ ...lido, origem: corpo.origem || 'texto', agora });
+    lembrete = criarLembrete({ ...lido, origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora });
   } else if (corpo.titulo && corpo.prazo) {
     // Caminho do formulário, quando ela corrige o que foi interpretado.
     const prazo = new Date(corpo.prazo);
@@ -46,7 +46,7 @@ async function criar(req, res) {
     lembrete = criarLembrete({
       titulo: String(corpo.titulo).slice(0, 120),
       detalhes: String(corpo.detalhes || '').slice(0, 500),
-      prazo, origem: corpo.origem || 'texto', agora,
+      prazo, origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora,
     });
   } else {
     return erro(res, 400, 'Envie "recado" (texto livre) ou "titulo" + "prazo".');
@@ -84,7 +84,8 @@ async function alterar(req, res, id) {
 
     case 'reabrir': {
       const reaberto = { ...lembrete, status: 'pendente', concluidoEm: undefined };
-      const atualizado = await reagendar(reaberto, montarAvisos(Date.parse(reaberto.prazo), agora));
+      const atualizado = await reagendar(reaberto,
+        montarAvisos(Date.parse(reaberto.prazo), agora, reaberto.antecedencias));
       return json(res, 200, { lembrete: enriquecer(atualizado, agora) });
     }
 
@@ -93,17 +94,19 @@ async function alterar(req, res, id) {
       const detalhes = corpo.detalhes !== undefined ? String(corpo.detalhes).slice(0, 500) : lembrete.detalhes;
       if (!titulo.trim()) return erro(res, 400, 'O título não pode ficar vazio.');
 
-      let avisos = lembrete.avisos;
       let prazo = lembrete.prazo;
       if (corpo.prazo) {
         const novo = new Date(corpo.prazo);
         if (Number.isNaN(novo.getTime())) return erro(res, 400, 'Prazo inválido.');
         prazo = novo.toISOString();
-        // Prazo novo, escada nova — os avisos antigos deixaram de fazer sentido.
-        avisos = montarAvisos(novo.getTime(), agora);
       }
+      const antecedencias = corpo.antecedencias !== undefined
+        ? normalizarAntecedencias(corpo.antecedencias) : lembrete.antecedencias;
+      // Mudou prazo ou antecedência? A escada antiga deixou de fazer sentido.
+      const mudou = corpo.prazo !== undefined || corpo.antecedencias !== undefined;
+      const avisos = mudou ? montarAvisos(Date.parse(prazo), agora, antecedencias) : lembrete.avisos;
       const atualizado = await reagendar(
-        { ...lembrete, titulo, detalhes, prazo, confianca: 'alta', observacao: '' }, avisos);
+        { ...lembrete, titulo, detalhes, prazo, antecedencias, confianca: 'alta', observacao: '' }, avisos);
       return json(res, 200, { lembrete: enriquecer(atualizado, agora) });
     }
 

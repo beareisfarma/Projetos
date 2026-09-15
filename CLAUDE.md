@@ -52,8 +52,17 @@ Padrão de aplicação em rodapé (copiar dos apps existentes): SVG inline com
 ## App "Lembretes" (`lembretes/`)
 
 Assistente pessoal de prazos da Beatriz: ela manda um recado por texto ou áudio,
-a Claude API interpreta a data, o sistema agenda uma **escada de avisos**
-(7d/3d/1d/no dia/3h/30min/na hora/+2h se atrasado) e notifica por Web Push.
+o interpretador lê a data, e o sistema notifica por Web Push.
+
+- **As antecedências são escolhidas por lembrete**, não fixas: 2 dias / 1 dia /
+  1 hora / 15 min / 5 min (`ANTECEDENCIAS` em `api/_lib/agenda.js`). O aviso na
+  **hora exata do prazo é sempre criado** e não entra nessa lista. Padrão de um
+  lembrete novo: `['d1','h1']`. Guardadas na coluna `antecedencias` (jsonb).
+  A escada fixa antiga (7d/3d/dia/3h/30min) foi substituída por isso.
+- A tela segue o padrão do app "Tô Aqui": contadores (pendentes / para hoje /
+  em atraso), abas Pendentes|Hoje|Concluídos, cartões claros com bolinha de
+  concluir e ações em link. Tema claro por padrão, escuro no toggle.
+  A lista de opções em `index.html` precisa bater com a de `agenda.js`.
 
 **Projeto Vercel `lembretes`** (`prj_zYwqWIfQabSbyjPuYyvsCPss5FBn`), separado do `cronometro-gamer` — tem backend, então o
 Root Directory na Vercel é `lembretes`. Não misturar com o app estático.

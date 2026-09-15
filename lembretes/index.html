@@ -4,194 +4,315 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Lembretes</title>
-<meta name="theme-color" content="#0a0a0a">
-<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#f1f4f9">
+<meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Lembretes">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
   :root{
-    --bg:#0a0a0a; --bg2:#161616; --card:#121212;
-    --border:rgba(255,255,255,0.14);
-    --text:#ffffff; --text-on-accent:#0a0a0a; --muted:#9a9a9a;
-    --accent:#d7ff1a; --danger:#ff2d2d; --ok:#00e676; --alerta:#ff9800;
+    --ground:#f1f4f9;
+    --surface:#ffffff;
+    --surface-2:#eef2f8;
+    --ink:#16233f;
+    --ink-2:#55637d;
+    --ink-3:#8b96ab;
+    --line:rgba(22,35,63,.10);
+    --line-forte:rgba(22,35,63,.18);
+    --accent:#d7ff1a;
+    --on-accent:#16233f;
+    --acao:#2563c9;
+    --crit:#c2410c;
+    --crit-suave:rgba(194,65,12,.09);
+    --ok:#15803d;
+    --alerta:#a16207;
+    --alerta-suave:rgba(161,98,7,.10);
+    --sombra:0 1px 2px rgba(22,35,63,.05), 0 8px 24px rgba(22,35,63,.05);
     --safe-top:env(safe-area-inset-top,0px);
     --safe-bottom:env(safe-area-inset-bottom,0px);
   }
-  html.light{
-    --bg:#f2f2ef; --bg2:#e6e6e1; --card:#ffffff;
-    --border:rgba(0,0,0,0.16);
-    --text:#141414; --text-on-accent:#141414; --muted:#6b6b6b;
-    --ok:#00b85c; --alerta:#c96a00;
+  html.dark{
+    --ground:#0e1420;
+    --surface:#161d2b;
+    --surface-2:#1e2739;
+    --ink:#eaf0fa;
+    --ink-2:#9aa8c0;
+    --ink-3:#6c7a93;
+    --line:rgba(234,240,250,.12);
+    --line-forte:rgba(234,240,250,.22);
+    --acao:#7aa7f0;
+    --crit:#ff8a5c;
+    --crit-suave:rgba(255,138,92,.12);
+    --ok:#4ade80;
+    --alerta:#eab308;
+    --alerta-suave:rgba(234,179,8,.12);
+    --sombra:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
   }
+
   *{box-sizing:border-box;}
   html,body{
-    margin:0; padding:0; background:var(--bg); color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-    -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none;
+    margin:0; padding:0;
+    background:var(--ground); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior-y:none;
+    font-size:16px; line-height:1.45;
   }
   .wrap{
-    max-width:560px; margin:0 auto;
-    padding:calc(var(--safe-top) + .75rem) 1rem calc(var(--safe-bottom) + 2rem);
+    max-width:620px; margin:0 auto;
+    padding:calc(var(--safe-top) + 1rem) 1rem calc(var(--safe-bottom) + 2.5rem);
     min-height:100dvh; display:flex; flex-direction:column; gap:1rem;
   }
+
+  /* ── cabeçalho ───────────────────────────────────────────────── */
   header{display:flex; align-items:center; justify-content:space-between; gap:.5rem;}
-  .brand{display:flex; align-items:center; gap:.6rem;}
-  .stripes{display:flex; align-items:flex-end; gap:3px; height:1.15rem;}
-  .stripes span{width:5px; background:var(--accent); transform:skewX(-18deg);}
-  .stripes span:nth-child(1){height:55%} .stripes span:nth-child(2){height:78%} .stripes span:nth-child(3){height:100%}
-  header h1{font-size:1.05rem; font-weight:900; letter-spacing:.05em; text-transform:uppercase; margin:0;}
-  .icone-btn{
-    background:var(--card); color:var(--text); border:1.5px solid var(--border);
-    border-radius:.5rem; padding:.45rem .6rem; font-size:.95rem; cursor:pointer; line-height:1;
+  .marca{display:flex; align-items:center; gap:.65rem;}
+  .selo{
+    width:2.6rem; height:2.6rem; border-radius:.8rem;
+    background:var(--ink); display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  .selo .listras{display:flex; align-items:flex-end; gap:2.5px; height:1.1rem;}
+  .selo .listras span{width:4px; background:var(--accent); transform:skewX(-18deg);}
+  .selo .listras span:nth-child(1){height:52%}
+  .selo .listras span:nth-child(2){height:76%}
+  .selo .listras span:nth-child(3){height:100%}
+  header h1{font-size:1.35rem; font-weight:700; letter-spacing:-.02em; margin:0;}
+  .acoes-topo{display:flex; gap:.35rem; flex:0 0 auto;}
+  .icone{
+    background:transparent; color:var(--ink-2); border:1px solid var(--line);
+    border-radius:.6rem; padding:.45rem .6rem; font-size:.95rem; cursor:pointer; line-height:1;
+  }
+  .icone:hover{border-color:var(--line-forte);}
+
+  .abertura{margin:.25rem 0 .1rem;}
+  .abertura .sobretitulo{
+    font-size:.72rem; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--ink-3); font-weight:600; margin:0 0 .15rem;
+  }
+  .abertura h2{font-size:1.75rem; font-weight:700; letter-spacing:-.03em; margin:0; line-height:1.15;}
+
+  /* ── cartões ─────────────────────────────────────────────────── */
+  .cartao{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:1.1rem; box-shadow:var(--sombra); padding:1.1rem;
   }
 
-  .banner{
-    border:1.5px solid var(--border); border-left:4px solid var(--alerta);
-    background:var(--card); border-radius:.6rem; padding:.8rem .9rem;
-    font-size:.85rem; line-height:1.45; display:flex; flex-direction:column; gap:.6rem;
+  /* ── contadores ──────────────────────────────────────────────── */
+  .contadores{display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-bottom:1rem;}
+  .contador .numero{
+    font-size:2rem; font-weight:700; line-height:1; letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums;
   }
-  .banner.grave{border-left-color:var(--danger);}
-  .banner strong{display:block; font-size:.9rem; margin-bottom:.15rem;}
-  .banner p{margin:0; color:var(--muted);}
+  .contador .rotulo{font-size:.82rem; color:var(--ink-2); margin-top:.3rem;}
+  .contador.atraso .numero{color:var(--crit);}
 
-  .cartao{background:var(--card); border:1.5px solid var(--border); border-radius:.75rem; padding:1rem;}
+  /* ── abas ────────────────────────────────────────────────────── */
+  .abas{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:.2rem;
+    background:var(--surface-2); border-radius:.75rem; padding:.25rem;
+  }
+  .abas button{
+    border:none; background:transparent; color:var(--ink-2);
+    font-family:inherit; font-size:.9rem; font-weight:500;
+    padding:.5rem .3rem; border-radius:.55rem; cursor:pointer;
+  }
+  .abas button[aria-selected="true"]{
+    background:var(--surface); color:var(--ink); font-weight:600;
+    box-shadow:0 1px 3px rgba(22,35,63,.12);
+  }
 
+  /* ── lista ───────────────────────────────────────────────────── */
+  .grupo-titulo{
+    font-size:.72rem; letter-spacing:.09em; text-transform:uppercase; font-weight:700;
+    color:var(--ink-3); margin:1.1rem 0 .1rem; padding:0 .15rem;
+  }
+  .grupo-titulo.atrasado{color:var(--crit);}
+  .item{display:grid; grid-template-columns:1.6rem 1fr; gap:.75rem; padding:1rem .15rem;}
+  .item + .item{border-top:1px solid var(--line);}
+  .bolinha{
+    width:1.45rem; height:1.45rem; margin-top:.1rem; border-radius:50%;
+    border:1.8px solid var(--line-forte); background:transparent;
+    cursor:pointer; padding:0; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .bolinha:hover{border-color:var(--ok);}
+  .bolinha[aria-pressed="true"]{background:var(--ok); border-color:var(--ok);}
+  .bolinha[aria-pressed="true"]::after{
+    content:""; width:.32rem; height:.62rem;
+    border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg) translate(-1px,-1px);
+  }
+  .item h3{margin:0; font-size:1.05rem; font-weight:600; letter-spacing:-.01em; line-height:1.3;}
+  .item .detalhe{font-size:.9rem; color:var(--ink-2); margin:.1rem 0 0;}
+  .linha-info{
+    display:flex; align-items:flex-start; gap:.45rem;
+    font-size:.88rem; color:var(--ink-2); margin-top:.45rem; line-height:1.4;
+  }
+  .linha-info .ico{flex:0 0 auto; width:1.05rem; text-align:center; opacity:.85;}
+  .linha-info.prazo{color:var(--ink);}
+  .linha-info.prazo.tarde{color:var(--crit); font-weight:600;}
+  .linha-info.duvida{color:var(--alerta);}
+  .links{display:flex; gap:1.15rem; flex-wrap:wrap; margin-top:.7rem;}
+  .links button{
+    background:none; border:none; padding:0; cursor:pointer; font-family:inherit;
+    font-size:.9rem; color:var(--acao); font-weight:500;
+  }
+  .links button.apagar{color:var(--crit);}
+  .item.feito h3{text-decoration:line-through; color:var(--ink-2);}
+  .item.feito{opacity:.72;}
+
+  /* ── campos ──────────────────────────────────────────────────── */
+  label{
+    display:block; font-size:.74rem; text-transform:uppercase; letter-spacing:.07em;
+    color:var(--ink-3); font-weight:700; margin:0 0 .4rem;
+  }
   textarea, input[type="text"], input[type="password"], input[type="datetime-local"]{
-    width:100%; background:var(--bg2); color:var(--text);
-    border:1.5px solid var(--border); border-radius:.55rem;
-    padding:.7rem .75rem; font-size:1rem; font-family:inherit; resize:vertical;
+    width:100%; background:var(--surface-2); color:var(--ink);
+    border:1px solid var(--line); border-radius:.7rem;
+    padding:.75rem .8rem; font-size:1rem; font-family:inherit; resize:vertical;
   }
-  textarea{min-height:5.2rem;}
-  textarea:focus, input:focus{outline:2px solid var(--accent); outline-offset:1px;}
-  label{display:block; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em;
-        color:var(--muted); font-weight:800; margin:0 0 .35rem;}
-
-  .linha{display:flex; gap:.5rem; align-items:center;}
-  .linha > *{flex:1;}
+  textarea{min-height:4.8rem;}
+  textarea:focus, input:focus{outline:2px solid var(--acao); outline-offset:1px; border-color:transparent;}
+  .botoes{display:flex; gap:.5rem; margin-top:.65rem;}
+  .botoes > *{flex:1;}
   .btn{
-    border:none; border-radius:.55rem; padding:.75rem 1rem; font-size:.9rem;
-    font-weight:900; text-transform:uppercase; letter-spacing:.04em;
-    cursor:pointer; font-family:inherit;
+    border:none; border-radius:.7rem; padding:.8rem 1rem;
+    font-size:.95rem; font-weight:600; cursor:pointer; font-family:inherit;
   }
-  .btn.primario{background:var(--accent); color:var(--text-on-accent);}
-  .btn.neutro{background:var(--bg2); color:var(--text); border:1.5px solid var(--border);}
-  .btn.perigo{background:transparent; color:var(--danger); border:1.5px solid var(--danger);}
+  .btn.principal{background:var(--accent); color:var(--on-accent);}
+  .btn.neutro{background:var(--surface-2); color:var(--ink); border:1px solid var(--line);}
   .btn:disabled{opacity:.45; cursor:not-allowed;}
-  .btn.gravando{background:var(--danger); color:#fff; animation:pulsa 1.1s infinite;}
-  @keyframes pulsa{50%{opacity:.55}}
+  .btn.gravando{background:var(--crit); color:#fff; animation:pulsa 1.1s infinite;}
+  @keyframes pulsa{50%{opacity:.6}}
 
-  .grupo{margin-top:.35rem;}
-  .grupo h2{
-    font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:900;
-    color:var(--muted); margin:1.1rem 0 .5rem; display:flex; align-items:center; gap:.5rem;
+  /* ── fichas de antecedência ──────────────────────────────────── */
+  .fichas{display:flex; flex-wrap:wrap; gap:.4rem;}
+  .ficha{
+    border:1px solid var(--line-forte); background:var(--surface);
+    color:var(--ink-2); border-radius:999px; padding:.42rem .8rem;
+    font-size:.85rem; font-family:inherit; font-weight:500; cursor:pointer;
   }
-  .grupo h2::after{content:""; flex:1; height:1px; background:var(--border);}
-  .grupo.atrasado h2{color:var(--danger);}
+  .ficha[aria-pressed="true"]{
+    background:var(--ink); border-color:var(--ink); color:#fff; font-weight:600;
+  }
+  html.dark .ficha[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--on-accent);}
+  .ficha.fixa{
+    background:var(--surface-2); border-style:dashed; cursor:default;
+    color:var(--ink-2); font-weight:600;
+  }
+  .nota-fichas{font-size:.8rem; color:var(--ink-3); margin:.45rem 0 0;}
 
-  .item{
-    background:var(--card); border:1.5px solid var(--border); border-left:4px solid var(--accent);
-    border-radius:.6rem; padding:.8rem .9rem; margin-bottom:.55rem;
+  /* ── avisos de estado ────────────────────────────────────────── */
+  .aviso{
+    border:1px solid var(--line); border-left:4px solid var(--alerta);
+    background:var(--alerta-suave); border-radius:.9rem; padding:.95rem 1.05rem;
+    font-size:.9rem; line-height:1.5; display:flex; flex-direction:column; gap:.6rem;
   }
-  .item.atrasado{border-left-color:var(--danger);}
-  .item.duvidoso{border-left-color:var(--alerta);}
-  .item h3{margin:0 0 .25rem; font-size:1rem; font-weight:700; line-height:1.3;}
-  .item .meta{font-size:.78rem; color:var(--muted); line-height:1.5;}
-  .item .meta b{color:var(--text); font-weight:700;}
-  .item .meta .vermelho{color:var(--danger); font-weight:800;}
-  .acoes{display:flex; gap:.4rem; margin-top:.7rem; flex-wrap:wrap;}
-  .acoes button{
-    flex:0 0 auto; background:var(--bg2); color:var(--text);
-    border:1.5px solid var(--border); border-radius:.45rem;
-    padding:.45rem .6rem; font-size:.78rem; font-weight:700; cursor:pointer; font-family:inherit;
-  }
-  .acoes button.feito{border-color:var(--ok); color:var(--ok);}
-  .acoes button.apagar{border-color:var(--danger); color:var(--danger); margin-left:auto;}
+  .aviso.grave{border-left-color:var(--crit); background:var(--crit-suave);}
+  .aviso strong{display:block; font-size:.98rem; margin-bottom:.2rem; color:var(--ink);}
+  .aviso p{margin:0; color:var(--ink-2);}
+  .aviso ol{margin:.2rem 0 0; padding-left:1.15rem; color:var(--ink-2);}
+  .aviso ol li{margin-bottom:.25rem;}
 
-  .vazio{text-align:center; color:var(--muted); padding:2rem 1rem; font-size:.9rem; line-height:1.6;}
-  .aviso-erro{color:var(--danger); font-size:.82rem; margin-top:.5rem; line-height:1.45;}
-  .carregando{color:var(--muted); font-size:.85rem; text-align:center; padding:1rem;}
-
-  details.feitos{margin-top:1rem;}
-  details.feitos summary{
-    cursor:pointer; color:var(--muted); font-size:.75rem; font-weight:800;
-    text-transform:uppercase; letter-spacing:.06em; padding:.5rem 0;
-  }
-  details.feitos .item{border-left-color:var(--ok); opacity:.72;}
-  details.feitos .item h3{text-decoration:line-through;}
+  .vazio{text-align:center; color:var(--ink-3); padding:2.2rem 1rem; font-size:.95rem; line-height:1.6;}
+  .erro{color:var(--crit); font-size:.87rem; margin-top:.55rem; line-height:1.45;}
+  .carregando{color:var(--ink-3); font-size:.9rem; text-align:center; padding:1rem;}
 
   footer{
     margin-top:auto; padding-top:1.5rem; display:flex; align-items:center;
-    justify-content:center; gap:.6rem; color:var(--muted); font-size:.75rem;
+    justify-content:center; gap:.6rem; color:var(--ink-3); font-size:.78rem;
   }
-  footer .bcr-logo{display:flex;}
-  footer .bcr-logo svg{height:1.7rem; width:auto;}
-  @media (max-width:360px){ .acoes button{font-size:.72rem; padding:.4rem .5rem;} }
+  footer .bcr svg{height:1.6rem; width:auto; display:block;}
+
+  @media (max-width:380px){
+    .contador .numero{font-size:1.65rem;}
+    .abas button{font-size:.83rem;}
+  }
+  @media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important;} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">
-      <span class="stripes" aria-hidden="true"><span></span><span></span><span></span></span>
+    <div class="marca">
+      <span class="selo" aria-hidden="true">
+        <span class="listras"><span></span><span></span><span></span></span>
+      </span>
       <h1>Lembretes</h1>
     </div>
-    <div class="linha" style="flex:0 0 auto;">
-      <button class="icone-btn" id="btnAtualizar" title="Atualizar" aria-label="Atualizar">⟳</button>
-      <button class="icone-btn" id="btnTema" title="Tema" aria-label="Alternar tema">☀️</button>
+    <div class="acoes-topo">
+      <button class="icone" id="btnAtualizar" title="Atualizar" aria-label="Atualizar">&#8635;</button>
+      <button class="icone" id="btnTema" title="Tema" aria-label="Alternar tema">&#9789;</button>
     </div>
   </header>
 
-  <div id="banners"></div>
+  <div id="avisos"></div>
 
   <section class="cartao" id="telaPin" hidden>
     <label for="campoPin">PIN de acesso</label>
-    <input type="password" id="campoPin" inputmode="numeric" autocomplete="current-password" placeholder="••••••">
-    <div class="linha" style="margin-top:.6rem;">
-      <button class="btn primario" id="btnEntrar">Entrar</button>
+    <input type="password" id="campoPin" inputmode="text" autocomplete="current-password" placeholder="••••••">
+    <div class="botoes">
+      <button class="btn principal" id="btnEntrar">Entrar</button>
     </div>
-    <p class="aviso-erro" id="erroPin" hidden></p>
+    <p class="erro" id="erroPin" hidden></p>
   </section>
 
   <main id="app" hidden>
+    <div class="abertura">
+      <p class="sobretitulo">Seus prazos, sem surpresa</p>
+      <h2 id="fraseTopo">Nada passa em branco.</h2>
+    </div>
+
     <section class="cartao">
       <label for="recado">O que você não pode perder?</label>
-      <textarea id="recado" placeholder="Ex.: preciso enviar o relatório da Pharma sexta às 14h"></textarea>
-      <div class="linha" style="margin-top:.6rem;">
-        <button class="btn neutro" id="btnGravar">🎤 Gravar</button>
-        <button class="btn primario" id="btnAdicionar">Adicionar</button>
+      <textarea id="recado" placeholder="Ex.: enviar o relatório da Pharma sexta às 14h"></textarea>
+      <div class="botoes">
+        <button class="btn neutro" id="btnGravar">&#127908; Gravar</button>
+        <button class="btn principal" id="btnAdicionar">Adicionar</button>
       </div>
-      <p class="aviso-erro" id="erroCaptura" hidden></p>
+      <p class="erro" id="erroCaptura" hidden></p>
       <p class="carregando" id="statusCaptura" hidden></p>
     </section>
 
     <section class="cartao" id="confirmacao" hidden>
       <label>Confira antes de salvar</label>
       <input type="text" id="confTitulo" placeholder="Título">
-      <div style="margin-top:.55rem;">
+      <div style="margin-top:.6rem;">
         <label for="confPrazo">Prazo</label>
         <input type="datetime-local" id="confPrazo">
       </div>
-      <p class="meta" id="confObs" style="font-size:.78rem; color:var(--muted); margin:.5rem 0 0;"></p>
-      <div class="linha" style="margin-top:.7rem;">
+      <div style="margin-top:.9rem;">
+        <label>Quando quer ser avisada</label>
+        <div class="fichas" id="confFichas"></div>
+        <p class="nota-fichas">Você sempre recebe um aviso na hora exata do prazo.</p>
+      </div>
+      <p class="erro" id="confObs" style="color:var(--ink-3);" hidden></p>
+      <div class="botoes">
         <button class="btn neutro" id="btnDescartar">Descartar</button>
-        <button class="btn primario" id="btnSalvar">Salvar</button>
+        <button class="btn principal" id="btnSalvar">Salvar</button>
       </div>
     </section>
 
-    <section id="lista"><p class="carregando">Carregando…</p></section>
-
-    <details class="feitos" id="blocoFeitos" hidden>
-      <summary>Concluídos recentemente</summary>
-      <div id="listaFeitos"></div>
-    </details>
+    <section class="cartao">
+      <div class="contadores">
+        <div class="contador"><div class="numero" id="numPendentes">0</div><div class="rotulo">pendentes</div></div>
+        <div class="contador"><div class="numero" id="numHoje">0</div><div class="rotulo">para hoje</div></div>
+        <div class="contador atraso"><div class="numero" id="numAtraso">0</div><div class="rotulo">em atraso</div></div>
+      </div>
+      <div class="abas" role="tablist">
+        <button role="tab" data-aba="pendentes" aria-selected="true">Pendentes</button>
+        <button role="tab" data-aba="hoje" aria-selected="false">Hoje</button>
+        <button role="tab" data-aba="feitos" aria-selected="false">Concluídos</button>
+      </div>
+      <div id="lista"><p class="carregando">Carregando…</p></div>
+    </section>
   </main>
 
   <footer>
-    <span class="bcr-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 62" role="img" aria-label="BCR — Beatriz C Reis">
+    <span class="bcr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 62" role="img" aria-label="BCR — Beatriz C Reis">
       <g fill="currentColor" stroke="none">
         <path transform="translate(29.07 46) scale(0.03600 -0.036)" d="M39 708Q62 707 98.5 706Q135 705 171 705Q219 705 262.5 706Q306 707 324 707Q436 707 491.5 663Q547 619 547 550Q547 515 530.5 480.5Q514 446 477 418.5Q440 391 379 375L379 373Q463 364 511 337Q559 310 579 272.5Q599 235 599 194Q599 135 569 91.5Q539 48 482.5 24Q426 0 347 0Q325 0 280.5 1.5Q236 3 173 3Q135 3 98.5 2.5Q62 2 39 0L39 20Q73 22 90 28Q107 34 112.5 52Q118 70 118 106L118 602Q118 639 112.5 656.5Q107 674 89.5 680.5Q72 687 39 688ZM303 688Q260 688 246.5 671Q233 654 233 602L233 106Q233 71 239 53Q245 35 260.5 29Q276 23 306 23Q396 23 436.5 68.5Q477 114 477 198Q477 275 436.5 317Q396 359 303 359L206 359Q206 359 206 367.5Q206 376 206 376L292 376Q347 376 377 398.5Q407 421 418 458.5Q429 496 429 539Q429 613 400 650.5Q371 688 303 688Z"/>
         <path transform="translate(62.08 46) scale(0.03600 -0.036)" d="M380 722Q446 722 488.5 702.5Q531 683 564 657Q584 642 594.5 653.5Q605 665 609 708L632 708Q630 670 629 616.5Q628 563 628 474L605 474Q598 518 591.5 546Q585 574 574.5 594Q564 614 546 633Q517 669 475 685Q433 701 386 701Q335 701 296 675.5Q257 650 230.5 603Q204 556 190 492Q176 428 176 352Q176 274 191 210.5Q206 147 234.5 101.5Q263 56 303.5 31.5Q344 7 394 7Q435 7 479 23.5Q523 40 549 74Q577 104 587.5 141.5Q598 179 605 244L628 244Q628 152 629 95.5Q630 39 632 0L609 0Q605 43 595.5 54Q586 65 564 51Q527 25 485.5 5.5Q444 -14 379 -14Q280 -14 206 29Q132 72 91 153Q50 234 50 348Q50 460 92.5 544Q135 628 209 675Q283 722 380 722Z"/>
@@ -209,22 +330,36 @@
 <script>
 'use strict';
 const $ = (id) => document.getElementById(id);
-const estado = { pin: null, pendentes: [], feitos: [], proposta: null, gravador: null, pedacos: [] };
+const estado = {
+  pin: null, pendentes: [], feitos: [], proposta: null,
+  gravador: null, pedacos: [], aba: 'pendentes',
+  antecedenciasNovas: ['d1', 'h1'], editando: null, pinNoBanco: null,
+};
 
-// ─── Tema (mesma chave dos outros apps, para o visual acompanhar) ───────────
-function aplicarTema(claro){
-  document.documentElement.classList.toggle('light', claro);
-  $('btnTema').textContent = claro ? '🌙' : '☀️';
-  document.querySelector('meta[name=theme-color]').setAttribute('content', claro ? '#f2f2ef' : '#0a0a0a');
-  try { localStorage.setItem('jogos_theme', claro ? 'light' : 'dark'); } catch(e){}
+// As opções de antecedência: precisam bater com ANTECEDENCIAS em api/_lib/agenda.js.
+// O aviso na hora exata do prazo é sempre criado pelo servidor e não está aqui.
+const ANTECEDENCIAS = [
+  { chave:'d2',  rotulo:'2 dias antes',     curto:'2 dias' },
+  { chave:'d1',  rotulo:'1 dia antes',      curto:'1 dia' },
+  { chave:'h1',  rotulo:'1 hora antes',     curto:'1 hora' },
+  { chave:'m15', rotulo:'15 minutos antes', curto:'15 min' },
+  { chave:'m5',  rotulo:'5 minutos antes',  curto:'5 min' },
+];
+const rotuloAnte = (c) => ANTECEDENCIAS.find((a) => a.chave === c)?.curto || c;
+
+// ─── Tema ───────────────────────────────────────────────────────────────────
+function aplicarTema(escuro){
+  document.documentElement.classList.toggle('dark', escuro);
+  $('btnTema').textContent = escuro ? '☀' : '☽';
+  document.querySelector('meta[name=theme-color]').setAttribute('content', escuro ? '#0e1420' : '#f1f4f9');
+  try { localStorage.setItem('lembretes_tema', escuro ? 'dark' : 'light'); } catch(e){}
 }
-$('btnTema').onclick = () => aplicarTema(!document.documentElement.classList.contains('light'));
-try { aplicarTema(localStorage.getItem('jogos_theme') === 'light'); } catch(e){ aplicarTema(false); }
+$('btnTema').onclick = () => aplicarTema(!document.documentElement.classList.contains('dark'));
+try { aplicarTema(localStorage.getItem('lembretes_tema') === 'dark'); } catch(e){ aplicarTema(false); }
 
-// ─── PIN: no localStorage para a tela, no IndexedDB para o service worker ───
-// O service worker precisa do PIN para que os botões "Feito"/"Adiar" da
-// notificação funcionem com o app fechado. Só resolve quando a transação
-// realmente comitou — se isso falhar em silêncio, os botões param de funcionar.
+// ─── PIN ────────────────────────────────────────────────────────────────────
+// O service worker precisa do PIN para os botões da notificação funcionarem com
+// o app fechado. Só resolve quando a transação realmente comitou.
 const BD = 'lembretes-cfg';
 function guardarPinNoBanco(pin){
   return new Promise((ok) => {
@@ -255,13 +390,16 @@ async function api(caminho, opcoes = {}){
   });
   const texto = await r.text();
   const corpo = texto ? JSON.parse(texto) : {};
-  if (!r.ok) { const e = new Error(corpo.erro || `Erro ${r.status}`); e.status = r.status; throw e; }
+  if (!r.ok){ const e = new Error(corpo.erro || `Erro ${r.status}`); e.status = r.status; throw e; }
   return corpo;
 }
 
-// ─── Formatação ────────────────────────────────────────────────────────────
+// ─── Formatação ─────────────────────────────────────────────────────────────
 const fmtPrazo = new Intl.DateTimeFormat('pt-BR', {
-  weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit',
+  day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit',
+});
+const fmtAviso = new Intl.DateTimeFormat('pt-BR', {
+  day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit',
 });
 const paraInput = (iso) => {
   const d = new Date(iso), z = (n) => String(n).padStart(2,'0');
@@ -269,77 +407,181 @@ const paraInput = (iso) => {
 };
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const TITULOS = { atrasado:'Atrasados', hoje:'Hoje', amanha:'Amanhã', semana:'Esta semana', depois:'Mais adiante' };
+// ─── Fichas de antecedência ─────────────────────────────────────────────────
+function desenharFichas(caixa, escolhidas, aoMudar){
+  caixa.innerHTML = ANTECEDENCIAS.map((a) => `
+    <button type="button" class="ficha" data-chave="${a.chave}"
+            aria-pressed="${escolhidas.includes(a.chave)}">${a.rotulo}</button>`).join('')
+    + `<span class="ficha fixa" title="Sempre ativo">Na hora ✓</span>`;
+  caixa.onclick = (ev) => {
+    const b = ev.target.closest('button.ficha');
+    if (!b) return;
+    const ligada = b.getAttribute('aria-pressed') === 'true';
+    b.setAttribute('aria-pressed', String(!ligada));
+    const marcadas = [...caixa.querySelectorAll('button.ficha[aria-pressed="true"]')].map((x) => x.dataset.chave);
+    aoMudar(ANTECEDENCIAS.filter((a) => marcadas.includes(a.chave)).map((a) => a.chave));
+  };
+}
+
+// ─── Lista ──────────────────────────────────────────────────────────────────
+const TITULOS = { atrasado:'Em atraso', hoje:'Hoje', amanha:'Amanhã', semana:'Esta semana', depois:'Mais adiante' };
 const ORDEM = ['atrasado','hoje','amanha','semana','depois'];
 
-function cartaoLembrete(l, concluido = false){
-  const atrasado = l.faixa === 'atrasado';
-  const duvidoso = l.confianca && l.confianca !== 'alta';
-  const classes = ['item', atrasado && !concluido ? 'atrasado' : '', duvidoso && !concluido ? 'duvidoso' : ''].filter(Boolean).join(' ');
-  const proximo = l.proximoAviso
-    ? `Próximo aviso: ${fmtPrazo.format(new Date(l.proximoAviso.em))}`
-    : (concluido ? '' : 'Sem próximo aviso');
+function cartaoItem(l, concluido){
+  const atrasado = l.faixa === 'atrasado' && !concluido;
+  const duvidoso = l.confianca && l.confianca !== 'alta' && !concluido;
+  const avisos = (l.antecedencias || []).map(rotuloAnte);
+  // "na hora" vale sempre, então repetir em todo card é ruído — só aparece
+  // quando é o único aviso. E o próximo horário só interessa quando está perto.
+  const listaAvisos = concluido ? ''
+    : (avisos.length ? avisos.join(' · ') : 'só na hora do prazo');
+  const perto = l.faixa === 'hoje' || l.faixa === 'atrasado';
+  const proximo = (perto && l.proximoAviso)
+    ? `próximo ${fmtAviso.format(new Date(l.proximoAviso.em))}` : '';
 
-  const acoes = concluido
-    ? `<button data-acao="reabrir" data-id="${l.id}">↩︎ Reabrir</button>
-       <button class="apagar" data-acao="apagar" data-id="${l.id}">🗑</button>`
-    : `<button class="feito" data-acao="concluir" data-id="${l.id}">✅ Feito</button>
-       <button data-acao="adiar" data-minutos="60" data-id="${l.id}">⏰ +1h</button>
-       <button data-acao="adiar" data-minutos="1440" data-id="${l.id}">📅 +1 dia</button>
-       <button class="apagar" data-acao="apagar" data-id="${l.id}">🗑</button>`;
-
-  return `<article class="${classes}">
-    <h3>${esc(l.titulo)}</h3>
-    <p class="meta">
-      <b>${esc(fmtPrazo.format(new Date(l.prazo)))}</b>
-      · <span class="${atrasado && !concluido ? 'vermelho' : ''}">${esc(l.falta)}</span>
-      ${l.detalhes ? `<br>${esc(l.detalhes)}` : ''}
-      ${duvidoso && !concluido ? `<br>⚠️ Confira a data${l.observacao ? ': ' + esc(l.observacao) : ''}` : ''}
-      ${proximo ? `<br>${esc(proximo)}` : ''}
-    </p>
-    <div class="acoes">${acoes}</div>
+  return `<article class="item ${concluido ? 'feito' : ''}" data-id="${l.id}">
+    <button class="bolinha" data-acao="${concluido ? 'reabrir' : 'concluir'}"
+            aria-pressed="${concluido}" aria-label="${concluido ? 'Reabrir' : 'Marcar como feito'}"></button>
+    <div>
+      <h3>${esc(l.titulo)}</h3>
+      ${l.detalhes ? `<p class="detalhe">${esc(l.detalhes)}</p>` : ''}
+      <p class="linha-info prazo ${atrasado ? 'tarde' : ''}">
+        <span class="ico">\u{1F4C5}</span>
+        <span>${esc(fmtPrazo.format(new Date(l.prazo)))} · ${esc(l.falta)}</span>
+      </p>
+      ${listaAvisos ? `<p class="linha-info">
+        <span class="ico">\u{1F514}</span><span>${esc(listaAvisos)}${proximo ? ` · ${esc(proximo)}` : ''}</span>
+      </p>` : ''}
+      ${duvidoso ? `<p class="linha-info duvida">
+        <span class="ico">⚠️</span><span>Confira a data${l.observacao ? '. ' + esc(l.observacao) : ''}</span>
+      </p>` : ''}
+      <div class="links">
+        ${concluido ? '' : `<button data-acao="editar">Editar</button>
+        <button data-acao="adiar" data-minutos="60">Adiar 1h</button>
+        <button data-acao="adiar" data-minutos="1440">Adiar 1 dia</button>`}
+        <button data-acao="apagar" class="apagar">Apagar</button>
+      </div>
+      <div class="editor" data-editor="${l.id}" hidden></div>
+    </div>
   </article>`;
 }
 
 function render(){
+  const agoraLista = estado.aba === 'feitos' ? estado.feitos : estado.pendentes;
+  $('numPendentes').textContent = estado.pendentes.length;
+  $('numHoje').textContent = estado.pendentes.filter((l) => l.faixa === 'hoje').length;
+  $('numAtraso').textContent = estado.pendentes.filter((l) => l.faixa === 'atrasado').length;
+  $('fraseTopo').textContent = estado.pendentes.length === 0
+    ? 'Nada passa em branco.'
+    : estado.pendentes.some((l) => l.faixa === 'atrasado')
+      ? 'Comece pelo que já passou.' : 'Uma coisa de cada vez.';
+
   const alvo = $('lista');
-  if (estado.pendentes.length === 0){
-    alvo.innerHTML = `<p class="vazio">Nada pendente.<br>Mande um recado acima — por texto ou áudio.</p>`;
-  } else {
-    const grupos = {};
-    for (const l of estado.pendentes) (grupos[l.faixa] ||= []).push(l);
-    alvo.innerHTML = ORDEM.filter((f) => grupos[f]).map((f) => `
-      <section class="grupo ${f}">
-        <h2>${TITULOS[f]} · ${grupos[f].length}</h2>
-        ${grupos[f].map((l) => cartaoLembrete(l)).join('')}
-      </section>`).join('');
+  if (estado.aba === 'feitos'){
+    alvo.innerHTML = estado.feitos.length
+      ? estado.feitos.map((l) => cartaoItem(l, true)).join('')
+      : `<p class="vazio">Nada concluído ainda.</p>`;
+    return;
   }
 
-  $('blocoFeitos').hidden = estado.feitos.length === 0;
-  $('listaFeitos').innerHTML = estado.feitos.map((l) => cartaoLembrete(l, true)).join('');
+  const filtrados = estado.aba === 'hoje'
+    ? estado.pendentes.filter((l) => l.faixa === 'hoje' || l.faixa === 'atrasado')
+    : estado.pendentes;
+
+  if (filtrados.length === 0){
+    alvo.innerHTML = estado.aba === 'hoje'
+      ? `<p class="vazio">Nada para hoje.<br>Aproveite.</p>`
+      : `<p class="vazio">Nada pendente.<br>Mande um recado acima — por texto ou áudio.</p>`;
+    return;
+  }
+
+  const grupos = {};
+  for (const l of filtrados) (grupos[l.faixa] ||= []).push(l);
+  alvo.innerHTML = ORDEM.filter((f) => grupos[f]).map((f) => `
+    <p class="grupo-titulo ${f}">${TITULOS[f]} · ${grupos[f].length}</p>
+    ${grupos[f].map((l) => cartaoItem(l, false)).join('')}`).join('');
 }
 
-$('lista').addEventListener('click', tratarAcao);
-$('listaFeitos').addEventListener('click', tratarAcao);
+document.querySelector('.abas').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-aba]');
+  if (!b) return;
+  estado.aba = b.dataset.aba;
+  document.querySelectorAll('.abas button').forEach((x) =>
+    x.setAttribute('aria-selected', String(x.dataset.aba === estado.aba)));
+  estado.editando = null;
+  render();
+});
 
-async function tratarAcao(ev){
+// ─── Ações do item ──────────────────────────────────────────────────────────
+$('lista').addEventListener('click', async (ev) => {
   const botao = ev.target.closest('button[data-acao]');
   if (!botao) return;
-  const { id, acao, minutos } = botao.dataset;
+  const id = botao.closest('.item')?.dataset.id;
+  const { acao, minutos } = botao.dataset;
+  if (!id) return;
+
+  if (acao === 'editar') return abrirEditor(id);
+
   botao.disabled = true;
   try {
     if (acao === 'apagar'){
-      if (!confirm('Apagar este lembrete de vez?')) { botao.disabled = false; return; }
+      if (!confirm('Apagar este lembrete de vez?')){ botao.disabled = false; return; }
       await api(`api/reminders?id=${encodeURIComponent(id)}`, { method:'DELETE' });
     } else {
       const corpo = acao === 'adiar' ? { acao:'adiar', minutos: Number(minutos) } : { acao };
       await api(`api/reminders?id=${encodeURIComponent(id)}`, { method:'PATCH', body: JSON.stringify(corpo) });
     }
     await carregar();
-  } catch (e){
-    alert(e.message);
-    botao.disabled = false;
-  }
+  } catch(e){ alert(e.message); botao.disabled = false; }
+});
+
+function abrirEditor(id){
+  const lembrete = [...estado.pendentes, ...estado.feitos].find((l) => l.id === id);
+  if (!lembrete) return;
+  const caixa = document.querySelector(`[data-editor="${id}"]`);
+  if (!caixa) return;
+  if (estado.editando === id){ caixa.hidden = true; estado.editando = null; return; }
+
+  estado.editando = id;
+  let escolhidas = [...(lembrete.antecedencias || [])];
+  caixa.hidden = false;
+  caixa.innerHTML = `
+    <div style="border-top:1px solid var(--line); margin-top:.85rem; padding-top:.85rem;">
+      <label for="ed-titulo-${id}">Título</label>
+      <input type="text" id="ed-titulo-${id}" value="${esc(lembrete.titulo)}">
+      <div style="margin-top:.6rem;">
+        <label for="ed-prazo-${id}">Prazo</label>
+        <input type="datetime-local" id="ed-prazo-${id}" value="${paraInput(lembrete.prazo)}">
+      </div>
+      <div style="margin-top:.9rem;">
+        <label>Quando quer ser avisada</label>
+        <div class="fichas" id="ed-fichas-${id}"></div>
+        <p class="nota-fichas">Você sempre recebe um aviso na hora exata do prazo.</p>
+      </div>
+      <div class="botoes">
+        <button class="btn neutro" data-fechar>Cancelar</button>
+        <button class="btn principal" data-salvar>Salvar</button>
+      </div>
+    </div>`;
+  desenharFichas($(`ed-fichas-${id}`), escolhidas, (novas) => { escolhidas = novas; });
+
+  caixa.querySelector('[data-fechar]').onclick = () => { caixa.hidden = true; estado.editando = null; };
+  caixa.querySelector('[data-salvar]').onclick = async (ev) => {
+    const titulo = $(`ed-titulo-${id}`).value.trim();
+    const prazo = $(`ed-prazo-${id}`).value;
+    if (!titulo) return alert('O título não pode ficar vazio.');
+    if (!prazo) return alert('Informe o prazo.');
+    ev.target.disabled = true;
+    try {
+      await api(`api/reminders?id=${encodeURIComponent(id)}`, {
+        method:'PATCH',
+        body: JSON.stringify({ acao:'editar', titulo, prazo: new Date(prazo).toISOString(),
+                               antecedencias: escolhidas }),
+      });
+      estado.editando = null;
+      await carregar();
+    } catch(e){ alert(e.message); ev.target.disabled = false; }
+  };
 }
 
 async function carregar(){
@@ -348,51 +590,45 @@ async function carregar(){
     estado.pendentes = dados.pendentes;
     estado.feitos = dados.feitos;
     render();
-  } catch (e){
+  } catch(e){
     if (e.status === 401) return mostrarTelaPin('PIN incorreto.');
     $('lista').innerHTML = `<p class="vazio">Não consegui carregar.<br>${esc(e.message)}</p>`;
   }
 }
 
-// ─── Captura ───────────────────────────────────────────────────────────────
-function statusCaptura(texto){
-  const el = $('statusCaptura');
-  el.textContent = texto || '';
-  el.hidden = !texto;
-}
-function erroCaptura(texto){
-  const el = $('erroCaptura');
-  el.textContent = texto || '';
-  el.hidden = !texto;
-}
+// ─── Captura ────────────────────────────────────────────────────────────────
+const statusCaptura = (t) => { $('statusCaptura').textContent = t || ''; $('statusCaptura').hidden = !t; };
+const erroCaptura = (t) => { $('erroCaptura').textContent = t || ''; $('erroCaptura').hidden = !t; };
 
 async function interpretarRecado(texto, origem){
-  erroCaptura('');
-  statusCaptura('Interpretando…');
+  erroCaptura(''); statusCaptura('Interpretando…');
   $('btnAdicionar').disabled = true;
   try {
-    const { lembrete } = await api('api/reminders', { method:'POST', body: JSON.stringify({ recado: texto, origem }) });
+    const { lembrete } = await api('api/reminders', {
+      method:'POST',
+      body: JSON.stringify({ recado: texto, origem, antecedencias: estado.antecedenciasNovas }),
+    });
     // Salvo já — a confirmação serve para corrigir, não para autorizar. Um prazo
     // que depende de um segundo toque é um prazo que se perde no segundo toque.
     estado.proposta = lembrete;
     $('recado').value = '';
     $('confTitulo').value = lembrete.titulo;
     $('confPrazo').value = paraInput(lembrete.prazo);
-    const base = lembrete.confianca === 'alta'
-      ? 'Já está salvo e agendado. Ajuste se algo ficou errado.'
-      : `⚠️ Confirme a data. ${lembrete.observacao || ''}`.trim();
-    // Mostra quem leu a data: "sem custo" é o parser local, o caminho padrão.
-    const MOTORES = { local: 'lido sem custo', ia: 'lido pela IA', palpite: 'sem data reconhecida' };
-    $('confObs').textContent = MOTORES[lembrete.motor] ? `${base} · ${MOTORES[lembrete.motor]}` : base;
+    // desenharFichas já devolve a seleção a cada toque; um addEventListener extra
+    // aqui empilharia um listener novo a cada lembrete criado.
+    $('confirmacao').dataset.escolhidas = JSON.stringify(lembrete.antecedencias || []);
+    desenharFichas($('confFichas'), lembrete.antecedencias || [], (novas) => {
+      $('confirmacao').dataset.escolhidas = JSON.stringify(novas);
+    });
+    const obs = lembrete.confianca === 'alta' ? '' : `⚠️ Confirme a data. ${lembrete.observacao || ''}`.trim();
+    $('confObs').textContent = obs;
+    $('confObs').hidden = !obs;
     $('confirmacao').hidden = false;
     await carregar();
-  } catch (e){
+  } catch(e){
     if (e.status === 401) return mostrarTelaPin('PIN incorreto.');
     erroCaptura(e.message);
-  } finally {
-    statusCaptura('');
-    $('btnAdicionar').disabled = false;
-  }
+  } finally { statusCaptura(''); $('btnAdicionar').disabled = false; }
 }
 
 $('btnAdicionar').onclick = () => {
@@ -409,8 +645,7 @@ $('btnDescartar').onclick = async () => {
     try { await api(`api/reminders?id=${encodeURIComponent(estado.proposta.id)}`, { method:'DELETE' }); } catch(e){}
     await carregar();
   }
-  $('confirmacao').hidden = true;
-  estado.proposta = null;
+  $('confirmacao').hidden = true; estado.proposta = null;
 };
 
 $('btnSalvar').onclick = async () => {
@@ -421,30 +656,28 @@ $('btnSalvar').onclick = async () => {
   if (!prazo) return alert('Informe o prazo.');
   $('btnSalvar').disabled = true;
   try {
+    const escolhidas = JSON.parse($('confirmacao').dataset.escolhidas || '[]');
     await api(`api/reminders?id=${encodeURIComponent(estado.proposta.id)}`, {
       method:'PATCH',
-      body: JSON.stringify({ acao:'editar', titulo, prazo: new Date(prazo).toISOString() }),
+      body: JSON.stringify({ acao:'editar', titulo, prazo: new Date(prazo).toISOString(),
+                             antecedencias: escolhidas }),
     });
-    $('confirmacao').hidden = true;
-    estado.proposta = null;
+    // O que ela escolheu aqui vira o padrão do próximo recado.
+    estado.antecedenciasNovas = escolhidas;
+    $('confirmacao').hidden = true; estado.proposta = null;
     await carregar();
-  } catch (e){ alert(e.message); }
+  } catch(e){ alert(e.message); }
   finally { $('btnSalvar').disabled = false; }
 };
 
-// ─── Áudio ─────────────────────────────────────────────────────────────────
+// ─── Áudio ──────────────────────────────────────────────────────────────────
 const MIMES = ['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'];
-function mimeSuportado(){
-  if (typeof MediaRecorder === 'undefined') return null;
-  return MIMES.find((m) => { try { return MediaRecorder.isTypeSupported(m); } catch(e){ return false; } }) || '';
-}
+const mimeSuportado = () => typeof MediaRecorder === 'undefined' ? null
+  : (MIMES.find((m) => { try { return MediaRecorder.isTypeSupported(m); } catch(e){ return false; } }) || '');
 
 $('btnGravar').onclick = async () => {
   const botao = $('btnGravar');
-  if (estado.gravador && estado.gravador.state === 'recording'){
-    estado.gravador.stop();
-    return;
-  }
+  if (estado.gravador && estado.gravador.state === 'recording'){ estado.gravador.stop(); return; }
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined'){
     return erroCaptura('Este navegador não grava áudio. Digite o recado.');
   }
@@ -453,13 +686,11 @@ $('btnGravar').onclick = async () => {
     const trilha = await navigator.mediaDevices.getUserMedia({ audio:true });
     const mime = mimeSuportado();
     const gravador = new MediaRecorder(trilha, mime ? { mimeType: mime } : undefined);
-    estado.gravador = gravador;
-    estado.pedacos = [];
+    estado.gravador = gravador; estado.pedacos = [];
     gravador.ondataavailable = (e) => { if (e.data.size) estado.pedacos.push(e.data); };
     gravador.onstop = async () => {
       trilha.getTracks().forEach((t) => t.stop());
-      botao.classList.remove('gravando');
-      botao.textContent = '🎤 Gravar';
+      botao.classList.remove('gravando'); botao.textContent = '\u{1F3A4} Gravar';
       clearTimeout(estado.limite);
       const blob = new Blob(estado.pedacos, { type: gravador.mimeType || 'audio/webm' });
       estado.gravador = null;
@@ -467,94 +698,78 @@ $('btnGravar').onclick = async () => {
       await transcrever(blob);
     };
     gravador.start();
-    botao.classList.add('gravando');
-    botao.textContent = '⏹ Parar';
-    // Teto de 2 minutos: acima disso o corpo da requisição estoura o limite da plataforma.
+    botao.classList.add('gravando'); botao.textContent = '⏹ Parar';
+    // Teto de 2 minutos: acima disso o corpo da requisição estoura o limite.
     estado.limite = setTimeout(() => { if (estado.gravador?.state === 'recording') estado.gravador.stop(); }, 120000);
-  } catch (e){
-    erroCaptura('Não consegui acessar o microfone. Verifique a permissão.');
-  }
+  } catch(e){ erroCaptura('Não consegui acessar o microfone. Verifique a permissão.'); }
 };
 
-function paraBase64(blob){
-  return new Promise((ok, falha) => {
-    const leitor = new FileReader();
-    leitor.onload = () => ok(String(leitor.result).split(',')[1]);
-    leitor.onerror = () => falha(leitor.error);
-    leitor.readAsDataURL(blob);
-  });
-}
+const paraBase64 = (blob) => new Promise((ok, falha) => {
+  const leitor = new FileReader();
+  leitor.onload = () => ok(String(leitor.result).split(',')[1]);
+  leitor.onerror = () => falha(leitor.error);
+  leitor.readAsDataURL(blob);
+});
 
 async function transcrever(blob){
   statusCaptura('Transcrevendo…');
   try {
     const audio = await paraBase64(blob);
-    const { texto } = await api('api/transcribe', {
-      method:'POST',
-      body: JSON.stringify({ audio, mime: blob.type }),
-    });
+    const { texto } = await api('api/transcribe', { method:'POST', body: JSON.stringify({ audio, mime: blob.type }) });
     $('recado').value = texto;
     statusCaptura('');
     await interpretarRecado(texto, 'audio');
-  } catch (e){
+  } catch(e){
     statusCaptura('');
     if (e.status === 401) return mostrarTelaPin('PIN incorreto.');
     erroCaptura(e.message);
   }
 }
 
-// ─── Banners de estado (é aqui que o push do iPhone se salva ou se perde) ───
+// ─── Estado das notificações ────────────────────────────────────────────────
 const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const instalado = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
 // No Safari do iPhone fora da tela de início, window.Notification NÃO EXISTE.
 // Ler Notification.permission direto lança ReferenceError e derruba o desenho
-// dos avisos inteiro — foi assim que a tela ficou sem nenhuma orientação.
+// dos avisos inteiro.
 const permissao = () => ('Notification' in window ? Notification.permission : 'indisponivel');
 const podePush = () => ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
 
-function renderBanners(){
-  const caixa = $('banners');
+function renderAvisos(){
+  const caixa = $('avisos');
   const partes = [];
 
   if (ehIOS && !instalado){
-    partes.push(`<div class="banner grave">
+    partes.push(`<div class="aviso grave">
       <div><strong>Falta instalar na tela de início</strong>
       <p>Você está numa aba do Safari, e aqui o iPhone não entrega notificação
       nenhuma — é regra da Apple, não do app.</p>
-      <p style="margin-top:.5rem;color:var(--text);">
-        1. Toque em <strong>Compartilhar</strong> (o quadrado com a seta para cima,
-        na barra de baixo)<br>
-        2. Role e toque em <strong>Adicionar à Tela de Início</strong><br>
-        3. Feche o Safari e abra pelo <strong>ícone novo</strong><br>
-        4. O botão de ativar notificações vai aparecer aqui
-      </p></div>
-    </div>`);
+      <ol>
+        <li>Toque em <strong>Compartilhar</strong> (quadrado com seta, na barra de baixo)</li>
+        <li>Role e toque em <strong>Adicionar à Tela de Início</strong></li>
+        <li>Feche o Safari e abra pelo <strong>ícone novo</strong></li>
+      </ol></div></div>`);
   } else if (!podePush()){
-    partes.push(`<div class="banner grave">
+    partes.push(`<div class="aviso grave">
       <div><strong>Este navegador não recebe notificações</strong>
-      <p>A lista continua funcionando, mas nada vai te avisar. Use Chrome no Android
-      ou o app instalado na tela de início no iPhone.</p></div>
-    </div>`);
+      <p>A lista continua funcionando, mas nada vai te avisar.</p></div></div>`);
   } else if (permissao() === 'denied'){
-    partes.push(`<div class="banner grave">
+    partes.push(`<div class="aviso grave">
       <div><strong>Notificações bloqueadas</strong>
-      <p>Você negou a permissão. Libere nos ajustes do site/app — sem isso nenhum
-      prazo vai te avisar.</p></div>
-    </div>`);
+      <p>Você negou a permissão. Libere nos ajustes do app — sem isso nenhum prazo avisa.</p></div></div>`);
   } else if (estado.pinNoBanco === false){
-    partes.push(`<div class="banner">
+    partes.push(`<div class="aviso">
       <div><strong>Botões da notificação indisponíveis</strong>
-      <p>Não consegui guardar o acesso neste aparelho, então "Feito" e "Adiar"
-      direto na notificação não vão funcionar — toque nela para abrir o app.</p></div>
-    </div>`);
+      <p>Não consegui guardar o acesso neste aparelho: "Feito" e "Adiar" direto na
+      notificação não vão funcionar. Toque nela para abrir o app.</p></div></div>`);
   }
   if (podePush() && permissao() === 'default' && !(ehIOS && !instalado)){
-    partes.push(`<div class="banner">
+    partes.push(`<div class="aviso">
       <div><strong>Ative as notificações</strong>
       <p>Sem isso o app é só uma lista: nada chega até você.</p></div>
-      <button class="btn primario" id="btnAtivarPush">Ativar notificações</button>
+      <button class="btn principal" id="btnAtivarPush">Ativar notificações</button>
     </div>`);
   }
 
@@ -570,72 +785,55 @@ function paraUint8(base64){
 }
 
 async function ativarPush(){
-  if (!podePush()) return renderBanners();
+  if (!podePush()) return renderAvisos();
   try {
-    // Nome diferente de propósito: `permissao` é a função do escopo de fora, e
-    // declarar um const homônimo aqui a deixaria inacessível na função inteira.
+    // Nome diferente de propósito: `permissao` é a função do escopo de fora.
     const resposta = await Notification.requestPermission();
-    if (resposta !== 'granted') return renderBanners();
+    if (resposta !== 'granted') return renderAvisos();
 
     const registro = await navigator.serviceWorker.ready;
     const { chavePublica } = await api('api/subscribe');
     const existente = await registro.pushManager.getSubscription();
     const inscricao = existente || await registro.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: paraUint8(chavePublica),
+      userVisibleOnly: true, applicationServerKey: paraUint8(chavePublica),
     });
     await api('api/subscribe', {
       method:'POST',
       body: JSON.stringify({ inscricao: inscricao.toJSON(), apelido: navigator.platform || 'aparelho' }),
     });
-    renderBanners();
+    renderAvisos();
     // Pelo registro, não por `new Notification`: no iOS o construtor não exibe nada.
     await registro.showNotification('Notificações ativadas', {
-      body: 'Os prazos vão chegar aqui.', icon: 'icons/icon-192.png', tag: 'boas-vindas',
+      body: 'Os prazos vão chegar aqui.', icon:'icons/icon-192.png', tag:'boas-vindas',
     });
-  } catch (e){
-    alert('Não consegui ativar: ' + e.message);
-  }
+  } catch(e){ alert('Não consegui ativar: ' + e.message); }
 }
 
-// ─── Entrada ───────────────────────────────────────────────────────────────
+// ─── Entrada ────────────────────────────────────────────────────────────────
 function mostrarTelaPin(mensagem){
-  $('telaPin').hidden = false;
-  $('app').hidden = true;
-  $('banners').innerHTML = '';
-  $('erroPin').hidden = !mensagem;
-  $('erroPin').textContent = mensagem || '';
+  $('telaPin').hidden = false; $('app').hidden = true; $('avisos').innerHTML = '';
+  $('erroPin').hidden = !mensagem; $('erroPin').textContent = mensagem || '';
   $('campoPin').focus();
 }
 
 async function entrar(pin){
   estado.pin = pin;
-  try {
-    await api('api/reminders');
-  } catch (e){
-    if (e.status === 401) return mostrarTelaPin('PIN incorreto.');
-    // 503 (banco não configurado) e afins passam: a tela mostra o erro real.
-  }
+  try { await api('api/reminders'); }
+  catch(e){ if (e.status === 401) return mostrarTelaPin('PIN incorreto.'); }
   try { localStorage.setItem('lembretes_pin', pin); } catch(e){}
   estado.pinNoBanco = await guardarPinNoBanco(pin);
-  $('telaPin').hidden = true;
-  $('app').hidden = false;
-  renderBanners();
+  $('telaPin').hidden = true; $('app').hidden = false;
+  renderAvisos();
   await carregar();
 }
 
-$('btnEntrar').onclick = () => {
-  const pin = $('campoPin').value.trim();
-  if (pin) entrar(pin);
-};
+$('btnEntrar').onclick = () => { const p = $('campoPin').value.trim(); if (p) entrar(p); };
 $('campoPin').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnEntrar').click(); });
 $('btnAtualizar').onclick = carregar;
 
 if ('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(() => {});
-  navigator.serviceWorker.addEventListener('message', (e) => {
-    if (e.data?.tipo === 'atualizar') carregar();
-  });
+  navigator.serviceWorker.addEventListener('message', (e) => { if (e.data?.tipo === 'atualizar') carregar(); });
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && estado.pin) carregar(); });
 

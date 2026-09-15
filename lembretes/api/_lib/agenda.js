@@ -1,45 +1,59 @@
-// A escada de avisos. Um lembrete único sempre chega na hora errada: ou cedo
-// demais para agir, ou tarde demais para salvar. Por isso cada prazo gera vários
-// avisos, que ficam mais frequentes conforme ele se aproxima.
+// Quando avisar. Cada lembrete sempre avisa no momento exato do prazo, e a
+// Beatriz escolhe quantas antecedências quer além disso.
 import { DIA_MS, HORA_MS, naMesmaDataLocal } from './tempo.js';
 
-export const ESCADA = [
-  { chave: 'd7',   diasAntes: 7, horaLocal: 9, rotulo: 'Falta 1 semana' },
-  { chave: 'd3',   diasAntes: 3, horaLocal: 9, rotulo: 'Faltam 3 dias' },
-  { chave: 'd1',   diasAntes: 1, horaLocal: 9, rotulo: 'É amanhã' },
-  { chave: 'dia',  diasAntes: 0, horaLocal: 8, rotulo: 'É hoje' },
-  { chave: 'h3',   antesMs: 3 * HORA_MS,       rotulo: 'Faltam 3 horas' },
-  { chave: 'm30',  antesMs: 30 * 60000,        rotulo: 'Faltam 30 minutos' },
-  { chave: 'prazo', antesMs: 0,                rotulo: 'O prazo é agora' },
+/** As opções oferecidas na tela, da mais distante para a mais próxima. */
+export const ANTECEDENCIAS = [
+  { chave: 'd2',  minutos: 2 * 1440, rotulo: '2 dias antes',     curto: '2 dias' },
+  { chave: 'd1',  minutos: 1440,     rotulo: '1 dia antes',      curto: '1 dia' },
+  { chave: 'h1',  minutos: 60,       rotulo: '1 hora antes',     curto: '1 hora' },
+  { chave: 'm15', minutos: 15,       rotulo: '15 minutos antes', curto: '15 min' },
+  { chave: 'm5',  minutos: 5,        rotulo: '5 minutos antes',  curto: '5 min' },
 ];
 
+// Um dia antes para se preparar, uma hora antes para agir.
+export const ANTECEDENCIAS_PADRAO = ['d1', 'h1'];
+
+const PORCHAVE = new Map(ANTECEDENCIAS.map((a) => [a.chave, a]));
+
+/** Só as chaves conhecidas, sem repetição, na ordem canônica. */
+export function normalizarAntecedencias(chaves) {
+  if (!Array.isArray(chaves)) return [...ANTECEDENCIAS_PADRAO];
+  const escolhidas = new Set(chaves.filter((c) => PORCHAVE.has(c)));
+  return ANTECEDENCIAS.filter((a) => escolhidas.has(a.chave)).map((a) => a.chave);
+}
+
+export const rotuloAntecedencia = (chave) =>
+  chave === 'prazo' ? 'Na hora do prazo'
+    : chave === 'atraso' ? 'Passou do prazo'
+      : PORCHAVE.get(chave)?.rotulo || chave;
+
 /**
- * Monta os avisos de um prazo, descartando os que já passaram.
+ * Monta os avisos de um prazo.
  *
  * Regras que importam:
- * - avisos no passado são inúteis (não se notifica ontem);
- * - avisos depois do prazo também, exceto o do próprio prazo;
- * - se nada sobrar (prazo criado em cima da hora), avisa na hora do prazo,
- *   para que nenhum lembrete nasça mudo.
+ * - o aviso do momento exato existe sempre, escolha o que escolher;
+ * - aviso no passado é inútil (não se notifica ontem), então é descartado;
+ * - se tudo cair no passado, avisa na hora do prazo — nenhum lembrete nasce mudo.
  */
-export function montarAvisos(prazoMs, agoraMs = Date.now()) {
-  const prazo = new Date(prazoMs);
-  const vistos = new Set();
+export function montarAvisos(prazoMs, agoraMs = Date.now(), antecedencias = ANTECEDENCIAS_PADRAO) {
+  const escolhidas = normalizarAntecedencias(antecedencias);
   const avisos = [];
+  const vistos = new Set();
 
-  for (const degrau of ESCADA) {
-    const quando = degrau.antesMs !== undefined
-      ? prazoMs - degrau.antesMs
-      : naMesmaDataLocal(new Date(prazoMs - degrau.diasAntes * DIA_MS), degrau.horaLocal).getTime();
-
-    if (quando <= agoraMs) continue;        // já passou
-    if (quando > prazoMs) continue;         // depois do prazo não serve
-    if (vistos.has(quando)) continue;       // dois degraus caíram no mesmo instante
+  for (const chave of escolhidas) {
+    const quando = prazoMs - PORCHAVE.get(chave).minutos * 60000;
+    if (quando <= agoraMs || vistos.has(quando)) continue;
     vistos.add(quando);
-    avisos.push({ chave: degrau.chave, em: new Date(quando).toISOString(), rotulo: degrau.rotulo });
+    avisos.push({ chave, em: new Date(quando).toISOString(), rotulo: rotuloAntecedencia(chave) });
+  }
+
+  if (prazoMs > agoraMs && !vistos.has(prazoMs)) {
+    avisos.push({ chave: 'prazo', em: new Date(prazoMs).toISOString(), rotulo: 'O prazo é agora' });
   }
 
   if (avisos.length === 0) {
+    // Prazo criado em cima da hora, ou já vencido: avisa mesmo assim.
     const quando = Math.max(prazoMs, agoraMs + 60000);
     avisos.push({ chave: 'prazo', em: new Date(quando).toISOString(), rotulo: 'O prazo é agora' });
   }
@@ -68,10 +82,12 @@ export function comoFalta(prazoMs, agoraMs = Date.now()) {
   return atrasado ? `atrasado há ${medida}` : `em ${medida}`;
 }
 
-/** Faixa usada para agrupar a lista de pendentes na tela. */
+const fimDoDiaLocal = (ms) => naMesmaDataLocal(new Date(ms), 23, 59).getTime();
+
+/** Faixa usada para agrupar e contar na tela. */
 export function faixa(prazoMs, agoraMs = Date.now()) {
   if (prazoMs < agoraMs) return 'atrasado';
-  const fimDeHoje = naMesmaDataLocal(new Date(agoraMs), 23, 59).getTime();
+  const fimDeHoje = fimDoDiaLocal(agoraMs);
   if (prazoMs <= fimDeHoje) return 'hoje';
   if (prazoMs <= fimDeHoje + DIA_MS) return 'amanha';
   if (prazoMs <= fimDeHoje + 7 * DIA_MS) return 'semana';

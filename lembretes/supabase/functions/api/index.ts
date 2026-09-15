@@ -77,48 +77,62 @@ function naMesmaDataLocal(instante, hora, minuto = 0, fuso = FUSO) {
 const DIA_MS = 86400000;
 const HORA_MS = 3600000;
 
-// A escada de avisos. Um lembrete único sempre chega na hora errada: ou cedo
-// demais para agir, ou tarde demais para salvar. Por isso cada prazo gera vários
-// avisos, que ficam mais frequentes conforme ele se aproxima.
+// Quando avisar. Cada lembrete sempre avisa no momento exato do prazo, e a
+// Beatriz escolhe quantas antecedências quer além disso.
 
 
-const ESCADA = [
-  { chave: 'd7',   diasAntes: 7, horaLocal: 9, rotulo: 'Falta 1 semana' },
-  { chave: 'd3',   diasAntes: 3, horaLocal: 9, rotulo: 'Faltam 3 dias' },
-  { chave: 'd1',   diasAntes: 1, horaLocal: 9, rotulo: 'É amanhã' },
-  { chave: 'dia',  diasAntes: 0, horaLocal: 8, rotulo: 'É hoje' },
-  { chave: 'h3',   antesMs: 3 * HORA_MS,       rotulo: 'Faltam 3 horas' },
-  { chave: 'm30',  antesMs: 30 * 60000,        rotulo: 'Faltam 30 minutos' },
-  { chave: 'prazo', antesMs: 0,                rotulo: 'O prazo é agora' },
+/** As opções oferecidas na tela, da mais distante para a mais próxima. */
+const ANTECEDENCIAS = [
+  { chave: 'd2',  minutos: 2 * 1440, rotulo: '2 dias antes',     curto: '2 dias' },
+  { chave: 'd1',  minutos: 1440,     rotulo: '1 dia antes',      curto: '1 dia' },
+  { chave: 'h1',  minutos: 60,       rotulo: '1 hora antes',     curto: '1 hora' },
+  { chave: 'm15', minutos: 15,       rotulo: '15 minutos antes', curto: '15 min' },
+  { chave: 'm5',  minutos: 5,        rotulo: '5 minutos antes',  curto: '5 min' },
 ];
 
+// Um dia antes para se preparar, uma hora antes para agir.
+const ANTECEDENCIAS_PADRAO = ['d1', 'h1'];
+
+const PORCHAVE = new Map(ANTECEDENCIAS.map((a) => [a.chave, a]));
+
+/** Só as chaves conhecidas, sem repetição, na ordem canônica. */
+function normalizarAntecedencias(chaves) {
+  if (!Array.isArray(chaves)) return [...ANTECEDENCIAS_PADRAO];
+  const escolhidas = new Set(chaves.filter((c) => PORCHAVE.has(c)));
+  return ANTECEDENCIAS.filter((a) => escolhidas.has(a.chave)).map((a) => a.chave);
+}
+
+const rotuloAntecedencia = (chave) =>
+  chave === 'prazo' ? 'Na hora do prazo'
+    : chave === 'atraso' ? 'Passou do prazo'
+      : PORCHAVE.get(chave)?.rotulo || chave;
+
 /**
- * Monta os avisos de um prazo, descartando os que já passaram.
+ * Monta os avisos de um prazo.
  *
  * Regras que importam:
- * - avisos no passado são inúteis (não se notifica ontem);
- * - avisos depois do prazo também, exceto o do próprio prazo;
- * - se nada sobrar (prazo criado em cima da hora), avisa na hora do prazo,
- *   para que nenhum lembrete nasça mudo.
+ * - o aviso do momento exato existe sempre, escolha o que escolher;
+ * - aviso no passado é inútil (não se notifica ontem), então é descartado;
+ * - se tudo cair no passado, avisa na hora do prazo — nenhum lembrete nasce mudo.
  */
-function montarAvisos(prazoMs, agoraMs = Date.now()) {
-  const prazo = new Date(prazoMs);
-  const vistos = new Set();
+function montarAvisos(prazoMs, agoraMs = Date.now(), antecedencias = ANTECEDENCIAS_PADRAO) {
+  const escolhidas = normalizarAntecedencias(antecedencias);
   const avisos = [];
+  const vistos = new Set();
 
-  for (const degrau of ESCADA) {
-    const quando = degrau.antesMs !== undefined
-      ? prazoMs - degrau.antesMs
-      : naMesmaDataLocal(new Date(prazoMs - degrau.diasAntes * DIA_MS), degrau.horaLocal).getTime();
-
-    if (quando <= agoraMs) continue;        // já passou
-    if (quando > prazoMs) continue;         // depois do prazo não serve
-    if (vistos.has(quando)) continue;       // dois degraus caíram no mesmo instante
+  for (const chave of escolhidas) {
+    const quando = prazoMs - PORCHAVE.get(chave).minutos * 60000;
+    if (quando <= agoraMs || vistos.has(quando)) continue;
     vistos.add(quando);
-    avisos.push({ chave: degrau.chave, em: new Date(quando).toISOString(), rotulo: degrau.rotulo });
+    avisos.push({ chave, em: new Date(quando).toISOString(), rotulo: rotuloAntecedencia(chave) });
+  }
+
+  if (prazoMs > agoraMs && !vistos.has(prazoMs)) {
+    avisos.push({ chave: 'prazo', em: new Date(prazoMs).toISOString(), rotulo: 'O prazo é agora' });
   }
 
   if (avisos.length === 0) {
+    // Prazo criado em cima da hora, ou já vencido: avisa mesmo assim.
     const quando = Math.max(prazoMs, agoraMs + 60000);
     avisos.push({ chave: 'prazo', em: new Date(quando).toISOString(), rotulo: 'O prazo é agora' });
   }
@@ -147,10 +161,12 @@ function comoFalta(prazoMs, agoraMs = Date.now()) {
   return atrasado ? `atrasado há ${medida}` : `em ${medida}`;
 }
 
-/** Faixa usada para agrupar a lista de pendentes na tela. */
+const fimDoDiaLocal = (ms) => naMesmaDataLocal(new Date(ms), 23, 59).getTime();
+
+/** Faixa usada para agrupar e contar na tela. */
 function faixa(prazoMs, agoraMs = Date.now()) {
   if (prazoMs < agoraMs) return 'atrasado';
-  const fimDeHoje = naMesmaDataLocal(new Date(agoraMs), 23, 59).getTime();
+  const fimDeHoje = fimDoDiaLocal(agoraMs);
   if (prazoMs <= fimDeHoje) return 'hoje';
   if (prazoMs <= fimDeHoje + DIA_MS) return 'amanha';
   if (prazoMs <= fimDeHoje + 7 * DIA_MS) return 'semana';
@@ -395,7 +411,8 @@ function interpretarLocal(recado, agora = new Date()) {
 
 
 
-function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', confianca = 'alta', observacao = '', motor = 'manual', agora = new Date() }) {
+function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', confianca = 'alta', observacao = '', motor = 'manual', antecedencias = ANTECEDENCIAS_PADRAO, agora = new Date() }) {
+  const escolhidas = normalizarAntecedencias(antecedencias);
   const prazoIso = (prazo instanceof Date ? prazo : new Date(prazo)).toISOString();
   return {
     id: novoId(),
@@ -409,7 +426,8 @@ function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', confian
     observacao,
     criadoEm: agora.toISOString(),
     atualizadoEm: agora.toISOString(),
-    avisos: montarAvisos(Date.parse(prazoIso), agora.getTime()),
+    antecedencias: escolhidas,   // quais avisos antes do prazo ela escolheu
+    avisos: montarAvisos(Date.parse(prazoIso), agora.getTime(), escolhidas),
   };
 }
 
@@ -486,6 +504,7 @@ const paraLinha = (l) => ({
   motor: l.motor || 'manual',
   confianca: l.confianca || 'alta',
   observacao: l.observacao || '',
+  antecedencias: l.antecedencias || [],
   avisos: l.avisos || [],
   criado_em: l.criadoEm,
   atualizado_em: l.atualizadoEm,
@@ -503,6 +522,7 @@ const daLinha = (r) => ({
   motor: r.motor,
   confianca: r.confianca,
   observacao: r.observacao || '',
+  antecedencias: r.antecedencias || [],
   avisos: r.avisos || [],
   criadoEm: r.criado_em ? new Date(r.criado_em).toISOString() : undefined,
   atualizadoEm: r.atualizado_em ? new Date(r.atualizado_em).toISOString() : undefined,
@@ -875,13 +895,13 @@ async function reminders(req, url) {
     let lembrete;
     if (corpo.recado) {
       lembrete = criarLembrete({ ...interpretar(corpo.recado, new Date(agora)),
-        origem: corpo.origem || 'texto', agora: new Date(agora) });
+        origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora: new Date(agora) });
     } else if (corpo.titulo && corpo.prazo) {
       const prazo = new Date(corpo.prazo);
       if (Number.isNaN(prazo.getTime())) return erro(400, 'Prazo inválido.');
       lembrete = criarLembrete({ titulo: String(corpo.titulo).slice(0, 120),
         detalhes: String(corpo.detalhes || '').slice(0, 500), prazo,
-        origem: corpo.origem || 'texto', agora: new Date(agora) });
+        origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora: new Date(agora) });
     } else {
       return erro(400, 'Envie "recado" (texto livre) ou "titulo" + "prazo".');
     }
@@ -915,23 +935,28 @@ async function reminders(req, url) {
 
     case 'reabrir': {
       const reaberto = { ...lembrete, status: 'pendente', concluidoEm: undefined };
-      return json({ lembrete: enriquecer(
-        await reagendar(reaberto, montarAvisos(Date.parse(reaberto.prazo), agora)), agora) });
+      return json({ lembrete: enriquecer(await reagendar(reaberto,
+        montarAvisos(Date.parse(reaberto.prazo), agora, reaberto.antecedencias)), agora) });
     }
 
     case 'editar': {
       const titulo = corpo.titulo !== undefined ? String(corpo.titulo).slice(0, 120) : lembrete.titulo;
       const detalhes = corpo.detalhes !== undefined ? String(corpo.detalhes).slice(0, 500) : lembrete.detalhes;
       if (!titulo.trim()) return erro(400, 'O título não pode ficar vazio.');
-      let avisos = lembrete.avisos, prazo = lembrete.prazo;
+      let prazo = lembrete.prazo;
       if (corpo.prazo) {
         const novo = new Date(corpo.prazo);
         if (Number.isNaN(novo.getTime())) return erro(400, 'Prazo inválido.');
         prazo = novo.toISOString();
-        avisos = montarAvisos(novo.getTime(), agora);   // prazo novo, escada nova
       }
+      const antecedencias = corpo.antecedencias !== undefined
+        ? normalizarAntecedencias(corpo.antecedencias) : lembrete.antecedencias;
+      // Mudou prazo ou antecedência? A escada antiga deixou de fazer sentido.
+      const mudou = corpo.prazo !== undefined || corpo.antecedencias !== undefined;
+      const avisos = mudou ? montarAvisos(Date.parse(prazo), agora, antecedencias) : lembrete.avisos;
       return json({ lembrete: enriquecer(await reagendar(
-        { ...lembrete, titulo, detalhes, prazo, confianca: 'alta', observacao: '' }, avisos), agora) });
+        { ...lembrete, titulo, detalhes, prazo, antecedencias, confianca: 'alta', observacao: '' },
+        avisos), agora) });
     }
     default:
       return erro(400, 'Ação desconhecida. Use concluir, adiar, reabrir ou editar.');

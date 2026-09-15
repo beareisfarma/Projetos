@@ -112,13 +112,13 @@ async function reminders(req, url) {
     let lembrete;
     if (corpo.recado) {
       lembrete = criarLembrete({ ...interpretar(corpo.recado, new Date(agora)),
-        origem: corpo.origem || 'texto', agora: new Date(agora) });
+        origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora: new Date(agora) });
     } else if (corpo.titulo && corpo.prazo) {
       const prazo = new Date(corpo.prazo);
       if (Number.isNaN(prazo.getTime())) return erro(400, 'Prazo inválido.');
       lembrete = criarLembrete({ titulo: String(corpo.titulo).slice(0, 120),
         detalhes: String(corpo.detalhes || '').slice(0, 500), prazo,
-        origem: corpo.origem || 'texto', agora: new Date(agora) });
+        origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora: new Date(agora) });
     } else {
       return erro(400, 'Envie "recado" (texto livre) ou "titulo" + "prazo".');
     }
@@ -152,23 +152,28 @@ async function reminders(req, url) {
 
     case 'reabrir': {
       const reaberto = { ...lembrete, status: 'pendente', concluidoEm: undefined };
-      return json({ lembrete: enriquecer(
-        await reagendar(reaberto, montarAvisos(Date.parse(reaberto.prazo), agora)), agora) });
+      return json({ lembrete: enriquecer(await reagendar(reaberto,
+        montarAvisos(Date.parse(reaberto.prazo), agora, reaberto.antecedencias)), agora) });
     }
 
     case 'editar': {
       const titulo = corpo.titulo !== undefined ? String(corpo.titulo).slice(0, 120) : lembrete.titulo;
       const detalhes = corpo.detalhes !== undefined ? String(corpo.detalhes).slice(0, 500) : lembrete.detalhes;
       if (!titulo.trim()) return erro(400, 'O título não pode ficar vazio.');
-      let avisos = lembrete.avisos, prazo = lembrete.prazo;
+      let prazo = lembrete.prazo;
       if (corpo.prazo) {
         const novo = new Date(corpo.prazo);
         if (Number.isNaN(novo.getTime())) return erro(400, 'Prazo inválido.');
         prazo = novo.toISOString();
-        avisos = montarAvisos(novo.getTime(), agora);   // prazo novo, escada nova
       }
+      const antecedencias = corpo.antecedencias !== undefined
+        ? normalizarAntecedencias(corpo.antecedencias) : lembrete.antecedencias;
+      // Mudou prazo ou antecedência? A escada antiga deixou de fazer sentido.
+      const mudou = corpo.prazo !== undefined || corpo.antecedencias !== undefined;
+      const avisos = mudou ? montarAvisos(Date.parse(prazo), agora, antecedencias) : lembrete.avisos;
       return json({ lembrete: enriquecer(await reagendar(
-        { ...lembrete, titulo, detalhes, prazo, confianca: 'alta', observacao: '' }, avisos), agora) });
+        { ...lembrete, titulo, detalhes, prazo, antecedencias, confianca: 'alta', observacao: '' },
+        avisos), agora) });
     }
     default:
       return erro(400, 'Ação desconhecida. Use concluir, adiar, reabrir ou editar.');

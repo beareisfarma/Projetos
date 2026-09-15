@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { deLocalParaUTC, textoLocal, offsetMinutos, naMesmaDataLocal } from '../api/_lib/tempo.js';
-import { montarAvisos, comoFalta, faixa } from '../api/_lib/agenda.js';
+import { montarAvisos, comoFalta, faixa, normalizarAntecedencias,
+  ANTECEDENCIAS, ANTECEDENCIAS_PADRAO } from '../api/_lib/agenda.js';
 
 const AGORA = Date.parse('2026-09-15T12:00:00-03:00');
 
@@ -23,17 +24,39 @@ test('tempo: ida e volta preserva o horário', () => {
   assert.equal(naMesmaDataLocal(deLocalParaUTC('2026-09-19T14:00'), 8).toISOString(), '2026-09-19T11:00:00.000Z');
 });
 
-test('agenda: prazo distante ganha a escada inteira, em ordem', () => {
+test('agenda: o padrão é 1 dia + 1 hora + o momento exato', () => {
   const avisos = montarAvisos(Date.parse('2026-09-25T14:00:00-03:00'), AGORA);
-  assert.deepEqual(avisos.map((a) => a.chave), ['d7', 'd3', 'd1', 'dia', 'h3', 'm30', 'prazo']);
+  assert.deepEqual(avisos.map((a) => a.chave), [...ANTECEDENCIAS_PADRAO, 'prazo']);
+});
+
+test('agenda: respeita as antecedências escolhidas, em ordem', () => {
+  const prazo = Date.parse('2026-09-25T14:00:00-03:00');
+  const avisos = montarAvisos(prazo, AGORA, ['m5', 'd2', 'h1']);
+  assert.deepEqual(avisos.map((a) => a.chave), ['d2', 'h1', 'm5', 'prazo']);
   for (let i = 1; i < avisos.length; i++) {
     assert.ok(Date.parse(avisos[i].em) > Date.parse(avisos[i - 1].em), 'avisos fora de ordem');
   }
+  // cada aviso cai exatamente na antecedência pedida
+  for (const a of avisos.filter((x) => x.chave !== 'prazo')) {
+    const minutos = ANTECEDENCIAS.find((x) => x.chave === a.chave).minutos;
+    assert.equal(Date.parse(a.em), prazo - minutos * 60000, `antecedência errada: ${a.chave}`);
+  }
+});
+
+test('agenda: o aviso do momento exato existe mesmo sem antecedência nenhuma', () => {
+  const avisos = montarAvisos(Date.parse('2026-09-25T14:00:00-03:00'), AGORA, []);
+  assert.deepEqual(avisos.map((a) => a.chave), ['prazo']);
+});
+
+test('agenda: chave desconhecida e repetida são descartadas', () => {
+  assert.deepEqual(normalizarAntecedencias(['m5', 'inexistente', 'd1', 'm5']), ['d1', 'm5']);
+  assert.deepEqual(normalizarAntecedencias(undefined), ANTECEDENCIAS_PADRAO);
+  assert.deepEqual(normalizarAntecedencias('nada disso'), ANTECEDENCIAS_PADRAO);
 });
 
 test('agenda: nenhum aviso cai no passado nem depois do prazo', () => {
   const prazo = Date.parse('2026-09-17T18:00:00-03:00');
-  for (const a of montarAvisos(prazo, AGORA)) {
+  for (const a of montarAvisos(prazo, AGORA, ['d2', 'd1', 'h1', 'm15', 'm5'])) {
     assert.ok(Date.parse(a.em) > AGORA, `aviso no passado: ${a.chave}`);
     assert.ok(Date.parse(a.em) <= prazo, `aviso depois do prazo: ${a.chave}`);
   }

@@ -78,10 +78,12 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
     const prazo = new Date(Date.now() + 3 * 86400000).toISOString();
     const r = await chamar(reminders, fingirRequisicao({
       method: 'POST', url: '/api/reminders', headers: comPin(),
-      body: { titulo: 'Enviar relatório da Pharma', detalhes: 'versão final', prazo },
+      body: { titulo: 'Enviar relatório da Pharma', detalhes: 'versão final', prazo,
+               antecedencias: ['d1', 'h1', 'm15'] },
     }));
     assert.equal(r.codigo, 201);
     id = r.corpo.lembrete.id;
+    assert.deepEqual(r.corpo.lembrete.antecedencias, ['d1', 'h1', 'm15']);
     assert.equal(r.corpo.lembrete.status, 'pendente');
     assert.ok(r.corpo.lembrete.avisos.length >= 3, 'esperava vários avisos');
     assert.ok(r.corpo.lembrete.proximoAviso, 'nasceu sem próximo aviso');
@@ -177,7 +179,7 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
     assert.equal(fila.filter((m) => m.startsWith(id + '#')).length, 0, 'sobrou aviso na fila de um lembrete concluído');
   });
 
-  await t.test('editar o prazo reconstrói a escada inteira', async () => {
+  await t.test('editar o prazo remonta a escada e preserva as antecedências', async () => {
     await chamar(reminders, fingirRequisicao({
       method: 'PATCH', url: `/api/reminders?id=${id}`, headers: comPin(), body: { acao: 'reabrir' },
     }));
@@ -188,7 +190,29 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
     }));
     assert.equal(r.corpo.lembrete.titulo, 'Relatório Pharma — revisado');
     assert.equal(r.corpo.lembrete.prazo, novoPrazo);
-    assert.deepEqual(r.corpo.lembrete.avisos.map((a) => a.chave), ['d7', 'd3', 'd1', 'dia', 'h3', 'm30', 'prazo']);
+    // As antecedências escolhidas na criação continuam valendo no prazo novo.
+    assert.deepEqual(r.corpo.lembrete.antecedencias, ['d1', 'h1', 'm15']);
+    assert.deepEqual(r.corpo.lembrete.avisos.map((a) => a.chave), ['d1', 'h1', 'm15', 'prazo']);
+  });
+
+  await t.test('trocar as antecedências remonta a escada sem mexer no prazo', async () => {
+    const antes = await store.obter(id);
+    const r = await chamar(reminders, fingirRequisicao({
+      method: 'PATCH', url: `/api/reminders?id=${id}`, headers: comPin(),
+      body: { acao: 'editar', antecedencias: ['d2', 'm15', 'm5'] },
+    }));
+    assert.equal(r.codigo, 200);
+    assert.equal(r.corpo.lembrete.prazo, antes.prazo, 'mudar o aviso mexeu no prazo');
+    assert.deepEqual(r.corpo.lembrete.antecedencias, ['d2', 'm15', 'm5']);
+    assert.deepEqual(r.corpo.lembrete.avisos.map((a) => a.chave), ['d2', 'm15', 'm5', 'prazo']);
+  });
+
+  await t.test('sem antecedência nenhuma, ainda avisa na hora do prazo', async () => {
+    const r = await chamar(reminders, fingirRequisicao({
+      method: 'PATCH', url: `/api/reminders?id=${id}`, headers: comPin(),
+      body: { acao: 'editar', antecedencias: [] },
+    }));
+    assert.deepEqual(r.corpo.lembrete.avisos.map((a) => a.chave), ['prazo']);
   });
 
   await t.test('apagar remove de vez', async () => {

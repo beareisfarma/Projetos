@@ -28,15 +28,15 @@ const simulacao = `
 // mesmo código que rodaria no servidor.
 // Os dados vivem só nesta aba e somem ao recarregar. Nada é salvo em lugar nenhum.
 // ─────────────────────────────────────────────────────────────────────────────
+(function () {
 const process = { env: {} };   // os módulos leem process.env; no navegador não existe
 
 ${nucleo}
 
-(function () {
   const banco = new Map();
   const novoId = () => Math.random().toString(36).slice(2, 10);
 
-  function montar(lido, origem) {
+  function montar(lido, origem, antecedencias) {
     const prazoIso = lido.prazo.toISOString();
     const id = novoId();
     const l = {
@@ -44,7 +44,8 @@ ${nucleo}
       status: 'pendente', origem, motor: lido.motor || 'local',
       confianca: lido.confianca, observacao: lido.observacao || '',
       criadoEm: new Date().toISOString(),
-      avisos: montarAvisos(Date.parse(prazoIso), Date.now()),
+      antecedencias: normalizarAntecedencias(antecedencias),
+      avisos: montarAvisos(Date.parse(prazoIso), Date.now(), antecedencias),
     };
     banco.set(id, l);
     return l;
@@ -81,8 +82,8 @@ ${nucleo}
     banco.set(id, {
       id, titulo, detalhes, prazo: prazo.toISOString(), status: 'pendente',
       origem: 'texto', motor: 'local', confianca: 'alta', observacao: '',
-      criadoEm: new Date().toISOString(),
-      avisos: montarAvisos(prazo.getTime(), Date.now()),
+      criadoEm: new Date().toISOString(), antecedencias: ['d1', 'h1'],
+      avisos: montarAvisos(prazo.getTime(), Date.now(), ['d1', 'h1']),
     });
   }
   const feitoId = novoId();
@@ -90,7 +91,8 @@ ${nucleo}
     id: feitoId, titulo: 'Assinar o contrato do Rep.Rota', detalhes: '',
     prazo: new Date(Date.now() - 26 * 3600e3).toISOString(), status: 'feito',
     origem: 'audio', motor: 'local', confianca: 'alta', observacao: '',
-    concluidoEm: new Date(Date.now() - 25 * 3600e3).toISOString(), avisos: [],
+    concluidoEm: new Date(Date.now() - 25 * 3600e3).toISOString(),
+    antecedencias: ['d1'], avisos: [],
   });
 
   const responder = (corpo, status = 200) =>
@@ -99,10 +101,12 @@ ${nucleo}
   const original = window.fetch.bind(window);
   window.fetch = async (recurso, opcoes = {}) => {
     const caminho = String(recurso);
-    if (!caminho.startsWith('api/')) return original(recurso, opcoes);
+    // A API real mora numa Edge Function do Supabase; aqui interceptamos por
+    // esse prefixo e roteamos pelo trecho final.
+    if (!caminho.includes('/functions/v1/api/')) return original(recurso, opcoes);
 
     await new Promise((r) => setTimeout(r, 160));  // latência, para parecer real
-    const url = new URL(caminho, 'http://demo/');
+    const url = new URL('/api/' + caminho.split('/functions/v1/api/')[1], 'http://demo/');
     const id = url.searchParams.get('id');
     const corpo = opcoes.body ? JSON.parse(opcoes.body) : {};
     const metodo = opcoes.method || 'GET';
@@ -131,7 +135,7 @@ ${nucleo}
           prazo: new Date(Date.now() + 86400e3), confianca: 'baixa', motor: 'palpite',
           observacao: 'Não identifiquei data no recado — deixei para amanhã. Ajuste o prazo.',
         };
-        return responder({ lembrete: enriquecer(montar(lido, corpo.origem || 'texto')) }, 201);
+        return responder({ lembrete: enriquecer(montar(lido, corpo.origem || 'texto', corpo.antecedencias)) }, 201);
       }
       const l = banco.get(id);
       if (!l) return responder({ erro: 'Lembrete não encontrado.' }, 404);
@@ -152,9 +156,10 @@ ${nucleo}
         }];
       } else if (corpo.acao === 'editar') {
         if (corpo.titulo) l.titulo = corpo.titulo;
-        if (corpo.prazo) {
-          l.prazo = new Date(corpo.prazo).toISOString();
-          l.avisos = montarAvisos(Date.parse(l.prazo), Date.now());
+        if (corpo.prazo) l.prazo = new Date(corpo.prazo).toISOString();
+        if (corpo.antecedencias !== undefined) l.antecedencias = normalizarAntecedencias(corpo.antecedencias);
+        if (corpo.prazo !== undefined || corpo.antecedencias !== undefined) {
+          l.avisos = montarAvisos(Date.parse(l.prazo), Date.now(), l.antecedencias);
         }
         l.confianca = 'alta'; l.observacao = '';
       }
@@ -164,6 +169,7 @@ ${nucleo}
   };
 
   try { localStorage.setItem('lembretes_pin', 'demo'); } catch (e) {}
+
 
   window.addEventListener('load', () => {
     // A demo não pede PIN. O localStorage pode estar indisponível conforme o
@@ -176,7 +182,7 @@ ${nucleo}
 
     // O botão de notificação não tem servidor de push aqui. Em vez de estourar
     // um erro, explica. O banner é redesenhado, então observamos o contêiner.
-    const banners = document.getElementById('banners');
+    const banners = document.getElementById('avisos');
     const prender = () => {
       const b = document.getElementById('btnAtivarPush');
       if (b && !b.dataset.demo) {
@@ -190,7 +196,7 @@ ${nucleo}
       }
     };
     prender();
-    new MutationObserver(prender).observe(banners, { childList: true, subtree: true });
+    if (banners) new MutationObserver(prender).observe(banners, { childList: true, subtree: true });
 
     // O microfone não roda aqui; simula a transcrição para mostrar o fluxo do áudio.
     const botao = document.getElementById('btnGravar');
@@ -218,12 +224,12 @@ html = html.replace('<link rel="manifest" href="manifest.webmanifest">', '');
 html = html.replace('<script>\n\'use strict\';', () => simulacao + '<script>\n\'use strict\';');
 
 const faixaDemo = `
-  <div style="background:#d7ff1a;color:#0a0a0a;padding:.7rem 1rem;border-radius:.6rem;
-              font-size:.82rem;line-height:1.5;font-weight:600;margin-bottom:.25rem;">
+  <div style="background:#d7ff1a;color:#16233f;padding:.8rem 1rem;border-radius:.9rem;
+              font-size:.84rem;line-height:1.5;font-weight:600;">
     Demonstração — dá para usar de verdade. O que você digitar é lido pelo mesmo
     código do app publicado. Os dados ficam só nesta aba e somem ao recarregar.
   </div>`;
-html = html.replace('  <div id="banners"></div>', () => faixaDemo + '\n  <div id="banners"></div>');
+html = html.replace('  <div id="avisos"></div>', () => faixaDemo + '\n  <div id="avisos"></div>');
 
 writeFileSync(saida, html);
 console.log('demo montada:', (html.length / 1024).toFixed(1) + 'KB');

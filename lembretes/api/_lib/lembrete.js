@@ -1,8 +1,9 @@
 // Forma canônica de um lembrete e as transições que ele sofre.
-import { montarAvisos } from './agenda.js';
+import { montarAvisos, normalizarAntecedencias, ANTECEDENCIAS_PADRAO } from './agenda.js';
 import { novoId } from './store.js';
 
-export function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', confianca = 'alta', observacao = '', motor = 'manual', agora = new Date() }) {
+export function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', confianca = 'alta', observacao = '', motor = 'manual', antecedencias = ANTECEDENCIAS_PADRAO, agora = new Date() }) {
+  const escolhidas = normalizarAntecedencias(antecedencias);
   const prazoIso = (prazo instanceof Date ? prazo : new Date(prazo)).toISOString();
   return {
     id: novoId(),
@@ -16,7 +17,8 @@ export function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', 
     observacao,
     criadoEm: agora.toISOString(),
     atualizadoEm: agora.toISOString(),
-    avisos: montarAvisos(Date.parse(prazoIso), agora.getTime()),
+    antecedencias: escolhidas,   // quais avisos antes do prazo ela escolheu
+    avisos: montarAvisos(Date.parse(prazoIso), agora.getTime(), escolhidas),
   };
 }
 
