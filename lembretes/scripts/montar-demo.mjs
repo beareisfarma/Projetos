@@ -156,6 +156,7 @@ ${nucleo}
         }];
       } else if (corpo.acao === 'editar') {
         if (corpo.titulo) l.titulo = corpo.titulo;
+        if (corpo.detalhes !== undefined) l.detalhes = corpo.detalhes;
         if (corpo.prazo) l.prazo = new Date(corpo.prazo).toISOString();
         if (corpo.antecedencias !== undefined) l.antecedencias = normalizarAntecedencias(corpo.antecedencias);
         if (corpo.prazo !== undefined || corpo.antecedencias !== undefined) {

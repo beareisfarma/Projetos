@@ -281,6 +281,10 @@
       <label>Confira antes de salvar</label>
       <input type="text" id="confTitulo" placeholder="Título">
       <div style="margin-top:.6rem;">
+        <label for="confDetalhes">Observação <span style="text-transform:none;letter-spacing:0;font-weight:500;">(opcional)</span></label>
+        <textarea id="confDetalhes" style="min-height:3.4rem;" placeholder="Ex.: levar as duas vias assinadas"></textarea>
+      </div>
+      <div style="margin-top:.6rem;">
         <label for="confPrazo">Prazo</label>
         <input type="datetime-local" id="confPrazo">
       </div>
@@ -550,6 +554,10 @@ function abrirEditor(id){
       <label for="ed-titulo-${id}">Título</label>
       <input type="text" id="ed-titulo-${id}" value="${esc(lembrete.titulo)}">
       <div style="margin-top:.6rem;">
+        <label for="ed-obs-${id}">Observação <span style="text-transform:none;letter-spacing:0;font-weight:500;">(opcional)</span></label>
+        <textarea id="ed-obs-${id}" style="min-height:3.4rem;" placeholder="Ex.: levar as duas vias assinadas">${esc(lembrete.detalhes || '')}</textarea>
+      </div>
+      <div style="margin-top:.6rem;">
         <label for="ed-prazo-${id}">Prazo</label>
         <input type="datetime-local" id="ed-prazo-${id}" value="${paraInput(lembrete.prazo)}">
       </div>
@@ -575,8 +583,8 @@ function abrirEditor(id){
     try {
       await api(`api/reminders?id=${encodeURIComponent(id)}`, {
         method:'PATCH',
-        body: JSON.stringify({ acao:'editar', titulo, prazo: new Date(prazo).toISOString(),
-                               antecedencias: escolhidas }),
+        body: JSON.stringify({ acao:'editar', titulo, detalhes: $(`ed-obs-${id}`).value.trim(),
+                               prazo: new Date(prazo).toISOString(), antecedencias: escolhidas }),
       });
       estado.editando = null;
       await carregar();
@@ -613,6 +621,9 @@ async function interpretarRecado(texto, origem){
     estado.proposta = lembrete;
     $('recado').value = '';
     $('confTitulo').value = lembrete.titulo;
+    // `detalhes` é a observação que ela escreve; `observacao` é o alerta do
+    // interpretador sobre a data. Nomes parecidos, papéis diferentes.
+    $('confDetalhes').value = lembrete.detalhes || '';
     $('confPrazo').value = paraInput(lembrete.prazo);
     // desenharFichas já devolve a seleção a cada toque; um addEventListener extra
     // aqui empilharia um listener novo a cada lembrete criado.
@@ -659,8 +670,8 @@ $('btnSalvar').onclick = async () => {
     const escolhidas = JSON.parse($('confirmacao').dataset.escolhidas || '[]');
     await api(`api/reminders?id=${encodeURIComponent(estado.proposta.id)}`, {
       method:'PATCH',
-      body: JSON.stringify({ acao:'editar', titulo, prazo: new Date(prazo).toISOString(),
-                             antecedencias: escolhidas }),
+      body: JSON.stringify({ acao:'editar', titulo, detalhes: $('confDetalhes').value.trim(),
+                             prazo: new Date(prazo).toISOString(), antecedencias: escolhidas }),
     });
     // O que ela escolheu aqui vira o padrão do próximo recado.
     estado.antecedenciasNovas = escolhidas;
