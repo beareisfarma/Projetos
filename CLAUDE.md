@@ -99,6 +99,10 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   - Três armadilhas do runtime Deno já pagas: escrever em `Deno.env` é
     proibido (a função usa um `process` próprio); `Deno.env.toObject()` também;
     e o caminho que chega ao roteador varia, por isso ele normaliza três formas.
+- **Acesso: usuário + senha** (`APP_USUARIO` / `APP_PIN` em `config_app`), com
+  **limite de tentativas** na função `verificar_acesso`: 5 erros bloqueiam
+  aquela origem por 15 min. Estar bloqueado vence a senha certa, de propósito —
+  checar credencial antes deixaria o limite decorativo. Não inverter essa ordem.
 - **Segredos ficam na tabela `config_app`** (RLS ligado, sem policy), lida pela
   função no primeiro request. Não colocar segredo em arquivo, em variável de
   ambiente nem no git.
