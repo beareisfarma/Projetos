@@ -21,7 +21,11 @@ const nucleo = [
 
 const funcao = `// GERADO por scripts/montar-funcao.mjs — não edite aqui.
 // Edite os módulos em api/_lib/ e rode: npm run build:funcao
-import process from 'node:process';
+// O runtime das Edge Functions proíbe escrever em Deno.env — qualquer
+// process.env.X = ... vira \"The operation is not supported\". Então este
+// process é nosso: começa com o ambiente da plataforma e aceita a
+// configuração vinda da tabela config_app por cima.
+const process = { env: { ...Deno.env.toObject() } };
 import { Buffer } from 'node:buffer';
 import webpush from 'npm:web-push@3.6.7';
 
