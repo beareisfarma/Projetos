@@ -42,7 +42,7 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/api/')) return; // API nunca sai do cache
+  // A API é de outra origem, então já caiu no teste acima — nunca vem do cache.
 
   if (req.mode === 'navigate') {
     e.respondWith(
@@ -86,7 +86,7 @@ self.addEventListener('notificationclick', (e) => {
       try {
         const pin = await lerPin();
         const corpo = acao === 'concluir' ? { acao: 'concluir' } : { acao: 'adiar', minutos: 60 };
-        const r = await fetch(`./api/reminders?id=${encodeURIComponent(id)}`, {
+        const r = await fetch(`https://oyyruucruevoefxzrzpj.supabase.co/functions/v1/api/reminders?id=${encodeURIComponent(id)}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'x-lembretes-pin': pin || '' },
           body: JSON.stringify(corpo),

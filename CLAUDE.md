@@ -79,8 +79,23 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - **OneSignal foi avaliado e descartado** (não economiza nada, não contorna a
   exigência da Apple de instalar na tela de início, e o service worker dele
   colide com o nosso). O porquê completo está no README.
-- **O cron é externo** (cron-job.org, de minuto em minuto, batendo em
-  `/api/tick`): o plano Hobby da Vercel só permite cron 1x/dia.
+- **A API roda numa Supabase Edge Function** (`api`, verify_jwt desligado), não
+  na Vercel. Motivo: lá dentro `SUPABASE_SERVICE_ROLE_KEY` já existe no
+  ambiente, então o projeto sobe sem ninguém cadastrar variável nenhuma.
+  A Vercel serve só o PWA estático.
+  - A função é **gerada** por `npm run build:funcao` a partir de `api/_lib/`.
+    Nunca editar `supabase/functions/api/index.ts` na mão.
+  - O deploy importa esse arquivo pela URL do GitHub **presa a um commit**.
+    Ao republicar, trocar o commit na URL (`main` pega cache do raw e engana).
+  - Três armadilhas do runtime Deno já pagas: escrever em `Deno.env` é
+    proibido (a função usa um `process` próprio); `Deno.env.toObject()` também;
+    e o caminho que chega ao roteador varia, por isso ele normaliza três formas.
+- **Segredos ficam na tabela `config_app`** (RLS ligado, sem policy), lida pela
+  função no primeiro request. Não colocar segredo em arquivo, em variável de
+  ambiente nem no git.
+- **O cron é o `pg_cron` do próprio banco** (job `lembretes-tick`, `* * * * *`),
+  chamando o tick via `pg_net` com o segredo lido de `config_app`. Não precisa
+  de cron-job.org nem do plano Pro da Vercel.
 - **O núcleo é agnóstico de canal**: `api/_lib/canais.js` é uma lista de
   adaptadores. Plugar Telegram ou WhatsApp é acrescentar um objeto ali — o
   README traz o exemplo pronto do Telegram.
@@ -88,5 +103,7 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
 - **URL: https://lembretes-olive.vercel.app** (deploy automático da `main`).
+- Endpoints em `api/*.js` são a variante Vercel, mantida porque os 41 testes a
+  exercitam e ela serve de reserva; o que está publicado é a Edge Function.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
 - `npm test` em `lembretes/` roda 41 testes com PostgREST e serviço de push falsos.

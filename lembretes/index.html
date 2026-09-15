@@ -245,8 +245,11 @@ function guardarPinNoBanco(pin){
   });
 }
 
+// A API vive numa Edge Function do Supabase, não nesta origem: lá a chave de
+// serviço já existe no ambiente, então nada precisa ser configurado à mão.
+const BASE_API = 'https://oyyruucruevoefxzrzpj.supabase.co/functions/v1/api/';
 async function api(caminho, opcoes = {}){
-  const r = await fetch(caminho, {
+  const r = await fetch(BASE_API + caminho.replace(/^api\//, ''), {
     ...opcoes,
     headers: { 'Content-Type':'application/json', 'x-lembretes-pin': estado.pin || '', ...(opcoes.headers||{}) },
   });
