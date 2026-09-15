@@ -64,7 +64,7 @@ o interpretador lê a data, e o sistema notifica por Web Push.
   concluir e ações em link. Tema claro por padrão, escuro no toggle.
   A lista de opções em `index.html` precisa bater com a de `agenda.js`.
 
-**Projeto Vercel `lembretes`** (`prj_zYwqWIfQabSbyjPuYyvsCPss5FBn`), separado do `cronometro-gamer` — tem backend, então o
+**Projeto Vercel `hdexternopremium`** (`prj_zYwqWIfQabSbyjPuYyvsCPss5FBn`), separado do `cronometro-gamer` — tem backend, então o
 Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 
 - **O projeto é de custo zero, e isso é um requisito, não um detalhe.** Tudo roda
@@ -121,7 +121,9 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - Regras que não devem ser quebradas em manutenções futuras: adiar move o
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
-- **URL: https://lembretes-olive.vercel.app** (deploy automático da `main`).
+- **URL: https://hdexternopremium.vercel.app** (deploy automático da `main`). O projeto na Vercel
+  chama-se `hdexternopremium`; o endereço antigo `lembretes-olive.vercel.app`
+  saiu do ar com a renomeação.
   **Verificado ponta a ponta em 15/09/2026**: recado → escada → pg_cron → Web Push
   → notificação na tela de bloqueio do iPhone dela (`entregues: 1`).
 - **No Safari do iPhone fora da tela de início, `window.Notification` não existe.**

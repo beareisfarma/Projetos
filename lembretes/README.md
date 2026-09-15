@@ -1,4 +1,6 @@
-# Lembretes
+# HD Externo Premium
+
+**No ar: https://hdexternopremium.vercel.app**
 
 Assistente pessoal de prazos: você manda um recado por **texto ou áudio**, ele
 interpreta a data, agenda uma **escada de avisos** e te **notifica no celular**
