@@ -7,6 +7,28 @@ antes de perder o prazo. A lista de pendentes fica agrupada por urgência.
 Roda no mesmo padrão visual dos outros apps (tema escuro + claro, neon `#d7ff1a`,
 logo BCR no rodapé).
 
+## Custo: R$ 0
+
+O app inteiro roda em camada gratuita, sem cartão de crédito em lugar nenhum.
+
+| Peça | Serviço | Custo |
+|---|---|---|
+| Hospedagem e API | Vercel Hobby | grátis |
+| Banco | Upstash Redis (free) | grátis |
+| Relógio | cron-job.org | grátis |
+| **Notificação** | **Web Push (VAPID), direto do navegador** | **grátis, sem intermediário** |
+| Transcrição do áudio | Groq Whisper (free) — 2.000 transcrições/dia | grátis |
+| Leitura da data | `interpretador-local.js`, determinístico | grátis |
+| *(opcional)* leitura de recados sem data | Claude API | ~US$ 0,01 por recado |
+
+A **única** peça que pode custar algo é a Claude API, e ela é opcional: só é
+acionada quando o interpretador local não encontra data nenhuma no recado, e só
+se `ANTHROPIC_API_KEY` estiver definida. Sem a chave, o app funciona inteiro — o
+recado vira lembrete para amanhã às 18h e você ajusta o prazo na tela.
+
+Para garantir custo zero absoluto, defina `MODO_INTERPRETACAO=local`: a IA nunca
+é chamada, nem que a chave exista.
+
 ---
 
 ## Como funciona
@@ -89,14 +111,23 @@ npm run gen:vapid
 ```
 Guarde as três linhas que ele imprime.
 
-### 3. Chave da Claude API
-Em [console.anthropic.com](https://console.anthropic.com/settings/keys) → `ANTHROPIC_API_KEY`.
-É o que interpreta "sexta às 14h". Custa centavos por mês nesse volume
-([preços](https://www.anthropic.com/pricing#api)).
+### 3. *(Opcional)* Chave da Claude API
+**Pule este passo se quiser custo zero garantido.**
+
+Quem lê "sexta às 14h" é o `interpretador-local.js`, de graça. A Claude API só
+entra quando o recado não tem data reconhecível — por exemplo *"alinhar aquilo
+com o jurídico"*. Se você quiser essa rede extra:
+[console.anthropic.com](https://console.anthropic.com/settings/keys) →
+`ANTHROPIC_API_KEY` (~US$ 0,01 por recado que cair nela,
+[preços](https://www.anthropic.com/pricing#api)).
+
+Sem a chave, esses recados viram lembrete para amanhã às 18h com aviso para você
+corrigir o prazo — nenhum recado é recusado.
 
 ### 4. Chave de transcrição (só se for usar áudio)
-- **Groq** (recomendado, mais barato e rápido): [console.groq.com/keys](https://console.groq.com/keys) → `GROQ_API_KEY`
-- ou **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys) → `OPENAI_API_KEY`
+- **Groq** (recomendado): [console.groq.com/keys](https://console.groq.com/keys) → `GROQ_API_KEY`.
+  O tier gratuito dá 2.000 transcrições por dia — você usaria umas 10.
+- ou **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys) → `OPENAI_API_KEY` (pago por minuto)
 
 Se nenhuma das duas estiver definida, o botão de gravar devolve um erro claro e a
 captura por texto continua funcionando.
@@ -113,7 +144,8 @@ Em **Settings → Environment Variables**, cadastre:
 |---|---|
 | `UPSTASH_REDIS_REST_URL` | banco |
 | `UPSTASH_REDIS_REST_TOKEN` | banco |
-| `ANTHROPIC_API_KEY` | interpretar o recado |
+| `ANTHROPIC_API_KEY` *(opcional)* | só para recados sem data reconhecível |
+| `MODO_INTERPRETACAO` *(opcional)* | `auto` (padrão), `local` (nunca chama IA) ou `ia` |
 | `VAPID_PUBLIC_KEY` | push |
 | `VAPID_PRIVATE_KEY` | push (segredo) |
 | `VAPID_SUBJECT` | `mailto:beareisfarma@gmail.com` |
@@ -210,14 +242,25 @@ também serve de rede de segurança se o push do iPhone falhar.
 
 ---
 
-## Custo
+## Por que não OneSignal (ou qualquer serviço de push)
 
-| Item | Custo |
-|---|---|
-| Vercel Hobby | R$ 0 |
-| Upstash Redis (free) | R$ 0 |
-| cron-job.org | R$ 0 |
-| Claude API (interpretação) | centavos/mês nesse volume |
-| Groq Whisper (áudio) | centavos/mês |
+Avaliado e descartado, por três motivos:
+
+1. **Não economiza nada.** Web Push com VAPID já é gratuito e sem intermediário.
+   Não existe fatura para eliminar.
+2. **Não resolve o iPhone.** A exigência de instalar na tela de início é da
+   Apple, no nível da plataforma. A própria documentação do OneSignal diz que
+   *push não funciona em abas do Safari*
+   ([OneSignal](https://documentation.onesignal.com/docs/en/web-push-for-ios)).
+   Nenhum fornecedor contorna isso.
+3. **Custa liberdade.** O SDK web deles exige o service worker próprio, que
+   colide com o nosso — é ele que faz os botões "Feito/Adiar" funcionarem com o
+   app fechado. E o texto dos lembretes passaria a morar num terceiro.
+
+O único ganho real seria o `send_after`, que agendaria a notificação no lado
+deles e dispensaria o cron. Mas aí editar ou apagar um lembrete passa a exigir
+cancelar a notificação agendada lá (rastrear IDs, mais estado, mais falhas), e a
+retentativa de entrega deixa de ser nossa. Não compensa trocar 40 linhas de cron
+gratuito por isso.
 
 Created by Beatriz C Reis

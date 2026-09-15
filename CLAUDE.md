@@ -48,8 +48,21 @@ a Claude API interpreta a data, o sistema agenda uma **escada de avisos**
 **É um projeto Vercel separado** do `cronometro-gamer` — tem backend, então o
 Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 
+- **O projeto é de custo zero, e isso é um requisito, não um detalhe.** Tudo roda
+  em camada gratuita: Vercel Hobby, Upstash free, cron-job.org, Web Push (VAPID,
+  sem intermediário) e Groq Whisper free (2.000 transcrições/dia).
 - Stack: funções serverless Node + Upstash Redis (REST) + Web Push (VAPID) +
-  Claude API (saída estruturada) + Whisper (Groq/OpenAI) para o áudio.
+  Whisper (Groq/OpenAI) para o áudio.
+- **Quem lê a data é o `api/_lib/interpretador-local.js`**, determinístico e
+  gratuito (cobre "sexta às 14h", "dia 20", "amanhã de manhã", "em 2 semanas").
+  A Claude API é **opcional** e só entra em recado sem data reconhecível;
+  `MODO_INTERPRETACAO=local` desliga a IA de vez. Sem chave nenhuma o app
+  funciona inteiro. Não reintroduzir a IA no caminho crítico.
+- Nas regex em português, usar as bordas Unicode `(?<![\p{L}\p{N}])` /
+  `(?![\p{L}\p{N}])`: o `\b` do JavaScript é ASCII e falha depois de ã/ç/ê.
+- **OneSignal foi avaliado e descartado** (não economiza nada, não contorna a
+  exigência da Apple de instalar na tela de início, e o service worker dele
+  colide com o nosso). O porquê completo está no README.
 - **O cron é externo** (cron-job.org, de minuto em minuto, batendo em
   `/api/tick`): o plano Hobby da Vercel só permite cron 1x/dia.
 - **O núcleo é agnóstico de canal**: `api/_lib/canais.js` é uma lista de
@@ -59,4 +72,4 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
 - Setup completo (chaves, Upstash, cron) em `lembretes/README.md`.
-- `npm test` em `lembretes/` roda 28 testes com Redis e serviço de push falsos.
+- `npm test` em `lembretes/` roda 41 testes com Redis e serviço de push falsos.

@@ -1,15 +1,20 @@
-// Verifica a montagem da requisição e a desserialização da resposta sem gastar
-// chamada real: um fetch controlado devolve uma resposta canônica da API.
+// O orquestrador decide QUEM interpreta o recado — e essa decisão é o que
+// separa um app gratuito de um app que cobra por lembrete.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Anthropic from '@anthropic-ai/sdk';
 import { interpretar, HORA_PADRAO } from '../api/_lib/interpretar.js';
 
-function clienteDeMentira(conteudoJson, capturar) {
-  return new Anthropic({
+const AGORA = new Date('2026-09-15T15:00:00Z'); // terça, 12:00 em Brasília
+const SEM_DATA = 'alinhar aquilo que combinamos com o pessoal do jurídico';
+
+function clienteDeMentira(conteudoJson, capturar = {}) {
+  capturar.chamadas = 0;
+  const cliente = new Anthropic({
     apiKey: 'chave-de-teste',
     maxRetries: 0,
     fetch: async (url, init) => {
+      capturar.chamadas++;
       capturar.url = String(url);
       capturar.corpo = JSON.parse(init.body);
       return new Response(JSON.stringify({
@@ -20,52 +25,79 @@ function clienteDeMentira(conteudoJson, capturar) {
       }), { status: 200, headers: { 'content-type': 'application/json' } });
     },
   });
+  cliente.espiao = capturar;
+  return cliente;
 }
 
-test('interpretar monta a requisição no formato esperado pela API', async () => {
-  const capturar = {};
-  await interpretar('enviar o relatório sexta às 14h', new Date('2026-09-15T15:00:00Z'),
-    clienteDeMentira({
-      titulo: 'Enviar relatório', detalhes: '', prazo_local: '2026-09-18T14:00',
-      hora_explicita: true, confianca: 'alta', observacao: '',
-    }, capturar));
+const RESPOSTA_PADRAO = {
+  titulo: 'Alinhar com o jurídico', detalhes: 'assunto combinado',
+  prazo_local: '2026-09-18T14:00', hora_explicita: true, confianca: 'alta', observacao: '',
+};
 
-  assert.match(capturar.url, /\/v1\/messages$/);
-  assert.equal(capturar.corpo.model, 'claude-opus-5');
-  assert.equal(capturar.corpo.output_config.effort, 'low');
-  assert.equal(capturar.corpo.output_config.format.type, 'json_schema');
-  assert.ok(capturar.corpo.output_config.format.schema.properties.prazo_local, 'schema sem prazo_local');
-  assert.ok(capturar.corpo.system.includes(String(HORA_PADRAO).padStart(2, '0')),
-    'instruções não trazem a hora padrão');
+test('recado com data é resolvido de graça, sem tocar na API', async () => {
+  const cliente = clienteDeMentira(RESPOSTA_PADRAO);
+  const lido = await interpretar('enviar o relatório da Pharma sexta às 14h', AGORA, cliente);
+
+  assert.equal(lido.motor, 'local');
+  assert.equal(cliente.espiao.chamadas, 0, 'gastou chamada de IA num recado que o parser local resolve');
+  assert.equal(lido.titulo, 'Enviar o relatório da Pharma');
+  assert.equal(lido.prazo.toISOString(), '2026-09-18T17:00:00.000Z');
+});
+
+test('recado sem data cai na IA e a requisição vai no formato esperado', async () => {
+  const cliente = clienteDeMentira(RESPOSTA_PADRAO);
+  const lido = await interpretar(SEM_DATA, AGORA, cliente);
+
+  assert.equal(cliente.espiao.chamadas, 1);
+  assert.equal(lido.motor, 'ia');
+  assert.match(cliente.espiao.url, /\/v1\/messages$/);
+  assert.equal(cliente.espiao.corpo.model, 'claude-opus-5');
+  assert.equal(cliente.espiao.corpo.output_config.effort, 'low');
+  assert.equal(cliente.espiao.corpo.output_config.format.type, 'json_schema');
+  assert.ok(cliente.espiao.corpo.output_config.format.schema.properties.prazo_local);
   // O instante de referência precisa ir junto, senão "sexta" não tem contra o quê resolver.
-  assert.match(capturar.corpo.messages[0].content, /Agora são 2026-09-15T12:00/);
+  assert.match(cliente.espiao.corpo.messages[0].content, /Agora são 2026-09-15T12:00/);
+  // 14h de Brasília vira 17h UTC.
+  assert.equal(lido.prazo.toISOString(), '2026-09-18T17:00:00.000Z');
+  assert.equal(lido.detalhes, 'assunto combinado');
 });
 
-test('interpretar converte o horário local devolvido em instante UTC', async () => {
-  const lido = await interpretar('relatório sexta às 14h', new Date('2026-09-15T15:00:00Z'),
-    clienteDeMentira({
-      titulo: 'Enviar relatório da Pharma', detalhes: 'versão final',
-      prazo_local: '2026-09-18T14:00', hora_explicita: true, confianca: 'alta', observacao: '',
-    }, {}));
-
-  assert.equal(lido.titulo, 'Enviar relatório da Pharma');
-  assert.equal(lido.detalhes, 'versão final');
-  assert.equal(lido.prazo.toISOString(), '2026-09-18T17:00:00.000Z'); // 14h em Brasília
-  assert.equal(lido.confianca, 'alta');
+test('MODO_INTERPRETACAO=local nunca chama a IA, nem sem data', async () => {
+  const anterior = process.env.MODO_INTERPRETACAO;
+  process.env.MODO_INTERPRETACAO = 'local';
+  try {
+    const cliente = clienteDeMentira(RESPOSTA_PADRAO);
+    const lido = await interpretar(SEM_DATA, AGORA, cliente);
+    assert.equal(cliente.espiao.chamadas, 0);
+    assert.equal(lido.motor, 'palpite');
+  } finally {
+    if (anterior === undefined) delete process.env.MODO_INTERPRETACAO;
+    else process.env.MODO_INTERPRETACAO = anterior;
+  }
 });
 
-test('interpretar propaga baixa confiança para a tela conferir', async () => {
-  const lido = await interpretar('depois eu vejo isso', new Date('2026-09-15T15:00:00Z'),
-    clienteDeMentira({
-      titulo: 'Rever assunto pendente', detalhes: '', prazo_local: '2026-09-16T18:00',
-      hora_explicita: false, confianca: 'baixa', observacao: 'Nenhuma data foi dita.',
-    }, {}));
-
+test('sem IA nenhuma, o recado ainda vira lembrete para amanhã', async () => {
+  const lido = await interpretar(SEM_DATA, AGORA);  // sem cliente e sem chave
+  assert.equal(lido.motor, 'palpite');
   assert.equal(lido.confianca, 'baixa');
-  assert.equal(lido.observacao, 'Nenhuma data foi dita.');
-  assert.equal(lido.horaExplicita, false);
+  assert.match(lido.observacao, /Não identifiquei data/);
+  // Amanhã (16/09) na hora padrão, em UTC.
+  assert.equal(lido.prazo.toISOString(),
+    `2026-09-16T${String(HORA_PADRAO + 3).padStart(2, '0')}:00:00.000Z`);
+  assert.ok(lido.titulo.length > 0, 'ficou sem título');
 });
 
-test('interpretar recusa recado vazio antes de chamar a API', async () => {
-  await assert.rejects(() => interpretar('   ', new Date()), /Recado vazio/);
+test('falha da IA não perde o recado — cai no palpite', async () => {
+  const cliente = new Anthropic({
+    apiKey: 'chave-de-teste', maxRetries: 0,
+    fetch: async () => new Response(JSON.stringify({ type: 'error', error: { type: 'api_error', message: 'fora do ar' } }),
+      { status: 500, headers: { 'content-type': 'application/json' } }),
+  });
+  const lido = await interpretar(SEM_DATA, AGORA, cliente);
+  assert.equal(lido.motor, 'palpite');
+  assert.ok(lido.prazo instanceof Date);
+});
+
+test('recado vazio é recusado antes de qualquer trabalho', async () => {
+  await assert.rejects(() => interpretar('   ', AGORA), /Recado vazio/);
 });

@@ -2,7 +2,7 @@
 import { montarAvisos } from './agenda.js';
 import { novoId } from './store.js';
 
-export function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', confianca = 'alta', observacao = '', agora = new Date() }) {
+export function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', confianca = 'alta', observacao = '', motor = 'manual', agora = new Date() }) {
   const prazoIso = (prazo instanceof Date ? prazo : new Date(prazo)).toISOString();
   return {
     id: novoId(),
@@ -11,6 +11,7 @@ export function criarLembrete({ titulo, detalhes = '', prazo, origem = 'texto', 
     prazo: prazoIso,
     status: 'pendente',
     origem,                 // 'texto' | 'audio'
+    motor,                  // 'local' | 'ia' | 'palpite' | 'manual' — quem leu a data
     confianca,              // 'alta' | 'media' | 'baixa' — baixa pede conferência na tela
     observacao,
     criadoEm: agora.toISOString(),

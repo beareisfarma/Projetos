@@ -375,9 +375,12 @@ async function interpretarRecado(texto, origem){
     $('recado').value = '';
     $('confTitulo').value = lembrete.titulo;
     $('confPrazo').value = paraInput(lembrete.prazo);
-    $('confObs').textContent = lembrete.confianca === 'alta'
+    const base = lembrete.confianca === 'alta'
       ? 'Já está salvo e agendado. Ajuste se algo ficou errado.'
       : `⚠️ Confirme a data. ${lembrete.observacao || ''}`.trim();
+    // Mostra quem leu a data: "sem custo" é o parser local, o caminho padrão.
+    const MOTORES = { local: 'lido sem custo', ia: 'lido pela IA', palpite: 'sem data reconhecida' };
+    $('confObs').textContent = MOTORES[lembrete.motor] ? `${base} · ${MOTORES[lembrete.motor]}` : base;
     $('confirmacao').hidden = false;
     await carregar();
   } catch (e){
