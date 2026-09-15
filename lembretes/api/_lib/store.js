@@ -198,3 +198,19 @@ export async function listarInscricoes() {
 export async function descartarInscricao(id) {
   await apagar(`/push_inscricoes?id=eq.${encodeURIComponent(id)}`);
 }
+
+/**
+ * Autoriza (ou nega) uma tentativa de acesso, contando erros por origem.
+ * Uma chamada só: verifica o bloqueio, registra o erro e bloqueia se passar do
+ * limite. Bloqueado continua bloqueado mesmo com a senha certa — é isso que
+ * impede alguém de simplesmente continuar chutando até acertar.
+ */
+export async function verificarAcesso(ip, credencialOk) {
+  const linhas = await rest('/rpc/verificar_acesso', {
+    method: 'POST',
+    body: JSON.stringify({ p_ip: ip || 'desconhecido', p_credencial_ok: Boolean(credencialOk) }),
+  });
+  const r = linhas?.[0];
+  if (!r) return { permitido: Boolean(credencialOk), bloqueadoAte: null, erros: 0 };
+  return { permitido: r.permitido, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
+}

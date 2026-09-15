@@ -1,5 +1,5 @@
 // Service worker: casca offline + recepção de push + ações da notificação.
-const CACHE = 'lembretes-v3';
+const CACHE = 'lembretes-v4';
 const CASCA = [
   './', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
@@ -8,7 +8,7 @@ const CASCA = [
 // O PIN fica no IndexedDB porque as ações da notificação ("Feito", "Adiar")
 // rodam aqui, com o app fechado, e precisam autenticar na API sozinhas.
 const BD = 'lembretes-cfg';
-function lerPin() {
+function lerCredenciais() {
   return new Promise((ok) => {
     let req;
     try { req = indexedDB.open(BD, 1); } catch (e) { return ok(null); }
@@ -17,9 +17,11 @@ function lerPin() {
     req.onsuccess = () => {
       const bd = req.result;
       try {
-        const leitura = bd.transaction('cfg', 'readonly').objectStore('cfg').get('pin');
-        leitura.onsuccess = () => { ok(leitura.result || null); bd.close(); };
-        leitura.onerror = () => { ok(null); bd.close(); };
+        const loja = bd.transaction('cfg', 'readonly').objectStore('cfg');
+        const lerUsuario = loja.get('usuario');
+        const lerPin = loja.get('pin');
+        lerPin.onsuccess = () => { ok({ usuario: lerUsuario.result || '', pin: lerPin.result || '' }); bd.close(); };
+        lerPin.onerror = () => { ok(null); bd.close(); };
       } catch (e) { bd.close(); ok(null); }
     };
   });
@@ -84,11 +86,15 @@ self.addEventListener('notificationclick', (e) => {
   e.waitUntil((async () => {
     if (id && (acao === 'concluir' || acao === 'adiar')) {
       try {
-        const pin = await lerPin();
+        const cred = await lerCredenciais();
         const corpo = acao === 'concluir' ? { acao: 'concluir' } : { acao: 'adiar', minutos: 60 };
         const r = await fetch(`https://oyyruucruevoefxzrzpj.supabase.co/functions/v1/api/reminders?id=${encodeURIComponent(id)}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'x-lembretes-pin': pin || '' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-lembretes-usuario': cred?.usuario || '',
+            'x-lembretes-pin': cred?.pin || '',
+          },
           body: JSON.stringify(corpo),
         });
         if (!r.ok) throw new Error(String(r.status));

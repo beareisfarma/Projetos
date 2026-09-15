@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { bancoFalso, pushFalso, pushDisponivel, fingirRequisicao, fingirResposta } from './apoio.mjs';
 
+const USUARIO = 'usuario-de-teste';
 const PIN = 'pin-de-teste-123';
 const SEGREDO_CRON = 'segredo-cron-456';
 
@@ -27,7 +28,7 @@ async function chamar(handler, req) {
   return res;
 }
 
-const comPin = (extra = {}) => ({ 'x-lembretes-pin': PIN, ...extra });
+const comPin = (extra = {}) => ({ 'x-lembretes-usuario': USUARIO, 'x-lembretes-pin': PIN, ...extra });
 
 test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl indisponível para o push falso' }, async (t) => {
   const banco = bancoFalso();
@@ -41,6 +42,7 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
   const jwkPriv = privateKey.export({ format: 'jwk' });
   process.env.SUPABASE_URL = urlBanco;
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'chave-de-teste';
+  process.env.APP_USUARIO = USUARIO;
   process.env.APP_PIN = PIN;
   process.env.CRON_SECRET = SEGREDO_CRON;
   process.env.VAPID_SUBJECT = 'mailto:teste@exemplo.com';
@@ -54,9 +56,14 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
   const tick = (await import('../api/tick.js')).default;
   const store = await import('../api/_lib/store.js');
 
-  await t.test('PIN errado é barrado', async () => {
-    const r = await chamar(reminders, fingirRequisicao({ url: '/api/reminders', headers: { 'x-lembretes-pin': 'errado' } }));
+  await t.test('usuário ou senha errados são barrados', async () => {
+    const r = await chamar(reminders, fingirRequisicao({ url: '/api/reminders',
+      headers: { 'x-lembretes-usuario': USUARIO, 'x-lembretes-pin': 'errado' } }));
     assert.equal(r.codigo, 401);
+    // usuário errado com a senha certa também não passa
+    const r2 = await chamar(reminders, fingirRequisicao({ url: '/api/reminders',
+      headers: { 'x-lembretes-usuario': 'outra-pessoa', 'x-lembretes-pin': PIN } }));
+    assert.equal(r2.codigo, 401);
   });
 
   await t.test('tick sem segredo é barrado', async () => {

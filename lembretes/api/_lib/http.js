@@ -20,12 +20,16 @@ function iguais(a, b) {
 /**
  * O app é de uma pessoa só, mas fica numa URL pública: sem esta porta qualquer
  * um que descubra o endereço escreve no banco e dispara notificações.
+ *
+ * Esta é a variante Vercel, mantida como reserva. O que está publicado é a Edge
+ * Function, e é lá que mora também o limite de tentativas (verificar_acesso).
  */
 export function autorizado(req) {
-  const esperado = process.env.APP_PIN;
-  if (!esperado) return false; // sem PIN configurado, nada é liberado
-  const enviado = req.headers['x-lembretes-pin'];
-  return iguais(enviado, esperado);
+  const usuario = process.env.APP_USUARIO;
+  const senha = process.env.APP_PIN;
+  if (!usuario || !senha) return false;   // sem credencial configurada, nada é liberado
+  return iguais(req.headers['x-lembretes-usuario'], usuario)
+    && iguais(req.headers['x-lembretes-pin'], senha);
 }
 
 export function autorizadoCron(req) {

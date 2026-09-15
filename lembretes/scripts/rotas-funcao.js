@@ -4,6 +4,27 @@ const MAX_TENTATIVAS = 3;
 const ESPERA_RETENTATIVA_MS = 5 * 60000;
 const COBRANCA_ATRASO_MS = 2 * 3600000;
 
+/** Origem da requisição, para contar tentativas por aparelho/rede. */
+const origem = (req) =>
+  (req.headers.get('x-forwarded-for') || '').split(',')[0].trim()
+  || req.headers.get('cf-connecting-ip') || 'desconhecido';
+
+/**
+ * Confere usuário + senha e passa pelo contador de tentativas.
+ * Devolve null quando pode seguir, ou a resposta de erro já pronta.
+ */
+async function barrar(req) {
+  const credencialOk = iguais(req.headers.get('x-lembretes-usuario'), process.env.APP_USUARIO)
+    && iguais(req.headers.get('x-lembretes-pin'), process.env.APP_PIN);
+  const r = await verificarAcesso(origem(req), credencialOk);
+  if (r.permitido) return null;
+  if (r.bloqueadoAte && new Date(r.bloqueadoAte) > new Date()) {
+    const minutos = Math.max(1, Math.ceil((new Date(r.bloqueadoAte) - Date.now()) / 60000));
+    return erro(429, `Muitas tentativas. Tente de novo em ${minutos} min.`);
+  }
+  return erro(401, 'Usuário ou senha incorretos.');
+}
+
 async function rotear(req) {
   const url = new URL(req.url);
   // O caminho que chega aqui varia conforme o Supabase roteia: pode vir como
@@ -39,7 +60,7 @@ async function subscribe(req) {
     return chave ? json({ chavePublica: chave }) : erro(503, 'VAPID_PUBLIC_KEY ausente.');
   }
   if (req.method !== 'POST') return erro(405, 'Método não permitido.');
-  if (!autorizado(req)) return erro(401, 'PIN inválido.');
+  const barrado = await barrar(req); if (barrado) return barrado;
 
   const { inscricao, apelido } = await req.json();
   if (!inscricao?.endpoint || !inscricao?.keys?.p256dh || !inscricao?.keys?.auth) {
@@ -51,7 +72,7 @@ async function subscribe(req) {
 
 async function transcribe(req) {
   if (req.method !== 'POST') return erro(405, 'Método não permitido.');
-  if (!autorizado(req)) return erro(401, 'PIN inválido.');
+  const barrado = await barrar(req); if (barrado) return barrado;
 
   const provedores = [
     { nome: 'groq', chave: process.env.GROQ_API_KEY,
@@ -93,7 +114,7 @@ async function transcribe(req) {
 
 async function reminders(req, url) {
   if (!armazenamentoConfigurado()) return erro(503, 'Banco não configurado.');
-  if (!autorizado(req)) return erro(401, 'PIN inválido.');
+  const barrado = await barrar(req); if (barrado) return barrado;
 
   const id = url.searchParams.get('id');
   const agora = Date.now();

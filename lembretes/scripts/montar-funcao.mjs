@@ -56,7 +56,7 @@ async function carregarConfig() {
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-lembretes-pin',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-lembretes-pin, x-lembretes-usuario',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
@@ -76,7 +76,6 @@ function iguais(a, b) {
   return diferenca === 0;   // tempo constante: não vaza o PIN por cronometragem
 }
 
-const autorizado = (req) => iguais(req.headers.get('x-lembretes-pin'), process.env.APP_PIN);
 const autorizadoCron = (req, url) =>
   iguais((req.headers.get('authorization') || '').replace(/^Bearer /, ''), process.env.CRON_SECRET)
   || iguais(url.searchParams.get('chave'), process.env.CRON_SECRET);

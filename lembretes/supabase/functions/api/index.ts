@@ -641,6 +641,22 @@ async function descartarInscricao(id) {
   await apagar(`/push_inscricoes?id=eq.${encodeURIComponent(id)}`);
 }
 
+/**
+ * Autoriza (ou nega) uma tentativa de acesso, contando erros por origem.
+ * Uma chamada só: verifica o bloqueio, registra o erro e bloqueia se passar do
+ * limite. Bloqueado continua bloqueado mesmo com a senha certa — é isso que
+ * impede alguém de simplesmente continuar chutando até acertar.
+ */
+async function verificarAcesso(ip, credencialOk) {
+  const linhas = await rest('/rpc/verificar_acesso', {
+    method: 'POST',
+    body: JSON.stringify({ p_ip: ip || 'desconhecido', p_credencial_ok: Boolean(credencialOk) }),
+  });
+  const r = linhas?.[0];
+  if (!r) return { permitido: Boolean(credencialOk), bloqueadoAte: null, erros: 0 };
+  return { permitido: r.permitido, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
+}
+
 // Despacho de avisos. A lista de canais é a costura de extensão do sistema: hoje
 // só existe o push do PWA; acrescentar Telegram ou WhatsApp é acrescentar um
 // objeto aqui com a mesma interface, sem tocar no resto do núcleo.
@@ -732,7 +748,7 @@ async function carregarConfig() {
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-lembretes-pin',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-lembretes-pin, x-lembretes-usuario',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
@@ -752,7 +768,6 @@ function iguais(a, b) {
   return diferenca === 0;   // tempo constante: não vaza o PIN por cronometragem
 }
 
-const autorizado = (req) => iguais(req.headers.get('x-lembretes-pin'), process.env.APP_PIN);
 const autorizadoCron = (req, url) =>
   iguais((req.headers.get('authorization') || '').replace(/^Bearer /, ''), process.env.CRON_SECRET)
   || iguais(url.searchParams.get('chave'), process.env.CRON_SECRET);
@@ -786,6 +801,27 @@ function interpretar(recado, agora) {
 const MAX_TENTATIVAS = 3;
 const ESPERA_RETENTATIVA_MS = 5 * 60000;
 const COBRANCA_ATRASO_MS = 2 * 3600000;
+
+/** Origem da requisição, para contar tentativas por aparelho/rede. */
+const origem = (req) =>
+  (req.headers.get('x-forwarded-for') || '').split(',')[0].trim()
+  || req.headers.get('cf-connecting-ip') || 'desconhecido';
+
+/**
+ * Confere usuário + senha e passa pelo contador de tentativas.
+ * Devolve null quando pode seguir, ou a resposta de erro já pronta.
+ */
+async function barrar(req) {
+  const credencialOk = iguais(req.headers.get('x-lembretes-usuario'), process.env.APP_USUARIO)
+    && iguais(req.headers.get('x-lembretes-pin'), process.env.APP_PIN);
+  const r = await verificarAcesso(origem(req), credencialOk);
+  if (r.permitido) return null;
+  if (r.bloqueadoAte && new Date(r.bloqueadoAte) > new Date()) {
+    const minutos = Math.max(1, Math.ceil((new Date(r.bloqueadoAte) - Date.now()) / 60000));
+    return erro(429, `Muitas tentativas. Tente de novo em ${minutos} min.`);
+  }
+  return erro(401, 'Usuário ou senha incorretos.');
+}
 
 async function rotear(req) {
   const url = new URL(req.url);
@@ -822,7 +858,7 @@ async function subscribe(req) {
     return chave ? json({ chavePublica: chave }) : erro(503, 'VAPID_PUBLIC_KEY ausente.');
   }
   if (req.method !== 'POST') return erro(405, 'Método não permitido.');
-  if (!autorizado(req)) return erro(401, 'PIN inválido.');
+  const barrado = await barrar(req); if (barrado) return barrado;
 
   const { inscricao, apelido } = await req.json();
   if (!inscricao?.endpoint || !inscricao?.keys?.p256dh || !inscricao?.keys?.auth) {
@@ -834,7 +870,7 @@ async function subscribe(req) {
 
 async function transcribe(req) {
   if (req.method !== 'POST') return erro(405, 'Método não permitido.');
-  if (!autorizado(req)) return erro(401, 'PIN inválido.');
+  const barrado = await barrar(req); if (barrado) return barrado;
 
   const provedores = [
     { nome: 'groq', chave: process.env.GROQ_API_KEY,
@@ -876,7 +912,7 @@ async function transcribe(req) {
 
 async function reminders(req, url) {
   if (!armazenamentoConfigurado()) return erro(503, 'Banco não configurado.');
-  if (!autorizado(req)) return erro(401, 'PIN inválido.');
+  const barrado = await barrar(req); if (barrado) return barrado;
 
   const id = url.searchParams.get('id');
   const agora = Date.now();

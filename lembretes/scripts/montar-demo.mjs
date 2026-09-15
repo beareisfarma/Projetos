@@ -169,7 +169,10 @@ ${nucleo}
     return responder({ erro: 'rota desconhecida na demonstração' }, 404);
   };
 
-  try { localStorage.setItem('lembretes_pin', 'demo'); } catch (e) {}
+  try {
+    localStorage.setItem('lembretes_usuario', 'demo');
+    localStorage.setItem('lembretes_pin', 'demo');
+  } catch (e) {}
 
 
   window.addEventListener('load', () => {
@@ -177,6 +180,7 @@ ${nucleo}
     // contexto, então entra pela própria tela em vez de confiar nele.
     const tela = document.getElementById('telaPin');
     if (tela && !tela.hidden) {
+      document.getElementById('campoUsuario').value = 'demo';
       document.getElementById('campoPin').value = 'demo';
       document.getElementById('btnEntrar').click();
     }

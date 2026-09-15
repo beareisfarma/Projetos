@@ -253,8 +253,13 @@
   <div id="avisos"></div>
 
   <section class="cartao" id="telaPin" hidden>
-    <label for="campoPin">PIN de acesso</label>
-    <input type="password" id="campoPin" inputmode="text" autocomplete="current-password" placeholder="••••••">
+    <label for="campoUsuario">Usuário</label>
+    <input type="text" id="campoUsuario" autocomplete="username" autocapitalize="none"
+           autocorrect="off" spellcheck="false" placeholder="seu usuário">
+    <div style="margin-top:.6rem;">
+      <label for="campoPin">Senha</label>
+      <input type="password" id="campoPin" autocomplete="current-password" placeholder="••••••">
+    </div>
     <div class="botoes">
       <button class="btn principal" id="btnEntrar">Entrar</button>
     </div>
@@ -339,7 +344,7 @@
 'use strict';
 const $ = (id) => document.getElementById(id);
 const estado = {
-  pin: null, pendentes: [], feitos: [], proposta: null,
+  usuario: null, pin: null, pendentes: [], feitos: [], proposta: null,
   gravador: null, pedacos: [], aba: 'pendentes',
   antecedenciasNovas: ['d1', 'h1'], editando: null, pinNoBanco: null,
 };
@@ -369,7 +374,7 @@ try { aplicarTema(localStorage.getItem('lembretes_tema') === 'dark'); } catch(e)
 // O service worker precisa do PIN para os botões da notificação funcionarem com
 // o app fechado. Só resolve quando a transação realmente comitou.
 const BD = 'lembretes-cfg';
-function guardarPinNoBanco(pin){
+function guardarPinNoBanco(usuario, pin){
   return new Promise((ok) => {
     let req;
     try { req = indexedDB.open(BD, 1); } catch(e){ return ok(false); }
@@ -380,7 +385,9 @@ function guardarPinNoBanco(pin){
       const bd = req.result;
       try {
         const tx = bd.transaction('cfg','readwrite');
-        tx.objectStore('cfg').put(pin, 'pin');
+        const loja = tx.objectStore('cfg');
+        loja.put(usuario, 'usuario');
+        loja.put(pin, 'pin');
         tx.oncomplete = () => { bd.close(); ok(true); };
         tx.onerror = tx.onabort = () => { bd.close(); ok(false); };
       } catch(e){ bd.close(); ok(false); }
@@ -394,7 +401,12 @@ const BASE_API = 'https://oyyruucruevoefxzrzpj.supabase.co/functions/v1/api/';
 async function api(caminho, opcoes = {}){
   const r = await fetch(BASE_API + caminho.replace(/^api\//, ''), {
     ...opcoes,
-    headers: { 'Content-Type':'application/json', 'x-lembretes-pin': estado.pin || '', ...(opcoes.headers||{}) },
+    headers: {
+      'Content-Type':'application/json',
+      'x-lembretes-usuario': estado.usuario || '',
+      'x-lembretes-pin': estado.pin || '',
+      ...(opcoes.headers||{}),
+    },
   });
   const texto = await r.text();
   const corpo = texto ? JSON.parse(texto) : {};
@@ -599,7 +611,7 @@ async function carregar(){
     estado.feitos = dados.feitos;
     render();
   } catch(e){
-    if (e.status === 401) return mostrarTelaPin('PIN incorreto.');
+    if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
     $('lista').innerHTML = `<p class="vazio">Não consegui carregar.<br>${esc(e.message)}</p>`;
   }
 }
@@ -639,7 +651,7 @@ async function interpretarRecado(texto, origem){
     $('confirmacao').hidden = false;
     await carregar();
   } catch(e){
-    if (e.status === 401) return mostrarTelaPin('PIN incorreto.');
+    if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
     erroCaptura(e.message);
   } finally { statusCaptura(''); $('btnAdicionar').disabled = false; }
 }
@@ -734,7 +746,7 @@ async function transcrever(blob){
     await interpretarRecado(texto, 'audio');
   } catch(e){
     statusCaptura('');
-    if (e.status === 401) return mostrarTelaPin('PIN incorreto.');
+    if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
     erroCaptura(e.message);
   }
 }
@@ -826,22 +838,34 @@ async function ativarPush(){
 function mostrarTelaPin(mensagem){
   $('telaPin').hidden = false; $('app').hidden = true; $('avisos').innerHTML = '';
   $('erroPin').hidden = !mensagem; $('erroPin').textContent = mensagem || '';
-  $('campoPin').focus();
+  ($('campoUsuario').value.trim() ? $('campoPin') : $('campoUsuario')).focus();
 }
 
-async function entrar(pin){
-  estado.pin = pin;
+async function entrar(usuario, pin){
+  estado.usuario = usuario; estado.pin = pin;
   try { await api('api/reminders'); }
-  catch(e){ if (e.status === 401) return mostrarTelaPin('PIN incorreto.'); }
-  try { localStorage.setItem('lembretes_pin', pin); } catch(e){}
-  estado.pinNoBanco = await guardarPinNoBanco(pin);
+  catch(e){
+    // 429 vem do limite de tentativas; a mensagem já diz quanto falta esperar.
+    if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
+  }
+  try {
+    localStorage.setItem('lembretes_usuario', usuario);
+    localStorage.setItem('lembretes_pin', pin);
+  } catch(e){}
+  estado.pinNoBanco = await guardarPinNoBanco(usuario, pin);
   $('telaPin').hidden = true; $('app').hidden = false;
   renderAvisos();
   await carregar();
 }
 
-$('btnEntrar').onclick = () => { const p = $('campoPin').value.trim(); if (p) entrar(p); };
-$('campoPin').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnEntrar').click(); });
+$('btnEntrar').onclick = () => {
+  const u = $('campoUsuario').value.trim(), p = $('campoPin').value.trim();
+  if (!u || !p) return mostrarTelaPin('Preencha usuário e senha.');
+  entrar(u, p);
+};
+for (const campo of ['campoUsuario','campoPin']){
+  $(campo).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnEntrar').click(); });
+}
 $('btnAtualizar').onclick = carregar;
 
 if ('serviceWorker' in navigator){
@@ -851,9 +875,13 @@ if ('serviceWorker' in navigator){
 document.addEventListener('visibilitychange', () => { if (!document.hidden && estado.pin) carregar(); });
 
 (function iniciar(){
-  let salvo = null;
-  try { salvo = localStorage.getItem('lembretes_pin'); } catch(e){}
-  if (salvo) entrar(salvo); else mostrarTelaPin('');
+  let usuario = null, pin = null;
+  try {
+    usuario = localStorage.getItem('lembretes_usuario');
+    pin = localStorage.getItem('lembretes_pin');
+  } catch(e){}
+  if (usuario && pin) entrar(usuario, pin);
+  else { if (usuario) $('campoUsuario').value = usuario; mostrarTelaPin(''); }
 })();
 </script>
 </body>
