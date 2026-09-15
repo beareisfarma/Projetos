@@ -103,6 +103,13 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
 - **URL: https://lembretes-olive.vercel.app** (deploy automático da `main`).
+  **Verificado ponta a ponta em 15/09/2026**: recado → escada → pg_cron → Web Push
+  → notificação na tela de bloqueio do iPhone dela (`entregues: 1`).
+- **No Safari do iPhone fora da tela de início, `window.Notification` não existe.**
+  Ler `Notification.permission` sem guarda lança ReferenceError e derruba a
+  renderização inteira. Usar sempre os helpers `permissao()` / `podePush()`.
+  E confirmar com `registration.showNotification`, nunca `new Notification`
+  (o construtor não exibe nada no iOS).
 - Endpoints em `api/*.js` são a variante Vercel, mantida porque os 41 testes a
   exercitam e ela serve de reserva; o que está publicado é a Edge Function.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
