@@ -769,7 +769,14 @@ const COBRANCA_ATRASO_MS = 2 * 3600000;
 
 async function rotear(req) {
   const url = new URL(req.url);
-  const rota = url.pathname.replace(/^\/functions\/v1\/api\/?/, '').replace(/\/$/, '');
+  // O caminho que chega aqui varia conforme o Supabase roteia: pode vir como
+  // /functions/v1/api/reminders, /api/reminders ou só /reminders. Normaliza os
+  // três em vez de apostar num.
+  const rota = url.pathname
+    .replace(/^\/+/, '')
+    .replace(/^functions\/v1\/?/, '')
+    .replace(/^api\/?/, '')
+    .replace(/\/+$/, '');
 
   if (rota === 'tick') return await tick(req, url);
   if (rota === 'subscribe') return await subscribe(req);
