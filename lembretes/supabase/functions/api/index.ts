@@ -691,7 +691,10 @@ async function despachar(mensagem) {
 let configCarregada = false;
 async function carregarConfig() {
   if (configCarregada) return;
-  const base = process.env.SUPABASE_URL.replace(//$/, '');
+  // Sem regex de propósito: barra invertida dentro do template literal deste
+  // gerador some, e o erro só aparece no bundle do Deno.
+  const cru = process.env.SUPABASE_URL || '';
+  const base = cru.endsWith('/') ? cru.slice(0, -1) : cru;
   const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const r = await fetch(base + '/rest/v1/config_app?select=chave,valor', {
     headers: { apikey: chave, Authorization: 'Bearer ' + chave },
