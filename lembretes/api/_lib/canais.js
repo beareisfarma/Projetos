@@ -6,7 +6,8 @@
 import webpush from 'web-push';
 import { listarInscricoes, descartarInscricao } from './store.js';
 
-const ASSUNTO_VAPID = process.env.VAPID_SUBJECT || 'mailto:beareisfarma@gmail.com';
+// Lido sob demanda: na Edge Function a configuração chega depois do import.
+const assuntoVapid = () => process.env.VAPID_SUBJECT || 'mailto:beareisfarma@gmail.com';
 
 function vapidPronto() {
   return Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
@@ -16,7 +17,7 @@ const canalPush = {
   nome: 'push',
   disponivel: vapidPronto,
   async enviar({ titulo, corpo, dados }) {
-    webpush.setVapidDetails(ASSUNTO_VAPID, process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+    webpush.setVapidDetails(assuntoVapid(), process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
     const inscricoes = await listarInscricoes();
     if (inscricoes.length === 0) return { enviados: 0, removidos: 0, motivo: 'nenhum aparelho inscrito' };
 
