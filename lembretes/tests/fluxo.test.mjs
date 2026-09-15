@@ -7,9 +7,16 @@ import { bancoFalso, pushFalso, pushDisponivel, fingirRequisicao, fingirResposta
 
 const USUARIO = 'usuario-de-teste';
 const PIN = 'pin-de-teste-123';
+const OUTRA = 'outra-pessoa';
+const OUTRA_SENHA = 'senha-da-outra';
 const SEGREDO_CRON = 'segredo-cron-456';
 
+// Cada aparelho tem seu próprio endpoint; a chave da inscrição deriva dele.
+// Dois cadastros no MESMO endpoint são o mesmo aparelho e, de propósito, o
+// último dono vence — é o que acontece quando alguém troca de conta no celular.
+let seqAparelho = 0;
 function inscricaoFalsa(endpoint) {
+  endpoint = `${endpoint}/aparelho-${++seqAparelho}`;
   // Chave pública P-256 de verdade: o web-push faz ECDH com ela antes de enviar.
   const { privateKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
   const jwk = privateKey.export({ format: 'jwk' });
@@ -29,9 +36,10 @@ async function chamar(handler, req) {
 }
 
 const comPin = (extra = {}) => ({ 'x-lembretes-usuario': USUARIO, 'x-lembretes-pin': PIN, ...extra });
+const comOutra = () => ({ 'x-lembretes-usuario': OUTRA, 'x-lembretes-pin': OUTRA_SENHA });
 
 test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl indisponível para o push falso' }, async (t) => {
-  const banco = bancoFalso();
+  const banco = bancoFalso({ [USUARIO]: PIN, [OUTRA]: OUTRA_SENHA });
   const push = pushFalso();
   const urlBanco = await banco.subir();
   const urlPush = await push.subir();
@@ -42,8 +50,6 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
   const jwkPriv = privateKey.export({ format: 'jwk' });
   process.env.SUPABASE_URL = urlBanco;
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'chave-de-teste';
-  process.env.APP_USUARIO = USUARIO;
-  process.env.APP_PIN = PIN;
   process.env.CRON_SECRET = SEGREDO_CRON;
   process.env.VAPID_SUBJECT = 'mailto:teste@exemplo.com';
   process.env.VAPID_PUBLIC_KEY = Buffer.concat([
@@ -77,7 +83,7 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
       body: { inscricao: inscricaoFalsa(urlPush), apelido: 'iPhone de teste' },
     }));
     assert.equal(r.codigo, 201);
-    assert.equal((await store.listarInscricoes()).length, 1);
+    assert.equal((await store.listarInscricoes(USUARIO)).length, 1);
   });
 
   let id;
@@ -159,7 +165,7 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
   });
 
   await t.test('sem aparelho inscrito, o aviso é reenfileirado em vez de sumir', async () => {
-    for (const i of await store.listarInscricoes()) await store.descartarInscricao(i.id);
+    for (const i of await store.listarInscricoes(USUARIO)) await store.descartarInscricao(i.id);
     const lembrete = await store.obter(id);
     const pendente = lembrete.avisos.find((a) => !a.enviadoEm);
     await store.reenfileirar(id, pendente.chave, Date.now() - 1000);
@@ -220,6 +226,41 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
       body: { acao: 'editar', antecedencias: [] },
     }));
     assert.deepEqual(r.corpo.lembrete.avisos.map((a) => a.chave), ['prazo']);
+  });
+
+  await t.test('outra conta não enxerga nem alcança o lembrete', async () => {
+    const lista = await chamar(reminders, fingirRequisicao({ url: '/api/reminders', headers: comOutra() }));
+    assert.equal(lista.codigo, 200);
+    assert.equal(lista.corpo.pendentes.length, 0, 'a outra conta viu lembrete alheio');
+    assert.equal(lista.corpo.feitos.length, 0);
+
+    // Pelo id direto também não: responde como se não existisse.
+    const espiada = await chamar(reminders, fingirRequisicao({
+      method: 'PATCH', url: `/api/reminders?id=${id}`, headers: comOutra(), body: { acao: 'concluir' },
+    }));
+    assert.equal(espiada.codigo, 404);
+
+    const apagar = await chamar(reminders, fingirRequisicao({
+      method: 'DELETE', url: `/api/reminders?id=${id}`, headers: comOutra(),
+    }));
+    assert.equal(apagar.codigo, 404);
+    assert.ok(await store.obter(id), 'a outra conta conseguiu apagar');
+  });
+
+  await t.test('cada conta tem seus próprios aparelhos de push', async () => {
+    // Um teste anterior descadastrou os aparelhos desta conta; recadastra para
+    // que a comparação entre as duas seja feita com uma de cada lado.
+    await chamar(subscribe, fingirRequisicao({
+      method: 'POST', url: '/api/subscribe', headers: comPin(),
+      body: { inscricao: inscricaoFalsa(urlPush), apelido: 'iPhone de teste' },
+    }));
+    await chamar(subscribe, fingirRequisicao({
+      method: 'POST', url: '/api/subscribe', headers: comOutra(),
+      body: { inscricao: inscricaoFalsa(urlPush), apelido: 'aparelho da outra' },
+    }));
+    assert.equal((await store.listarInscricoes(USUARIO)).length, 1);
+    assert.equal((await store.listarInscricoes(OUTRA)).length, 1);
+    assert.equal((await store.listarInscricoes()).length, 0, 'sem conta não pode devolver ninguém');
   });
 
   await t.test('apagar remove de vez', async () => {

@@ -40,7 +40,7 @@ export default comErros(async (req, res) => {
     if (!aviso) { relatorio.push({ id: vencido.id, resultado: 'aviso desconhecido' }); continue; }
     if (aviso.enviadoEm) { relatorio.push({ id: vencido.id, resultado: 'já enviado' }); continue; }
 
-    const resultados = await despachar(textoDoAviso(lembrete, aviso));
+    const resultados = await despachar(textoDoAviso(lembrete, aviso), lembrete.usuario);
     const entregues = resultados.reduce((total, r) => total + (r.enviados || 0), 0);
     const tentativas = (aviso.tentativas || 0) + 1;
 

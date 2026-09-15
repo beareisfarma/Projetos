@@ -54,6 +54,7 @@ export function novoId() {
 // ─── Tradução entre a linha do banco e o objeto que o app usa ────────────────
 const paraLinha = (l) => ({
   id: l.id,
+  usuario: l.usuario,
   titulo: l.titulo,
   detalhes: l.detalhes || '',
   prazo: l.prazo,
@@ -71,6 +72,7 @@ const paraLinha = (l) => ({
 
 const daLinha = (r) => ({
   id: r.id,
+  usuario: r.usuario,
   titulo: r.titulo,
   detalhes: r.detalhes || '',
   // O Postgres devolve o timestamptz no formato dele; o app fala ISO 8601.
@@ -100,8 +102,14 @@ export async function salvar(lembrete) {
   return lembrete;
 }
 
-export async function obter(id) {
-  const linhas = await selecionar(`/lembretes?id=eq.${encodeURIComponent(id)}&select=*&limit=1`);
+/**
+ * @param {string} id
+ * @param {string} [usuario] quando vem, o lembrete de outra conta responde como
+ *   inexistente. O tick chama sem conta, porque percorre os avisos de todo mundo.
+ */
+export async function obter(id, usuario) {
+  const filtro = usuario ? `&usuario=eq.${encodeURIComponent(usuario)}` : '';
+  const linhas = await selecionar(`/lembretes?id=eq.${encodeURIComponent(id)}${filtro}&select=*&limit=1`);
   return linhas?.length ? daLinha(linhas[0]) : null;
 }
 
@@ -115,13 +123,15 @@ export async function reagendar(lembrete, avisos) {
   return atualizado;
 }
 
-export async function listarPendentes() {
-  const linhas = await selecionar('/lembretes?status=eq.pendente&select=*&order=prazo.asc');
+export async function listarPendentes(usuario) {
+  const linhas = await selecionar(
+    `/lembretes?usuario=eq.${encodeURIComponent(usuario)}&status=eq.pendente&select=*&order=prazo.asc`);
   return (linhas || []).map(daLinha);
 }
 
-export async function listarFeitosRecentes(limite = 30) {
-  const linhas = await selecionar(`/lembretes?status=eq.feito&select=*&order=concluido_em.desc&limit=${limite}`);
+export async function listarFeitosRecentes(usuario, limite = 30) {
+  const linhas = await selecionar(
+    `/lembretes?usuario=eq.${encodeURIComponent(usuario)}&status=eq.feito&select=*&order=concluido_em.desc&limit=${limite}`);
   return (linhas || []).map(daLinha);
 }
 
@@ -179,19 +189,23 @@ export async function reenfileirar(id, chave, quandoMs) {
 // ─── Inscrições de push ──────────────────────────────────────────────────────
 const idDaInscricao = (endpoint) => Buffer.from(endpoint).toString('base64url').slice(-48);
 
-export async function guardarInscricao(inscricao, apelido = '') {
+export async function guardarInscricao(usuario, inscricao, apelido = '') {
   await inserir('push_inscricoes', {
     id: idDaInscricao(inscricao.endpoint),
+    usuario,
     inscricao,
     apelido,
     criada_em: new Date().toISOString(),
   }, { upsert: true });
 }
 
-export async function listarInscricoes() {
-  const linhas = await selecionar('/push_inscricoes?select=*');
+/** Aparelhos de uma conta. Sem conta não devolve nada: notificação de uma
+ *  pessoa nunca deve sair no celular de outra. */
+export async function listarInscricoes(usuario) {
+  if (!usuario) return [];
+  const linhas = await selecionar(`/push_inscricoes?usuario=eq.${encodeURIComponent(usuario)}&select=*`);
   return (linhas || []).map((r) => ({
-    id: r.id, inscricao: r.inscricao, apelido: r.apelido, criadaEm: r.criada_em,
+    id: r.id, usuario: r.usuario, inscricao: r.inscricao, apelido: r.apelido, criadaEm: r.criada_em,
   }));
 }
 
@@ -200,17 +214,18 @@ export async function descartarInscricao(id) {
 }
 
 /**
- * Autoriza (ou nega) uma tentativa de acesso, contando erros por origem.
- * Uma chamada só: verifica o bloqueio, registra o erro e bloqueia se passar do
- * limite. Bloqueado continua bloqueado mesmo com a senha certa — é isso que
- * impede alguém de simplesmente continuar chutando até acertar.
+ * Autentica e passa pelo limite de tentativas numa chamada só.
+ * A senha é conferida contra o hash bcrypt dentro do banco — em nenhum momento
+ * uma senha em claro é comparada aqui.
  */
-export async function verificarAcesso(ip, credencialOk) {
-  const linhas = await rest('/rpc/verificar_acesso', {
+export async function autenticarAcesso(usuario, senha, ip) {
+  const linhas = await rest('/rpc/autenticar_acesso', {
     method: 'POST',
-    body: JSON.stringify({ p_ip: ip || 'desconhecido', p_credencial_ok: Boolean(credencialOk) }),
+    body: JSON.stringify({
+      p_usuario: usuario || '', p_senha: senha || '', p_ip: ip || 'desconhecido',
+    }),
   });
   const r = linhas?.[0];
-  if (!r) return { permitido: Boolean(credencialOk), bloqueadoAte: null, erros: 0 };
-  return { permitido: r.permitido, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
+  if (!r) return { permitido: false, usuario: null, bloqueadoAte: null, erros: 0 };
+  return { permitido: r.permitido, usuario: r.usuario, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
 }

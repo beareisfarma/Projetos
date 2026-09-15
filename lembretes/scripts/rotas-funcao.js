@@ -10,19 +10,20 @@ const origem = (req) =>
   || req.headers.get('cf-connecting-ip') || 'desconhecido';
 
 /**
- * Confere usuário + senha e passa pelo contador de tentativas.
- * Devolve null quando pode seguir, ou a resposta de erro já pronta.
+ * Autentica e passa pelo contador de tentativas.
+ * Devolve `{ usuario }` quando pode seguir, ou `{ resposta }` com o erro pronto.
  */
-async function barrar(req) {
-  const credencialOk = iguais(req.headers.get('x-lembretes-usuario'), process.env.APP_USUARIO)
-    && iguais(req.headers.get('x-lembretes-pin'), process.env.APP_PIN);
-  const r = await verificarAcesso(origem(req), credencialOk);
-  if (r.permitido) return null;
+async function autenticar(req) {
+  const r = await autenticarAcesso(
+    req.headers.get('x-lembretes-usuario'),
+    req.headers.get('x-lembretes-pin'),
+    origem(req));
+  if (r.permitido) return { usuario: r.usuario };
   if (r.bloqueadoAte && new Date(r.bloqueadoAte) > new Date()) {
     const minutos = Math.max(1, Math.ceil((new Date(r.bloqueadoAte) - Date.now()) / 60000));
-    return erro(429, `Muitas tentativas. Tente de novo em ${minutos} min.`);
+    return { resposta: erro(429, `Muitas tentativas. Tente de novo em ${minutos} min.`) };
   }
-  return erro(401, 'Usuário ou senha incorretos.');
+  return { resposta: erro(401, 'Usuário ou senha incorretos.') };
 }
 
 async function rotear(req) {
@@ -60,19 +61,20 @@ async function subscribe(req) {
     return chave ? json({ chavePublica: chave }) : erro(503, 'VAPID_PUBLIC_KEY ausente.');
   }
   if (req.method !== 'POST') return erro(405, 'Método não permitido.');
-  const barrado = await barrar(req); if (barrado) return barrado;
+  const { usuario, resposta } = await autenticar(req); if (resposta) return resposta;
 
   const { inscricao, apelido } = await req.json();
   if (!inscricao?.endpoint || !inscricao?.keys?.p256dh || !inscricao?.keys?.auth) {
     return erro(400, 'Inscrição de push incompleta.');
   }
-  await guardarInscricao(inscricao, String(apelido || '').slice(0, 60));
+  await guardarInscricao(usuario, inscricao, String(apelido || '').slice(0, 60));
   return json({ ok: true }, 201);
 }
 
 async function transcribe(req) {
   if (req.method !== 'POST') return erro(405, 'Método não permitido.');
-  const barrado = await barrar(req); if (barrado) return barrado;
+  // nome diferente: mais abaixo `resposta` já é a resposta do serviço de áudio
+  const negado = (await autenticar(req)).resposta; if (negado) return negado;
 
   const provedores = [
     { nome: 'groq', chave: process.env.GROQ_API_KEY,
@@ -114,13 +116,14 @@ async function transcribe(req) {
 
 async function reminders(req, url) {
   if (!armazenamentoConfigurado()) return erro(503, 'Banco não configurado.');
-  const barrado = await barrar(req); if (barrado) return barrado;
+  const { usuario, resposta } = await autenticar(req); if (resposta) return resposta;
 
   const id = url.searchParams.get('id');
   const agora = Date.now();
 
   if (req.method === 'GET') {
-    const [pendentes, feitos] = await Promise.all([listarPendentes(), listarFeitosRecentes(20)]);
+    const [pendentes, feitos] = await Promise.all([
+      listarPendentes(usuario), listarFeitosRecentes(usuario, 20)]);
     return json({
       agora: new Date(agora).toISOString(),
       pendentes: pendentes.map((l) => enriquecer(l, agora)),
@@ -146,12 +149,13 @@ async function reminders(req, url) {
     } else {
       return erro(400, 'Envie "recado" (texto livre) ou "titulo" + "prazo".');
     }
-    await salvar(lembrete);
+    await salvar({ ...lembrete, usuario });
     return json({ lembrete: enriquecer(lembrete, agora) }, 201);
   }
 
   if (!id) return erro(400, 'Informe ?id=');
-  const lembrete = await obter(id);
+  // Escopado pela conta: o lembrete de outra pessoa responde como inexistente.
+  const lembrete = await obter(id, usuario);
   if (!lembrete) return erro(404, 'Lembrete não encontrado.');
 
   if (req.method === 'DELETE') { await remover(lembrete); return json({ removido: id }); }
@@ -225,7 +229,7 @@ async function tick(req, url) {
     if (!aviso) { relatorio.push({ id: vencido.id, resultado: 'aviso desconhecido' }); continue; }
     if (aviso.enviadoEm) { relatorio.push({ id: vencido.id, resultado: 'já enviado' }); continue; }
 
-    const resultados = await despachar(textoDoAviso(lembrete, aviso));
+    const resultados = await despachar(textoDoAviso(lembrete, aviso), lembrete.usuario);
     const entregues = resultados.reduce((t, r) => t + (r.enviados || 0), 0);
     const tentativas = (aviso.tentativas || 0) + 1;
 

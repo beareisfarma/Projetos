@@ -99,10 +99,16 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   - Três armadilhas do runtime Deno já pagas: escrever em `Deno.env` é
     proibido (a função usa um `process` próprio); `Deno.env.toObject()` também;
     e o caminho que chega ao roteador varia, por isso ele normaliza três formas.
-- **Acesso: usuário + senha** (`APP_USUARIO` / `APP_PIN` em `config_app`), com
-  **limite de tentativas** na função `verificar_acesso`: 5 erros bloqueiam
-  aquela origem por 15 min. Estar bloqueado vence a senha certa, de propósito —
-  checar credencial antes deixaria o limite decorativo. Não inverter essa ordem.
+- **Várias contas.** Tabela `usuarios` (senha em **hash bcrypt** via pgcrypto —
+  nunca guardar senha em claro). `lembretes` e `push_inscricoes` têm coluna
+  `usuario` com FK e cascade. **Toda leitura é escopada pela conta**; o lembrete
+  de outra pessoa responde 404, nunca 403 (não confirma que existe).
+  O tick é a única exceção: percorre os avisos de todo mundo e despacha para os
+  aparelhos do dono (`despachar(mensagem, usuario)`).
+  **Não existe cadastro público** — conta nova se cria por SQL, de propósito.
+- **Login com limite de tentativas** na função `autenticar_acesso`: 5 erros
+  bloqueiam aquela origem por 15 min. Estar bloqueado vence a senha certa, de
+  propósito — checar credencial antes deixaria o limite decorativo. Não inverter.
 - **Segredos ficam na tabela `config_app`** (RLS ligado, sem policy), lida pela
   função no primeiro request. Não colocar segredo em arquivo, em variável de
   ambiente nem no git.

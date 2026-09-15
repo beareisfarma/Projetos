@@ -4,7 +4,7 @@
 //
 // Provedor: Groq (whisper-large-v3-turbo) se GROQ_API_KEY estiver definida,
 // senão OpenAI. A Claude API não recebe áudio, por isso um serviço à parte.
-import { json, erro, autorizado, lerJson, comErros } from './_lib/http.js';
+import { json, erro, autenticarRequisicao, lerJson, comErros } from './_lib/http.js';
 
 const LIMITE_BYTES = 4 * 1024 * 1024;
 
@@ -33,7 +33,8 @@ export default comErros(async (req, res) => {
     res.setHeader('Allow', 'POST');
     return erro(res, 405, 'Método não permitido.');
   }
-  if (!autorizado(req)) return erro(res, 401, 'PIN inválido.');
+  const { usuario, negado } = await autenticarRequisicao(req);
+  if (negado) return erro(res, negado.status, negado.mensagem);
 
   const provedor = PROVEDORES.find((p) => process.env[p.env]);
   if (!provedor) {

@@ -1,7 +1,7 @@
 // Inscrição do aparelho no push.
 //   GET  /api/subscribe → chave pública VAPID (o navegador precisa dela para se inscrever)
 //   POST /api/subscribe → guarda a inscrição deste aparelho
-import { json, erro, autorizado, lerJson, comErros } from './_lib/http.js';
+import { json, erro, autenticarRequisicao, lerJson, comErros } from './_lib/http.js';
 import { guardarInscricao, armazenamentoConfigurado } from './_lib/store.js';
 
 export default comErros(async (req, res) => {
@@ -17,12 +17,13 @@ export default comErros(async (req, res) => {
   }
 
   if (!armazenamentoConfigurado()) return erro(res, 503, 'Banco não configurado — veja o README.');
-  if (!autorizado(req)) return erro(res, 401, 'PIN inválido.');
+  const { usuario, negado } = await autenticarRequisicao(req);
+  if (negado) return erro(res, negado.status, negado.mensagem);
 
   const { inscricao, apelido } = await lerJson(req);
   if (!inscricao?.endpoint || !inscricao?.keys?.p256dh || !inscricao?.keys?.auth) {
     return erro(res, 400, 'Inscrição de push incompleta.');
   }
-  await guardarInscricao(inscricao, String(apelido || '').slice(0, 60));
+  await guardarInscricao(usuario, inscricao, String(apelido || '').slice(0, 60));
   return json(res, 201, { ok: true });
 });

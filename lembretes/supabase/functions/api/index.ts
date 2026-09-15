@@ -496,6 +496,7 @@ function novoId() {
 // ─── Tradução entre a linha do banco e o objeto que o app usa ────────────────
 const paraLinha = (l) => ({
   id: l.id,
+  usuario: l.usuario,
   titulo: l.titulo,
   detalhes: l.detalhes || '',
   prazo: l.prazo,
@@ -513,6 +514,7 @@ const paraLinha = (l) => ({
 
 const daLinha = (r) => ({
   id: r.id,
+  usuario: r.usuario,
   titulo: r.titulo,
   detalhes: r.detalhes || '',
   // O Postgres devolve o timestamptz no formato dele; o app fala ISO 8601.
@@ -542,8 +544,14 @@ async function salvar(lembrete) {
   return lembrete;
 }
 
-async function obter(id) {
-  const linhas = await selecionar(`/lembretes?id=eq.${encodeURIComponent(id)}&select=*&limit=1`);
+/**
+ * @param {string} id
+ * @param {string} [usuario] quando vem, o lembrete de outra conta responde como
+ *   inexistente. O tick chama sem conta, porque percorre os avisos de todo mundo.
+ */
+async function obter(id, usuario) {
+  const filtro = usuario ? `&usuario=eq.${encodeURIComponent(usuario)}` : '';
+  const linhas = await selecionar(`/lembretes?id=eq.${encodeURIComponent(id)}${filtro}&select=*&limit=1`);
   return linhas?.length ? daLinha(linhas[0]) : null;
 }
 
@@ -557,13 +565,15 @@ async function reagendar(lembrete, avisos) {
   return atualizado;
 }
 
-async function listarPendentes() {
-  const linhas = await selecionar('/lembretes?status=eq.pendente&select=*&order=prazo.asc');
+async function listarPendentes(usuario) {
+  const linhas = await selecionar(
+    `/lembretes?usuario=eq.${encodeURIComponent(usuario)}&status=eq.pendente&select=*&order=prazo.asc`);
   return (linhas || []).map(daLinha);
 }
 
-async function listarFeitosRecentes(limite = 30) {
-  const linhas = await selecionar(`/lembretes?status=eq.feito&select=*&order=concluido_em.desc&limit=${limite}`);
+async function listarFeitosRecentes(usuario, limite = 30) {
+  const linhas = await selecionar(
+    `/lembretes?usuario=eq.${encodeURIComponent(usuario)}&status=eq.feito&select=*&order=concluido_em.desc&limit=${limite}`);
   return (linhas || []).map(daLinha);
 }
 
@@ -621,19 +631,23 @@ async function reenfileirar(id, chave, quandoMs) {
 // ─── Inscrições de push ──────────────────────────────────────────────────────
 const idDaInscricao = (endpoint) => Buffer.from(endpoint).toString('base64url').slice(-48);
 
-async function guardarInscricao(inscricao, apelido = '') {
+async function guardarInscricao(usuario, inscricao, apelido = '') {
   await inserir('push_inscricoes', {
     id: idDaInscricao(inscricao.endpoint),
+    usuario,
     inscricao,
     apelido,
     criada_em: new Date().toISOString(),
   }, { upsert: true });
 }
 
-async function listarInscricoes() {
-  const linhas = await selecionar('/push_inscricoes?select=*');
+/** Aparelhos de uma conta. Sem conta não devolve nada: notificação de uma
+ *  pessoa nunca deve sair no celular de outra. */
+async function listarInscricoes(usuario) {
+  if (!usuario) return [];
+  const linhas = await selecionar(`/push_inscricoes?usuario=eq.${encodeURIComponent(usuario)}&select=*`);
   return (linhas || []).map((r) => ({
-    id: r.id, inscricao: r.inscricao, apelido: r.apelido, criadaEm: r.criada_em,
+    id: r.id, usuario: r.usuario, inscricao: r.inscricao, apelido: r.apelido, criadaEm: r.criada_em,
   }));
 }
 
@@ -642,19 +656,20 @@ async function descartarInscricao(id) {
 }
 
 /**
- * Autoriza (ou nega) uma tentativa de acesso, contando erros por origem.
- * Uma chamada só: verifica o bloqueio, registra o erro e bloqueia se passar do
- * limite. Bloqueado continua bloqueado mesmo com a senha certa — é isso que
- * impede alguém de simplesmente continuar chutando até acertar.
+ * Autentica e passa pelo limite de tentativas numa chamada só.
+ * A senha é conferida contra o hash bcrypt dentro do banco — em nenhum momento
+ * uma senha em claro é comparada aqui.
  */
-async function verificarAcesso(ip, credencialOk) {
-  const linhas = await rest('/rpc/verificar_acesso', {
+async function autenticarAcesso(usuario, senha, ip) {
+  const linhas = await rest('/rpc/autenticar_acesso', {
     method: 'POST',
-    body: JSON.stringify({ p_ip: ip || 'desconhecido', p_credencial_ok: Boolean(credencialOk) }),
+    body: JSON.stringify({
+      p_usuario: usuario || '', p_senha: senha || '', p_ip: ip || 'desconhecido',
+    }),
   });
   const r = linhas?.[0];
-  if (!r) return { permitido: Boolean(credencialOk), bloqueadoAte: null, erros: 0 };
-  return { permitido: r.permitido, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
+  if (!r) return { permitido: false, usuario: null, bloqueadoAte: null, erros: 0 };
+  return { permitido: r.permitido, usuario: r.usuario, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
 }
 
 // Despacho de avisos. A lista de canais é a costura de extensão do sistema: hoje
@@ -675,9 +690,9 @@ function vapidPronto() {
 const canalPush = {
   nome: 'push',
   disponivel: vapidPronto,
-  async enviar({ titulo, corpo, dados }) {
+  async enviar({ titulo, corpo, dados }, usuario) {
     webpush.setVapidDetails(assuntoVapid(), process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
-    const inscricoes = await listarInscricoes();
+    const inscricoes = await listarInscricoes(usuario);
     if (inscricoes.length === 0) return { enviados: 0, removidos: 0, motivo: 'nenhum aparelho inscrito' };
 
     const carga = JSON.stringify({ titulo, corpo, dados });
@@ -707,14 +722,17 @@ function canaisAtivos() {
   return CANAIS.filter((c) => c.disponivel());
 }
 
-/** Envia por todos os canais ativos. Um canal que falha não derruba os outros. */
-async function despachar(mensagem) {
+/**
+ * Envia por todos os canais ativos, só para os aparelhos da conta dona do
+ * lembrete. Um canal que falha não derruba os outros.
+ */
+async function despachar(mensagem, usuario) {
   const ativos = canaisAtivos();
   if (ativos.length === 0) return [{ canal: 'nenhum', erro: 'nenhum canal configurado' }];
 
   return Promise.all(ativos.map(async (canal) => {
     try {
-      return { canal: canal.nome, ...(await canal.enviar(mensagem)) };
+      return { canal: canal.nome, ...(await canal.enviar(mensagem, usuario)) };
     } catch (erro) {
       console.error(`[${canal.nome}] erro no despacho`, erro);
       return { canal: canal.nome, erro: erro.message };
@@ -808,19 +826,20 @@ const origem = (req) =>
   || req.headers.get('cf-connecting-ip') || 'desconhecido';
 
 /**
- * Confere usuário + senha e passa pelo contador de tentativas.
- * Devolve null quando pode seguir, ou a resposta de erro já pronta.
+ * Autentica e passa pelo contador de tentativas.
+ * Devolve `{ usuario }` quando pode seguir, ou `{ resposta }` com o erro pronto.
  */
-async function barrar(req) {
-  const credencialOk = iguais(req.headers.get('x-lembretes-usuario'), process.env.APP_USUARIO)
-    && iguais(req.headers.get('x-lembretes-pin'), process.env.APP_PIN);
-  const r = await verificarAcesso(origem(req), credencialOk);
-  if (r.permitido) return null;
+async function autenticar(req) {
+  const r = await autenticarAcesso(
+    req.headers.get('x-lembretes-usuario'),
+    req.headers.get('x-lembretes-pin'),
+    origem(req));
+  if (r.permitido) return { usuario: r.usuario };
   if (r.bloqueadoAte && new Date(r.bloqueadoAte) > new Date()) {
     const minutos = Math.max(1, Math.ceil((new Date(r.bloqueadoAte) - Date.now()) / 60000));
-    return erro(429, `Muitas tentativas. Tente de novo em ${minutos} min.`);
+    return { resposta: erro(429, `Muitas tentativas. Tente de novo em ${minutos} min.`) };
   }
-  return erro(401, 'Usuário ou senha incorretos.');
+  return { resposta: erro(401, 'Usuário ou senha incorretos.') };
 }
 
 async function rotear(req) {
@@ -858,19 +877,20 @@ async function subscribe(req) {
     return chave ? json({ chavePublica: chave }) : erro(503, 'VAPID_PUBLIC_KEY ausente.');
   }
   if (req.method !== 'POST') return erro(405, 'Método não permitido.');
-  const barrado = await barrar(req); if (barrado) return barrado;
+  const { usuario, resposta } = await autenticar(req); if (resposta) return resposta;
 
   const { inscricao, apelido } = await req.json();
   if (!inscricao?.endpoint || !inscricao?.keys?.p256dh || !inscricao?.keys?.auth) {
     return erro(400, 'Inscrição de push incompleta.');
   }
-  await guardarInscricao(inscricao, String(apelido || '').slice(0, 60));
+  await guardarInscricao(usuario, inscricao, String(apelido || '').slice(0, 60));
   return json({ ok: true }, 201);
 }
 
 async function transcribe(req) {
   if (req.method !== 'POST') return erro(405, 'Método não permitido.');
-  const barrado = await barrar(req); if (barrado) return barrado;
+  // nome diferente: mais abaixo `resposta` já é a resposta do serviço de áudio
+  const negado = (await autenticar(req)).resposta; if (negado) return negado;
 
   const provedores = [
     { nome: 'groq', chave: process.env.GROQ_API_KEY,
@@ -912,13 +932,14 @@ async function transcribe(req) {
 
 async function reminders(req, url) {
   if (!armazenamentoConfigurado()) return erro(503, 'Banco não configurado.');
-  const barrado = await barrar(req); if (barrado) return barrado;
+  const { usuario, resposta } = await autenticar(req); if (resposta) return resposta;
 
   const id = url.searchParams.get('id');
   const agora = Date.now();
 
   if (req.method === 'GET') {
-    const [pendentes, feitos] = await Promise.all([listarPendentes(), listarFeitosRecentes(20)]);
+    const [pendentes, feitos] = await Promise.all([
+      listarPendentes(usuario), listarFeitosRecentes(usuario, 20)]);
     return json({
       agora: new Date(agora).toISOString(),
       pendentes: pendentes.map((l) => enriquecer(l, agora)),
@@ -944,12 +965,13 @@ async function reminders(req, url) {
     } else {
       return erro(400, 'Envie "recado" (texto livre) ou "titulo" + "prazo".');
     }
-    await salvar(lembrete);
+    await salvar({ ...lembrete, usuario });
     return json({ lembrete: enriquecer(lembrete, agora) }, 201);
   }
 
   if (!id) return erro(400, 'Informe ?id=');
-  const lembrete = await obter(id);
+  // Escopado pela conta: o lembrete de outra pessoa responde como inexistente.
+  const lembrete = await obter(id, usuario);
   if (!lembrete) return erro(404, 'Lembrete não encontrado.');
 
   if (req.method === 'DELETE') { await remover(lembrete); return json({ removido: id }); }
@@ -1023,7 +1045,7 @@ async function tick(req, url) {
     if (!aviso) { relatorio.push({ id: vencido.id, resultado: 'aviso desconhecido' }); continue; }
     if (aviso.enviadoEm) { relatorio.push({ id: vencido.id, resultado: 'já enviado' }); continue; }
 
-    const resultados = await despachar(textoDoAviso(lembrete, aviso));
+    const resultados = await despachar(textoDoAviso(lembrete, aviso), lembrete.usuario);
     const entregues = resultados.reduce((t, r) => t + (r.enviados || 0), 0);
     const tentativas = (aviso.tentativas || 0) + 1;
 

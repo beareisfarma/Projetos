@@ -16,9 +16,9 @@ function vapidPronto() {
 const canalPush = {
   nome: 'push',
   disponivel: vapidPronto,
-  async enviar({ titulo, corpo, dados }) {
+  async enviar({ titulo, corpo, dados }, usuario) {
     webpush.setVapidDetails(assuntoVapid(), process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
-    const inscricoes = await listarInscricoes();
+    const inscricoes = await listarInscricoes(usuario);
     if (inscricoes.length === 0) return { enviados: 0, removidos: 0, motivo: 'nenhum aparelho inscrito' };
 
     const carga = JSON.stringify({ titulo, corpo, dados });
@@ -48,14 +48,17 @@ export function canaisAtivos() {
   return CANAIS.filter((c) => c.disponivel());
 }
 
-/** Envia por todos os canais ativos. Um canal que falha não derruba os outros. */
-export async function despachar(mensagem) {
+/**
+ * Envia por todos os canais ativos, só para os aparelhos da conta dona do
+ * lembrete. Um canal que falha não derruba os outros.
+ */
+export async function despachar(mensagem, usuario) {
   const ativos = canaisAtivos();
   if (ativos.length === 0) return [{ canal: 'nenhum', erro: 'nenhum canal configurado' }];
 
   return Promise.all(ativos.map(async (canal) => {
     try {
-      return { canal: canal.nome, ...(await canal.enviar(mensagem)) };
+      return { canal: canal.nome, ...(await canal.enviar(mensagem, usuario)) };
     } catch (erro) {
       console.error(`[${canal.nome}] erro no despacho`, erro);
       return { canal: canal.nome, erro: erro.message };

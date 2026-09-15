@@ -1,6 +1,7 @@
 // Utilidades comuns aos endpoints: resposta JSON, leitura de corpo e as duas
 // portas de autenticação (o PIN da dona do app e o segredo do cron).
 import { timingSafeEqual } from 'node:crypto';
+import { autenticarAcesso } from './store.js';
 
 export function json(res, status, corpo) {
   res.status(status).setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -18,18 +19,22 @@ function iguais(a, b) {
 }
 
 /**
- * O app é de uma pessoa só, mas fica numa URL pública: sem esta porta qualquer
- * um que descubra o endereço escreve no banco e dispara notificações.
+ * Autentica a requisição contra a tabela de contas, passando pelo limite de
+ * tentativas. Devolve `{ usuario }` ou `{ negado: {status, mensagem} }`.
  *
- * Esta é a variante Vercel, mantida como reserva. O que está publicado é a Edge
- * Function, e é lá que mora também o limite de tentativas (verificar_acesso).
+ * Esta é a variante Vercel, mantida como reserva; o que está publicado é a Edge
+ * Function. As duas usam a mesma função do banco, para não divergirem.
  */
-export function autorizado(req) {
-  const usuario = process.env.APP_USUARIO;
-  const senha = process.env.APP_PIN;
-  if (!usuario || !senha) return false;   // sem credencial configurada, nada é liberado
-  return iguais(req.headers['x-lembretes-usuario'], usuario)
-    && iguais(req.headers['x-lembretes-pin'], senha);
+export async function autenticarRequisicao(req) {
+  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || req.socket?.remoteAddress || 'desconhecido';
+  const r = await autenticarAcesso(req.headers['x-lembretes-usuario'], req.headers['x-lembretes-pin'], ip);
+  if (r.permitido) return { usuario: r.usuario };
+  if (r.bloqueadoAte && new Date(r.bloqueadoAte) > new Date()) {
+    const minutos = Math.max(1, Math.ceil((new Date(r.bloqueadoAte) - Date.now()) / 60000));
+    return { negado: { status: 429, mensagem: `Muitas tentativas. Tente de novo em ${minutos} min.` } };
+  }
+  return { negado: { status: 401, mensagem: 'Usuário ou senha incorretos.' } };
 }
 
 export function autorizadoCron(req) {

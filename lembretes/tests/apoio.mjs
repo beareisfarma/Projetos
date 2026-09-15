@@ -4,8 +4,9 @@ import { createServer } from 'node:http';
 import { createServer as criarServidorTLS } from 'node:https';
 import { readFileSync } from 'node:fs';
 
-export function bancoFalso() {
+export function bancoFalso(contasIniciais = {}) {
   const tabelas = { lembretes: new Map(), avisos_fila: new Map(), push_inscricoes: new Map() };
+  const contas = new Map(Object.entries(contasIniciais));
   const chaveFila = (r) => `${r.lembrete_id}#${r.chave}`;
   const chavePrimaria = (tabela, r) => (tabela === 'avisos_fila' ? chaveFila(r) : r.id);
 
@@ -42,6 +43,16 @@ export function bancoFalso() {
     res.setHeader('Content-Type', 'application/json');
 
     try {
+      // Autenticação: contas em memória, com o mesmo contrato da função do banco.
+      if (caminho === '/rpc/autenticar_acesso') {
+        const conta = contas.get(corpo.p_usuario);
+        const ok = Boolean(conta) && conta === corpo.p_senha;
+        res.end(JSON.stringify([{
+          permitido: ok, usuario: ok ? corpo.p_usuario : null, bloqueado_ate: null, erros: ok ? 0 : 1,
+        }]));
+        return;
+      }
+
       // A função que pega e remove os avisos vencidos, no mesmo passo.
       if (caminho === '/rpc/pegar_avisos_vencidos') {
         const agora = Date.now();
@@ -102,6 +113,7 @@ export function bancoFalso() {
     },
     parar: () => new Promise((ok) => servidor.close(ok)),
     espiar: tabelas,
+    contas,
   };
 }
 

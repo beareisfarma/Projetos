@@ -3,7 +3,7 @@
 //   POST   /api/reminders            → cria a partir de recado solto ou de campos já prontos
 //   PATCH  /api/reminders?id=...     → concluir | adiar | reabrir | editar
 //   DELETE /api/reminders?id=...     → apaga de vez
-import { json, erro, autorizado, lerJson, comErros } from './_lib/http.js';
+import { json, erro, autenticarRequisicao, lerJson, comErros } from './_lib/http.js';
 import { criarLembrete } from './_lib/lembrete.js';
 import { montarAvisos, comoFalta, faixa, normalizarAntecedencias } from './_lib/agenda.js';
 import { interpretar } from './_lib/interpretar.js';
@@ -20,9 +20,10 @@ const enriquecer = (l, agora) => ({
     .sort((a, b) => Date.parse(a.em) - Date.parse(b.em))[0] || null,
 });
 
-async function listar(req, res) {
+async function listar(req, res, usuario) {
   const agora = Date.now();
-  const [pendentes, feitos] = await Promise.all([listarPendentes(), listarFeitosRecentes(20)]);
+  const [pendentes, feitos] = await Promise.all([
+    listarPendentes(usuario), listarFeitosRecentes(usuario, 20)]);
   json(res, 200, {
     agora: new Date(agora).toISOString(),
     pendentes: pendentes.map((l) => enriquecer(l, agora)),
@@ -30,7 +31,7 @@ async function listar(req, res) {
   });
 }
 
-async function criar(req, res) {
+async function criar(req, res, usuario) {
   const corpo = await lerJson(req);
   const agora = new Date();
   let lembrete;
@@ -55,13 +56,14 @@ async function criar(req, res) {
     return erro(res, 400, 'Envie "recado" (texto livre) ou "titulo" + "prazo".');
   }
 
-  await salvar(lembrete);
+  await salvar({ ...lembrete, usuario });
   json(res, 201, { lembrete: enriquecer(lembrete, agora.getTime()), recadoOriginal: corpo.recado || null });
 }
 
-async function alterar(req, res, id) {
+async function alterar(req, res, id, usuario) {
   const corpo = await lerJson(req);
-  const lembrete = await obter(id);
+  // Escopado pela conta: o lembrete de outra pessoa responde como inexistente.
+  const lembrete = await obter(id, usuario);
   if (!lembrete) return erro(res, 404, 'Lembrete não encontrado.');
   const agora = Date.now();
 
@@ -120,19 +122,20 @@ async function alterar(req, res, id) {
 
 export default comErros(async (req, res) => {
   if (!armazenamentoConfigurado()) return erro(res, 503, 'Banco não configurado — veja o README.');
-  if (!autorizado(req)) return erro(res, 401, 'PIN inválido.');
+  const { usuario, negado } = await autenticarRequisicao(req);
+  if (negado) return erro(res, negado.status, negado.mensagem);
 
   const id = new URL(req.url, 'http://x').searchParams.get('id');
 
-  if (req.method === 'GET') return listar(req, res);
-  if (req.method === 'POST') return criar(req, res);
+  if (req.method === 'GET') return listar(req, res, usuario);
+  if (req.method === 'POST') return criar(req, res, usuario);
   if (req.method === 'PATCH') {
     if (!id) return erro(res, 400, 'Informe ?id=');
-    return alterar(req, res, id);
+    return alterar(req, res, id, usuario);
   }
   if (req.method === 'DELETE') {
     if (!id) return erro(res, 400, 'Informe ?id=');
-    const lembrete = await obter(id);
+    const lembrete = await obter(id, usuario);
     if (!lembrete) return erro(res, 404, 'Lembrete não encontrado.');
     await remover(lembrete);
     return json(res, 200, { removido: id });
