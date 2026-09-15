@@ -83,6 +83,15 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   A Claude API é **opcional** e só entra em recado sem data reconhecível;
   `MODO_INTERPRETACAO=local` desliga a IA de vez. Sem chave nenhuma o app
   funciona inteiro. Não reintroduzir a IA no caminho crítico.
+- **Recado com dia E hora não abre cartão de conferência**: a resposta do POST
+  traz `dataExplicita`/`horaExplicita` (só na criação, não são colunas) e a tela
+  mostra apenas a faixa "✓ Marcado: … — data, hora · ajustar". Pedir confirmação
+  de uma data que ela mesma disse faz um recado completo parecer rascunho.
+  Dia da semana pelo nome com a hora já vencida rola para a semana seguinte;
+  "hoje"/"dia 20" com hora vencida avisam que passou em vez de inventar outra
+  data — ela nomeou um dia, mover seria mentir.
+- Elemento com `display:flex` no CSS ignora o atributo `hidden` (que só traz
+  `display:none` de fábrica). Sempre acompanhar de `.classe[hidden]{display:none;}`.
 - Nas regex em português, usar as bordas Unicode `(?<![\p{L}\p{N}])` /
   `(?![\p{L}\p{N}])`: o `\b` do JavaScript é ASCII e falha depois de ã/ç/ê.
 - **OneSignal foi avaliado e descartado** (não economiza nada, não contorna a
@@ -139,4 +148,4 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   inline no cabeçalho do app. As listras inclinadas antigas foram aposentadas
   aqui — seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
-- `npm test` em `lembretes/` roda 41 testes com PostgREST e serviço de push falsos.
+- `npm test` em `lembretes/` roda 52 testes com PostgREST e serviço de push falsos.
