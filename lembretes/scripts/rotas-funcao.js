@@ -111,7 +111,10 @@ async function reminders(req, url) {
     const corpo = await req.json();
     let lembrete;
     if (corpo.recado) {
-      lembrete = criarLembrete({ ...interpretar(corpo.recado, new Date(agora)),
+      const lido = interpretar(corpo.recado, new Date(agora));
+      // A observação que ela escreveu vence a que o interpretador deduziu.
+      lembrete = criarLembrete({ ...lido,
+        detalhes: corpo.detalhes !== undefined ? String(corpo.detalhes).slice(0, 500) : lido.detalhes,
         origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora: new Date(agora) });
     } else if (corpo.titulo && corpo.prazo) {
       const prazo = new Date(corpo.prazo);

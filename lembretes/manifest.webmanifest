@@ -1,6 +1,6 @@
 {
-  "name": "Lembretes — prazos que não podem passar",
-  "short_name": "Lembretes",
+  "name": "HD Externo Premium",
+  "short_name": "HD Externo",
   "description": "Captura por texto ou áudio, escada de avisos e notificação push antes do prazo.",
   "start_url": "./",
   "scope": "./",

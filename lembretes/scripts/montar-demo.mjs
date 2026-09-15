@@ -36,11 +36,11 @@ ${nucleo}
   const banco = new Map();
   const novoId = () => Math.random().toString(36).slice(2, 10);
 
-  function montar(lido, origem, antecedencias) {
+  function montar(lido, origem, antecedencias, detalhes) {
     const prazoIso = lido.prazo.toISOString();
     const id = novoId();
     const l = {
-      id, titulo: lido.titulo, detalhes: lido.detalhes || '', prazo: prazoIso,
+      id, titulo: lido.titulo, detalhes: (detalhes || lido.detalhes || ''), prazo: prazoIso,
       status: 'pendente', origem, motor: lido.motor || 'local',
       confianca: lido.confianca, observacao: lido.observacao || '',
       criadoEm: new Date().toISOString(),
@@ -135,7 +135,7 @@ ${nucleo}
           prazo: new Date(Date.now() + 86400e3), confianca: 'baixa', motor: 'palpite',
           observacao: 'Não identifiquei data no recado — deixei para amanhã. Ajuste o prazo.',
         };
-        return responder({ lembrete: enriquecer(montar(lido, corpo.origem || 'texto', corpo.antecedencias)) }, 201);
+        return responder({ lembrete: enriquecer(montar(lido, corpo.origem || 'texto', corpo.antecedencias, corpo.detalhes)) }, 201);
       }
       const l = banco.get(id);
       if (!l) return responder({ erro: 'Lembrete não encontrado.' }, 404);

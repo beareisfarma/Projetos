@@ -38,7 +38,10 @@ async function criar(req, res) {
   if (corpo.recado) {
     // Caminho normal: texto solto ou transcrição de áudio.
     const lido = await interpretar(corpo.recado, agora);
-    lembrete = criarLembrete({ ...lido, origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora });
+    // A observação que ela escreveu vence a que o interpretador deduziu.
+    lembrete = criarLembrete({ ...lido,
+      detalhes: corpo.detalhes !== undefined ? String(corpo.detalhes).slice(0, 500) : lido.detalhes,
+      origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora });
   } else if (corpo.titulo && corpo.prazo) {
     // Caminho do formulário, quando ela corrige o que foi interpretado.
     const prazo = new Date(corpo.prazo);

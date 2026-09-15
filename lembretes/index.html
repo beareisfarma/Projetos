@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Lembretes</title>
+<title>HD Externo Premium</title>
 <meta name="theme-color" content="#f1f4f9">
 <meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Lembretes">
+<meta name="apple-mobile-web-app-title" content="HD Externo Premium">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
   :root{
@@ -80,7 +80,8 @@
   .selo .listras span:nth-child(1){height:52%}
   .selo .listras span:nth-child(2){height:76%}
   .selo .listras span:nth-child(3){height:100%}
-  header h1{font-size:1.35rem; font-weight:700; letter-spacing:-.02em; margin:0;}
+  header h1{font-size:1.3rem; font-weight:700; letter-spacing:-.02em; margin:0;
+    line-height:1.15; text-wrap:balance;}
   .acoes-topo{display:flex; gap:.35rem; flex:0 0 auto;}
   .icone{
     background:transparent; color:var(--ink-2); border:1px solid var(--line);
@@ -241,7 +242,7 @@
       <span class="selo" aria-hidden="true">
         <span class="listras"><span></span><span></span><span></span></span>
       </span>
-      <h1>Lembretes</h1>
+      <h1>HD Externo Premium</h1>
     </div>
     <div class="acoes-topo">
       <button class="icone" id="btnAtualizar" title="Atualizar" aria-label="Atualizar">&#8635;</button>
@@ -263,12 +264,15 @@
   <main id="app" hidden>
     <div class="abertura">
       <p class="sobretitulo">Seus prazos, sem surpresa</p>
-      <h2 id="fraseTopo">Nada passa em branco.</h2>
     </div>
 
     <section class="cartao">
-      <label for="recado">O que você não pode perder?</label>
+      <label for="recado">Me conte o que você não pode esquecer</label>
       <textarea id="recado" placeholder="Ex.: enviar o relatório da Pharma sexta às 14h"></textarea>
+      <div style="margin-top:.7rem;">
+        <label for="obsNova">Observação <span style="text-transform:none;letter-spacing:0;font-weight:500;">(opcional)</span></label>
+        <textarea id="obsNova" style="min-height:3.2rem;" placeholder="Ex.: levar as duas vias assinadas"></textarea>
+      </div>
       <div class="botoes">
         <button class="btn neutro" id="btnGravar">&#127908; Gravar</button>
         <button class="btn principal" id="btnAdicionar">Adicionar</button>
@@ -475,10 +479,6 @@ function render(){
   $('numPendentes').textContent = estado.pendentes.length;
   $('numHoje').textContent = estado.pendentes.filter((l) => l.faixa === 'hoje').length;
   $('numAtraso').textContent = estado.pendentes.filter((l) => l.faixa === 'atrasado').length;
-  $('fraseTopo').textContent = estado.pendentes.length === 0
-    ? 'Nada passa em branco.'
-    : estado.pendentes.some((l) => l.faixa === 'atrasado')
-      ? 'Comece pelo que já passou.' : 'Uma coisa de cada vez.';
 
   const alvo = $('lista');
   if (estado.aba === 'feitos'){
@@ -614,12 +614,14 @@ async function interpretarRecado(texto, origem){
   try {
     const { lembrete } = await api('api/reminders', {
       method:'POST',
-      body: JSON.stringify({ recado: texto, origem, antecedencias: estado.antecedenciasNovas }),
+      body: JSON.stringify({ recado: texto, origem, detalhes: $('obsNova').value.trim(),
+                             antecedencias: estado.antecedenciasNovas }),
     });
     // Salvo já — a confirmação serve para corrigir, não para autorizar. Um prazo
     // que depende de um segundo toque é um prazo que se perde no segundo toque.
     estado.proposta = lembrete;
     $('recado').value = '';
+    $('obsNova').value = '';
     $('confTitulo').value = lembrete.titulo;
     // `detalhes` é a observação que ela escreve; `observacao` é o alerta do
     // interpretador sobre a data. Nomes parecidos, papéis diferentes.
