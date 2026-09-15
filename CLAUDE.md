@@ -38,6 +38,16 @@ Padrão de aplicação em rodapé (copiar dos apps existentes): SVG inline com
   `cronometro-jogos/sw.js`).
 - Fluxo de publicação: commitar na branch de trabalho, push, e fazer
   fast-forward merge para `main` (a Vercel publica sozinha).
+- **Vercel via MCP: o `teamId` é o slug `beareisfarma`**, NUNCA o `accountId`
+  `team_66bC2Y1ngoNCmOwjkyA5D10I` que aparece na listagem de projetos. Passar o
+  accountId devolve `403 forbidden ... scope "beareisfarmas-projects"`, que
+  parece problema de autorização do conector e não é. Já custou uma
+  reconexão inútil do conector.
+- Projeto novo na Vercel nasce com **Vercel Authentication ligada**: a URL pede
+  login antes de abrir. Desligar com `update_project_deployment_protection`
+  (`ssoProtection.enabled=false`), senão o PWA e o push não funcionam.
+- **Não existe ferramenta MCP para definir variáveis de ambiente na Vercel.**
+  Esse passo é sempre manual, no painel.
 
 ## App "Lembretes" (`lembretes/`)
 
@@ -45,7 +55,7 @@ Assistente pessoal de prazos da Beatriz: ela manda um recado por texto ou áudio
 a Claude API interpreta a data, o sistema agenda uma **escada de avisos**
 (7d/3d/1d/no dia/3h/30min/na hora/+2h se atrasado) e notifica por Web Push.
 
-**É um projeto Vercel separado** do `cronometro-gamer` — tem backend, então o
+**Projeto Vercel `lembretes`** (`prj_zYwqWIfQabSbyjPuYyvsCPss5FBn`), separado do `cronometro-gamer` — tem backend, então o
 Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 
 - **O projeto é de custo zero, e isso é um requisito, não um detalhe.** Tudo roda
@@ -77,5 +87,6 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - Regras que não devem ser quebradas em manutenções futuras: adiar move o
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
+- **URL: https://lembretes-olive.vercel.app** (deploy automático da `main`).
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
 - `npm test` em `lembretes/` roda 41 testes com PostgREST e serviço de push falsos.
