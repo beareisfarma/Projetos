@@ -135,6 +135,18 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   Derrubar no 429 faz a senha certa ser recusada e parecer que mudou sozinha.
   E `entrar()` faz **uma** requisição só (ela valida e já traz a lista): duas
   gastavam duas das cinco tentativas por abertura do app.
+- **Perfil da conta** (`api/perfil.js` e a rota `perfil` na função): o nome que a
+  pessoa deu ao assistente (coluna `usuarios.assistente`, máx. 24) e a troca de
+  senha. O nome fica na **conta**, não no aparelho — trocar de celular não apaga.
+  A apresentação ("Olá, chefe!…") só aparece quando o servidor **respondeu** e
+  disse que não há nome; falha de rede não pode fazer o app perguntar de novo a
+  quem já batizou o assistente.
+  **Troca de senha**: pede a senha atual mesmo com a sessão aberta (celular
+  desbloqueado na mão de outra pessoa não vira troca de senha), confere contra o
+  hash dentro do Postgres (`trocar_senha`, security definer), mínimo 6
+  caracteres. **Depois de trocar, a tela precisa atualizar a senha guardada no
+  localStorage E no IndexedDB** — senão a próxima abertura tenta a senha velha,
+  toma 401 e queima o limite de tentativas até se trancar sozinha.
 - **Segredos ficam na tabela `config_app`** (RLS ligado, sem policy), lida pela
   função no primeiro request. Não colocar segredo em arquivo, em variável de
   ambiente nem no git.
@@ -179,4 +191,4 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   colorido — o resto viria preto sobre o fundo azul, ou seja, invisível.
   As listras inclinadas seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
-- `npm test` em `lembretes/` roda 54 testes com PostgREST e serviço de push falsos.
+- `npm test` em `lembretes/` roda 63 testes com PostgREST e serviço de push falsos.
