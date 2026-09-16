@@ -5,10 +5,16 @@ import { createServer as criarServidorTLS } from 'node:https';
 import { readFileSync } from 'node:fs';
 
 export function bancoFalso(contasIniciais = {}) {
-  const tabelas = { lembretes: new Map(), avisos_fila: new Map(), push_inscricoes: new Map() };
+  const tabelas = {
+    lembretes: new Map(), avisos_fila: new Map(), push_inscricoes: new Map(), usuarios: new Map(),
+  };
   const contas = new Map(Object.entries(contasIniciais));
+  // A senha mora em `contas` (como o hash mora fora do alcance da API no banco
+  // real); a linha de `usuarios` guarda só o que a API pode ler e escrever.
+  for (const usuario of contas.keys()) tabelas.usuarios.set(usuario, { usuario, assistente: null });
   const chaveFila = (r) => `${r.lembrete_id}#${r.chave}`;
-  const chavePrimaria = (tabela, r) => (tabela === 'avisos_fila' ? chaveFila(r) : r.id);
+  const chavePrimaria = (tabela, r) =>
+    tabela === 'avisos_fila' ? chaveFila(r) : tabela === 'usuarios' ? r.usuario : r.id;
 
   // Só os filtros que o store.js realmente emite: id=eq.X, status=eq.Y,
   // lembrete_id=eq.Z. Se aparecer um operador novo, o teste falha alto em vez
@@ -50,6 +56,22 @@ export function bancoFalso(contasIniciais = {}) {
         res.end(JSON.stringify([{
           permitido: ok, usuario: ok ? corpo.p_usuario : null, bloqueado_ate: null, erros: ok ? 0 : 1,
         }]));
+        return;
+      }
+
+      // Troca de senha: mesmo contrato da função do banco, inclusive a ordem
+      // das recusas (tamanho antes de conferir a senha atual).
+      if (caminho === '/rpc/trocar_senha') {
+        const atualDaConta = contas.get(corpo.p_usuario);
+        let resposta;
+        if (!corpo.p_nova || String(corpo.p_nova).length < 6) resposta = { ok: false, motivo: 'curta' };
+        else if (atualDaConta === undefined || atualDaConta !== corpo.p_atual) {
+          resposta = { ok: false, motivo: 'atual' };
+        } else {
+          contas.set(corpo.p_usuario, corpo.p_nova);
+          resposta = { ok: true, motivo: null };
+        }
+        res.end(JSON.stringify([resposta]));
         return;
       }
 

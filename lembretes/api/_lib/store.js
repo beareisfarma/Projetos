@@ -229,3 +229,30 @@ export async function autenticarAcesso(usuario, senha, ip) {
   if (!r) return { permitido: false, usuario: null, bloqueadoAte: null, erros: 0 };
   return { permitido: r.permitido, usuario: r.usuario, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
 }
+
+/** Perfil da conta: por enquanto só o nome que ela deu ao assistente. */
+export async function obterPerfil(usuario) {
+  const linhas = await selecionar(
+    `/usuarios?usuario=eq.${encodeURIComponent(usuario)}&select=usuario,assistente`);
+  const r = linhas?.[0];
+  return r ? { usuario: r.usuario, assistente: r.assistente || '' } : null;
+}
+
+export async function definirAssistente(usuario, nome) {
+  await atualizar(`/usuarios?usuario=eq.${encodeURIComponent(usuario)}`, { assistente: nome || null });
+  return { usuario, assistente: nome || '' };
+}
+
+/**
+ * Troca a senha. A conferência da senha atual acontece dentro do Postgres,
+ * contra o hash — aqui nunca passa hash nem comparação de senha em claro.
+ * @returns {{ok: boolean, motivo: 'curta'|'atual'|null}}
+ */
+export async function trocarSenha(usuario, atual, nova) {
+  const linhas = await rest('/rpc/trocar_senha', {
+    method: 'POST',
+    body: JSON.stringify({ p_usuario: usuario, p_atual: atual || '', p_nova: nova || '' }),
+  });
+  const r = linhas?.[0];
+  return { ok: Boolean(r?.ok), motivo: r?.motivo || null };
+}

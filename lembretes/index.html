@@ -236,6 +236,17 @@
     .abas button{font-size:.83rem;}
   }
   @media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important;} }
+  .titulos{min-width:0;}
+  .apelido{
+    margin:.1rem 0 0; font-size:.82rem; font-weight:600; letter-spacing:.02em;
+    color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .apelido[hidden]{display:none;}
+  .boas-vindas .fala{margin:0; font-size:1.15rem; font-weight:700;}
+  .boas-vindas .fala-2{margin:.3rem 0 .9rem; color:var(--ink-2); line-height:1.4;}
+  .divisor{height:1px; background:var(--line); margin:1.1rem 0 .9rem;}
+  .ok-linha{margin:.5rem 0 0; font-size:.88rem; font-weight:600; color:var(--ok);}
+  .ok-linha[hidden]{display:none;}
   .limite{
     margin:0 0 .9rem; padding:.75rem .9rem; border-radius:14px;
     background:var(--alerta-suave); color:var(--alerta);
@@ -262,9 +273,13 @@
   <header>
     <div class="marca">
       <span class="selo" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"> <g fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round"> <path d="M30 24 H52 A20 20 0 0 1 52 64 H30"/> </g> <rect x="22" y="16" width="15" height="70" rx="7.5" fill="currentColor"/> <circle cx="52" cy="40" r="8" fill="currentColor"/> </svg></span>
-      <h1>Personal Assistant</h1>
+      <div class="titulos">
+        <h1>Personal Assistant</h1>
+        <p class="apelido" id="apelido" hidden></p>
+      </div>
     </div>
     <div class="acoes-topo">
+      <button class="icone" id="btnConfig" title="Configurações" aria-label="Configurações" hidden>&#9881;</button>
       <button class="icone" id="btnAtualizar" title="Atualizar" aria-label="Atualizar">&#8635;</button>
       <button class="icone" id="btnTema" title="Tema" aria-label="Alternar tema">&#9789;</button>
     </div>
@@ -288,6 +303,52 @@
 
   <main id="app" hidden>
     <p class="limite" id="limite" hidden></p>
+
+    <section class="cartao boas-vindas" id="boasVindas" hidden>
+      <p class="fala">Olá, chefe! 👋</p>
+      <p class="fala-2">Eu sou o seu assistente pessoal. Como você quer me chamar?</p>
+      <input type="text" id="nomeAssistente" maxlength="24" placeholder="Ex.: Jarvis, Sofia, Chefe de Gabinete"
+             autocomplete="off" autocapitalize="words">
+      <p class="erro" id="erroNome" hidden></p>
+      <div class="botoes">
+        <button class="btn neutro" id="btnDepois">Agora não</button>
+        <button class="btn principal" id="btnBatizar">Salvar nome</button>
+      </div>
+    </section>
+
+    <section class="cartao" id="config" hidden>
+      <label>Configurações</label>
+
+      <div style="margin-top:.5rem;">
+        <label for="cfgNome">Nome do assistente</label>
+        <input type="text" id="cfgNome" maxlength="24" placeholder="Sem nome" autocomplete="off" autocapitalize="words">
+      </div>
+      <p class="erro" id="cfgErroNome" hidden></p>
+      <p class="ok-linha" id="cfgOkNome" hidden></p>
+
+      <div class="divisor"></div>
+
+      <label>Trocar a senha de acesso</label>
+      <div style="margin-top:.5rem;">
+        <label for="cfgSenhaAtual">Senha atual</label>
+        <input type="password" id="cfgSenhaAtual" autocomplete="current-password">
+      </div>
+      <div style="margin-top:.6rem;">
+        <label for="cfgSenhaNova">Senha nova <span style="text-transform:none;letter-spacing:0;font-weight:500;">(mínimo 6)</span></label>
+        <input type="password" id="cfgSenhaNova" autocomplete="new-password">
+      </div>
+      <div style="margin-top:.6rem;">
+        <label for="cfgSenhaConfere">Repita a senha nova</label>
+        <input type="password" id="cfgSenhaConfere" autocomplete="new-password">
+      </div>
+      <p class="erro" id="cfgErroSenha" hidden></p>
+      <p class="ok-linha" id="cfgOkSenha" hidden></p>
+
+      <div class="botoes">
+        <button class="btn neutro" id="btnFecharConfig">Fechar</button>
+        <button class="btn principal" id="btnSalvarConfig">Salvar</button>
+      </div>
+    </section>
     <div class="abertura">
       <p class="sobretitulo">Seus prazos, sem surpresa</p>
     </div>
@@ -379,6 +440,7 @@ const estado = {
   usuario: null, pin: null, pendentes: [], feitos: [], proposta: null,
   gravador: null, pedacos: [], aba: 'pendentes',
   antecedenciasNovas: ['d1', 'h1'], editando: null, pinNoBanco: null,
+  assistente: '',
 };
 
 // As opções de antecedência: precisam bater com ANTECEDENCIAS em api/_lib/agenda.js.
@@ -677,6 +739,112 @@ async function carregar(){
   }
 }
 
+// ─── Perfil: o nome que ela deu ao assistente ───────────────────────────────
+function mostrarApelido(){
+  const nome = estado.assistente;
+  $('apelido').textContent = nome || '';
+  $('apelido').hidden = !nome;
+  $('cfgNome').value = nome || '';
+}
+
+/** Na primeira vez o assistente se apresenta; depois, nunca mais. */
+async function carregarPerfil(){
+  let perfil = null;
+  try { ({ perfil } = await api('api/perfil')); }
+  catch(e){
+    // Sem perfil o app inteiro continua funcionando — é enfeite, não prazo.
+    // Não vale derrubar a sessão nem gastar tentativa por causa disso.
+    if (e.status === 401) return;
+  }
+  estado.assistente = perfil?.assistente || '';
+  mostrarApelido();
+  $('btnConfig').hidden = false;
+  // `perfil` nulo = não consegui perguntar. Nesse caso NÃO me apresento: quem
+  // já batizou o assistente não pode ser perguntado de novo por causa de uma
+  // falha de rede.
+  if (perfil && !estado.assistente) $('boasVindas').hidden = false;
+}
+
+async function salvarNome(nome, ondeErro){
+  const erro = (t) => { ondeErro.textContent = t || ''; ondeErro.hidden = !t; };
+  erro('');
+  try {
+    const { perfil } = await api('api/perfil', {
+      method: 'PATCH', body: JSON.stringify({ assistente: nome }),
+    });
+    estado.assistente = perfil?.assistente || '';
+    mostrarApelido();
+    return true;
+  } catch(e){
+    if (!tratouAcesso(e) || e.status === 429) erro(e.message);
+    return false;
+  }
+}
+
+$('btnBatizar').onclick = async () => {
+  const nome = $('nomeAssistente').value.trim();
+  if (!nome) { $('erroNome').textContent = 'Escreva um nome, ou toque em "Agora não".';
+               $('erroNome').hidden = false; return; }
+  $('btnBatizar').disabled = true;
+  if (await salvarNome(nome, $('erroNome'))) $('boasVindas').hidden = true;
+  $('btnBatizar').disabled = false;
+};
+$('btnDepois').onclick = () => { $('boasVindas').hidden = true; };
+$('nomeAssistente').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') $('btnBatizar').click();
+});
+
+// ─── Configurações ──────────────────────────────────────────────────────────
+function abrirConfig(){
+  mostrarApelido();
+  for (const id of ['cfgSenhaAtual','cfgSenhaNova','cfgSenhaConfere']) $(id).value = '';
+  for (const id of ['cfgErroNome','cfgOkNome','cfgErroSenha','cfgOkSenha']) $(id).hidden = true;
+  $('config').hidden = false;
+  $('boasVindas').hidden = true;
+}
+$('btnConfig').onclick = () => { $('config').hidden ? abrirConfig() : ($('config').hidden = true); };
+$('btnFecharConfig').onclick = () => { $('config').hidden = true; };
+
+$('btnSalvarConfig').onclick = async () => {
+  const atual = $('cfgSenhaAtual').value;
+  const nova = $('cfgSenhaNova').value;
+  const confere = $('cfgSenhaConfere').value;
+  const erroSenha = (t) => { $('cfgErroSenha').textContent = t || ''; $('cfgErroSenha').hidden = !t; };
+  $('cfgOkNome').hidden = true; $('cfgOkSenha').hidden = true; erroSenha('');
+
+  $('btnSalvarConfig').disabled = true;
+  try {
+    // Nome primeiro: se a senha falhar, o nome já está salvo e ela não perde
+    // as duas coisas por causa de uma.
+    if (($('cfgNome').value.trim() || '') !== (estado.assistente || '')){
+      if (await salvarNome($('cfgNome').value.trim(), $('cfgErroNome'))){
+        $('cfgOkNome').textContent = '✓ Nome salvo.'; $('cfgOkNome').hidden = false;
+      }
+    }
+
+    if (!atual && !nova && !confere) return;                 // só mexeu no nome
+    if (!atual) return erroSenha('Informe a senha atual.');
+    if (nova.length < 6) return erroSenha('A senha nova precisa ter pelo menos 6 caracteres.');
+    if (nova !== confere) return erroSenha('As duas senhas novas não batem.');
+
+    await api('api/perfil', {
+      method: 'PATCH', body: JSON.stringify({ senhaAtual: atual, senhaNova: nova }),
+    });
+    // O aparelho guarda a senha para entrar sozinho. Se ela não for atualizada
+    // aqui, a próxima abertura tenta com a senha velha, toma 401 e ainda queima
+    // tentativa do limite — o app se trancaria fora sozinho.
+    estado.pin = nova;
+    try { localStorage.setItem('lembretes_pin', nova); } catch(e){}
+    estado.pinNoBanco = await guardarPinNoBanco(estado.usuario, nova);
+
+    for (const id of ['cfgSenhaAtual','cfgSenhaNova','cfgSenhaConfere']) $(id).value = '';
+    $('cfgOkSenha').textContent = '✓ Senha trocada. Este aparelho já está com a nova.';
+    $('cfgOkSenha').hidden = false;
+  } catch(e){
+    if (!tratouAcesso(e) || e.status === 429) erroSenha(e.message);
+  } finally { $('btnSalvarConfig').disabled = false; }
+};
+
 // ─── Captura ────────────────────────────────────────────────────────────────
 const statusCaptura = (t) => { $('statusCaptura').textContent = t || ''; $('statusCaptura').hidden = !t; };
 const erroCaptura = (t) => { $('erroCaptura').textContent = t || ''; $('erroCaptura').hidden = !t; };
@@ -923,6 +1091,8 @@ async function ativarPush(){
 // ─── Entrada ────────────────────────────────────────────────────────────────
 function mostrarTelaPin(mensagem){
   $('telaPin').hidden = false; $('app').hidden = true; $('avisos').innerHTML = '';
+  $('btnConfig').hidden = true; $('config').hidden = true; $('boasVindas').hidden = true;
+  $('apelido').hidden = true; estado.assistente = '';
   $('erroPin').hidden = !mensagem; $('erroPin').textContent = mensagem || '';
   ($('campoUsuario').value.trim() ? $('campoPin') : $('campoUsuario')).focus();
 }
@@ -949,7 +1119,9 @@ async function entrar(usuario, pin){
   limparLimite();
   fichasDaCaptura();
   renderAvisos();
+  $('config').hidden = true;
   if (dados) aplicar(dados); else await carregar();
+  await carregarPerfil();
 }
 
 $('btnEntrar').onclick = () => {

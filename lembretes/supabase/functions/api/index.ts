@@ -683,6 +683,33 @@ async function autenticarAcesso(usuario, senha, ip) {
   return { permitido: r.permitido, usuario: r.usuario, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
 }
 
+/** Perfil da conta: por enquanto só o nome que ela deu ao assistente. */
+async function obterPerfil(usuario) {
+  const linhas = await selecionar(
+    `/usuarios?usuario=eq.${encodeURIComponent(usuario)}&select=usuario,assistente`);
+  const r = linhas?.[0];
+  return r ? { usuario: r.usuario, assistente: r.assistente || '' } : null;
+}
+
+async function definirAssistente(usuario, nome) {
+  await atualizar(`/usuarios?usuario=eq.${encodeURIComponent(usuario)}`, { assistente: nome || null });
+  return { usuario, assistente: nome || '' };
+}
+
+/**
+ * Troca a senha. A conferência da senha atual acontece dentro do Postgres,
+ * contra o hash — aqui nunca passa hash nem comparação de senha em claro.
+ * @returns {{ok: boolean, motivo: 'curta'|'atual'|null}}
+ */
+async function trocarSenha(usuario, atual, nova) {
+  const linhas = await rest('/rpc/trocar_senha', {
+    method: 'POST',
+    body: JSON.stringify({ p_usuario: usuario, p_atual: atual || '', p_nova: nova || '' }),
+  });
+  const r = linhas?.[0];
+  return { ok: Boolean(r?.ok), motivo: r?.motivo || null };
+}
+
 // Despacho de avisos. A lista de canais é a costura de extensão do sistema: hoje
 // só existe o push do PWA; acrescentar Telegram ou WhatsApp é acrescentar um
 // objeto aqui com a mesma interface, sem tocar no resto do núcleo.
@@ -868,6 +895,7 @@ async function rotear(req) {
   if (rota === 'subscribe') return await subscribe(req);
   if (rota === 'transcribe') return await transcribe(req);
   if (rota === 'reminders') return await reminders(req, url);
+  if (rota === 'perfil') return await perfil(req);
   if (rota === '' || rota === 'saude') {
     // Diagnóstico sem segredo: diz o que está configurado, nunca os valores.
     return json({
@@ -939,6 +967,37 @@ async function transcribe(req) {
   const texto = String(JSON.parse(bruto).text || '').trim();
   if (!texto) return erro(422, 'Não consegui entender o áudio. Tente de novo ou digite.');
   return json({ texto, provedor: provedor.nome });
+}
+
+// Nome do assistente e troca de senha. Tudo escopado na conta autenticada:
+// não existe "?usuario=" aqui, senão mexer no perfil alheio seria um parâmetro.
+async function perfil(req) {
+  if (!armazenamentoConfigurado()) return erro(503, 'Banco não configurado.');
+  const { usuario, resposta } = await autenticar(req); if (resposta) return resposta;
+
+  if (req.method === 'GET') return json({ perfil: await obterPerfil(usuario) });
+  if (req.method !== 'PATCH') return erro(405, 'Método não permitido.');
+
+  const corpo = await req.json();
+
+  if (corpo.senhaNova !== undefined) {
+    // A senha atual é pedida de novo mesmo com a sessão aberta: um celular
+    // desbloqueado na mão de outra pessoa não deve virar troca de senha.
+    const r = await trocarSenha(usuario, corpo.senhaAtual, corpo.senhaNova);
+    if (!r.ok) {
+      return erro(400, r.motivo === 'curta'
+        ? 'A senha nova precisa ter pelo menos 6 caracteres.'
+        : 'Senha atual incorreta.');
+    }
+    return json({ trocada: true });
+  }
+
+  if (corpo.assistente !== undefined) {
+    const nome = String(corpo.assistente).trim().slice(0, 24);
+    return json({ perfil: await definirAssistente(usuario, nome) });
+  }
+
+  return erro(400, 'Envie "assistente" ou "senhaAtual" + "senhaNova".');
 }
 
 async function reminders(req, url) {

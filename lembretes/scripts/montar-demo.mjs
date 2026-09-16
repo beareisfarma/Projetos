@@ -34,6 +34,8 @@ const process = { env: {} };   // os módulos leem process.env; no navegador nã
 ${nucleo}
 
   const banco = new Map();
+  let assistente = '';
+  let senhaDemo = 'Mike2026';
   const novoId = () => Math.random().toString(36).slice(2, 10);
 
   function montar(lido, origem, antecedencias, detalhes) {
@@ -113,6 +115,20 @@ ${nucleo}
 
     if (url.pathname === '/api/subscribe') {
       return responder(metodo === 'GET' ? { chavePublica: 'demo' } : { ok: true });
+    }
+
+    if (url.pathname === '/api/perfil') {
+      if (metodo === 'GET') return responder({ perfil: { usuario: 'demo', assistente } });
+      if (corpo.senhaNova !== undefined) {
+        if (corpo.senhaAtual !== senhaDemo) return responder({ erro: 'Senha atual incorreta.' }, 400);
+        if (String(corpo.senhaNova).length < 6) {
+          return responder({ erro: 'A senha nova precisa ter pelo menos 6 caracteres.' }, 400);
+        }
+        senhaDemo = corpo.senhaNova;
+        return responder({ trocada: true });
+      }
+      assistente = String(corpo.assistente || '').trim().slice(0, 24);
+      return responder({ perfil: { usuario: 'demo', assistente } });
     }
 
     if (url.pathname === '/api/transcribe') {
