@@ -73,12 +73,12 @@
 
   /* ── cabeçalho ───────────────────────────────────────────────── */
   header{display:flex; align-items:center; justify-content:space-between; gap:.5rem;}
-  .marca{display:flex; align-items:center; gap:.65rem;}
+  .marca{display:flex; align-items:center; gap:.65rem; min-width:0;}
   .selo{
     width:2.6rem; height:2.6rem; border-radius:.8rem;
-    /* Fundo fixo, NÃO var(--ink): no tema escuro --ink é quase branco, e o P
-       neon sobre branco some. Logo não inverte com o tema — é a mesma marca
-       nos dois, como no ícone da tela de início. */
+    /* Fundo fixo, NÃO var(--ink): esse token vira quase branco no tema escuro
+       e já fez a logo sumir uma vez. Logo não inverte com o tema — é a mesma
+       marca nos dois, como no ícone da tela de início. */
     background:var(--selo-fundo); display:flex; align-items:center; justify-content:center;
     flex:0 0 auto;
   }
@@ -87,8 +87,14 @@
     line-height:1.15; text-wrap:balance;}
   .acoes-topo{display:flex; gap:.35rem; flex:0 0 auto;}
   .icone{
+    /* Largura FIXA de propósito. Com padding, a largura seguia o glifo — e o
+       iOS desenha ☀ como emoji (largo) e ☽ como texto (estreito), então trocar
+       de tema mexia no espaço do título e "Personal Assistant" quebrava em duas
+       linhas só no escuro. Botão de tamanho fixo mata isso na raiz. */
+    width:2.15rem; height:2.15rem; padding:0;
+    display:inline-flex; align-items:center; justify-content:center;
     background:transparent; color:var(--ink-2); border:1px solid var(--line);
-    border-radius:.6rem; padding:.45rem .6rem; font-size:.95rem; cursor:pointer; line-height:1;
+    border-radius:.6rem; font-size:.95rem; cursor:pointer; line-height:1;
   }
   .icone:hover{border-color:var(--line-forte);}
 
@@ -278,9 +284,9 @@
       </div>
     </div>
     <div class="acoes-topo">
-      <button class="icone" id="btnConfig" title="Configurações" aria-label="Configurações" hidden>&#9881;</button>
+      <button class="icone" id="btnConfig" title="Configurações" aria-label="Configurações" hidden>&#9881;&#xFE0E;</button>
       <button class="icone" id="btnAtualizar" title="Atualizar" aria-label="Atualizar">&#8635;</button>
-      <button class="icone" id="btnTema" title="Tema" aria-label="Alternar tema">&#9789;</button>
+      <button class="icone" id="btnTema" title="Tema" aria-label="Alternar tema">&#9789;&#xFE0E;</button>
     </div>
   </header>
 
@@ -456,7 +462,9 @@ const rotuloAnte = (c) => ANTECEDENCIAS.find((a) => a.chave === c)?.curto || c;
 // ─── Tema ───────────────────────────────────────────────────────────────────
 function aplicarTema(escuro){
   document.documentElement.classList.toggle('dark', escuro);
-  $('btnTema').textContent = escuro ? '☀' : '☽';
+  // \uFE0E = apresentação de texto. Sem ele o iOS pinta o ☀ como emoji,
+  // que além de destoar do ↻ é mais largo que o ☽.
+  $('btnTema').textContent = escuro ? '\u2600\uFE0E' : '\u263D\uFE0E';
   document.querySelector('meta[name=theme-color]').setAttribute('content', escuro ? '#0e1420' : '#f1f4f9');
   try { localStorage.setItem('lembretes_tema', escuro ? 'dark' : 'light'); } catch(e){}
 }

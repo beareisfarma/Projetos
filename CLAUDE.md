@@ -101,6 +101,12 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   fez a logo sumir uma vez. Logo não inverte com o tema — é a mesma marca nos dois,
   igual ao ícone da tela de início. **Toda mudança de logo/cor tem que ser vista
   nos dois temas**, não só no claro.
+- **Os botões do topo (`.icone`) têm largura FIXA**, não padding. Com padding a
+  largura seguia o glifo, e o iOS desenha `☀` como emoji (largo) e `☽` como
+  texto (estreito) — trocar de tema mudava a largura do bloco de ações e o
+  título "Personal Assistant" quebrava em duas linhas **só no tema escuro**.
+  Os glifos levam `\uFE0E` (apresentação de texto) para não virarem emoji
+  colorido, mas isso é tentativa: quem garante o layout é a largura fixa.
 - Elemento com `display:flex` no CSS ignora o atributo `hidden` (que só traz
   `display:none` de fábrica). Sempre acompanhar de `.classe[hidden]{display:none;}`.
 - Nas regex em português, usar as bordas Unicode `(?<![\p{L}\p{N}])` /
