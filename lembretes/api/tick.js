@@ -10,6 +10,7 @@
 // silêncio aqui é exatamente o que quebra a confiança no sistema.
 import { json, erro, autorizadoCron, comErros } from './_lib/http.js';
 import { textoDoAviso } from './_lib/lembrete.js';
+import { avisoDeAtraso } from './_lib/agenda.js';
 import { despachar, canaisAtivos } from './_lib/canais.js';
 import {
   avisosVencidos, obter, gravarAvisos, reenfileirar,
@@ -57,19 +58,31 @@ export default comErros(async (req, res) => {
       ? { ...a, tentativas, enviadoEm: new Date(agora).toISOString(), entregues }
       : a);
 
-    // Prazo estourado e ainda pendente: cobra uma vez, duas horas depois.
-    let cobranca = null;
+    // Enquanto o prazo estiver vencido e o lembrete pendente, sempre existe o
+    // aviso do dia seguinte na fila. Cada disparo agenda o próximo, então a
+    // corrente anda sozinha e para no dia em que ela conclui — o tick ignora
+    // lembrete que não está mais pendente, e a linha da fila morre com ele.
+    const aAgendar = [];
+
+    // Cobrança do mesmo dia: uma vez, duas horas depois do prazo.
     if (aviso.chave === 'prazo' && entregues > 0) {
-      cobranca = {
-        chave: 'atraso',
-        em: new Date(agora + COBRANCA_ATRASO_MS).toISOString(),
-        rotulo: 'Passou do prazo e ainda está pendente',
-      };
-      avisos.push(cobranca);
+      aAgendar.push({ chave: 'atraso', em: new Date(agora + COBRANCA_ATRASO_MS).toISOString(),
+        rotulo: 'Passou do prazo e ainda está pendente' });
     }
 
+    // O aviso diário não depende de a entrega ter dado certo: se ela ficou sem
+    // aparelho inscrito por uns dias, a corrente precisa estar viva quando
+    // voltar. Agendar duas vezes a mesma chave é o que o `some` evita.
+    // A referência é a hora MARCADA do aviso que acabou de sair, não o relógio.
+    // Disparando adiantado (tick fora de hora, retentativa), o relógio ainda
+    // apontaria para o mesmo dia e a corrente travaria repetindo a mesma chave.
+    const referencia = Math.max(agora, Date.parse(aviso.em) || 0);
+    const diario = avisoDeAtraso(Date.parse(lembrete.prazo), referencia);
+    if (diario && !avisos.some((a) => a.chave === diario.chave)) aAgendar.push(diario);
+
+    avisos.push(...aAgendar);
     await gravarAvisos(lembrete, avisos);
-    if (cobranca) await reenfileirar(lembrete.id, cobranca.chave, Date.parse(cobranca.em));
+    for (const novo of aAgendar) await reenfileirar(lembrete.id, novo.chave, Date.parse(novo.em));
 
     relatorio.push({
       id: lembrete.id, chave: aviso.chave, titulo: lembrete.titulo,

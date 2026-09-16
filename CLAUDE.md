@@ -162,6 +162,22 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - **O núcleo é agnóstico de canal**: `api/_lib/canais.js` é uma lista de
   adaptadores. Plugar Telegram ou WhatsApp é acrescentar um objeto ali — o
   README traz o exemplo pronto do Telegram.
+- **Atraso vira uma corrente diária** (`avisoDeAtraso` em `agenda.js`): vencido e
+  ainda pendente, todo disparo agenda o aviso do dia seguinte, no **mesmo
+  horário do prazo** (assim o número de dias é exato, não arredondamento de um
+  horário fixo). Rótulo: "Em atraso há N dias". A corrente **anda sozinha e morre
+  sozinha** — o tick ignora lembrete que não está pendente, e a linha da fila
+  morre junto. Continua **sem limite de dias**, de propósito.
+  Duas armadilhas já pagas: a referência do "próximo dia" é a hora **marcada**
+  do aviso que acabou de sair (`aviso.em`), não o relógio — disparando adiantado
+  o relógio apontaria para o mesmo dia e a corrente travaria; e o aviso diário é
+  agendado **mesmo se a entrega falhou**, senão ficar uns dias sem aparelho
+  inscrito mataria a corrente para sempre. A cobrança de 2h (`chave: 'atraso'`)
+  continua existindo, é outra coisa: um empurrão no mesmo dia.
+- **O painel de contadores fica no topo**, logo abaixo de "Seus prazos, sem
+  surpresa", e cada um é botão: leva para a aba certa e **rola até a lista**
+  ("em atraso" vai para Pendentes e para no grupo "Em atraso"). Não devolver
+  esse painel para o fim da página — número que ela só vê rolando não serve.
 - Regras que não devem ser quebradas em manutenções futuras: adiar move o
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
@@ -212,4 +228,4 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   inline a partir do arquivo, nunca copiar à mão, senão as duas divergem.
   As listras inclinadas seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
-- `npm test` em `lembretes/` roda 63 testes com PostgREST e serviço de push falsos.
+- `npm test` em `lembretes/` roda 65 testes com PostgREST e serviço de push falsos.

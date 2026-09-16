@@ -142,6 +142,27 @@ function montarAvisos(prazoMs, agoraMs = Date.now(), antecedencias = ANTECEDENCI
 }
 
 /** Texto relativo em pt-BR: "em 2 dias", "atrasado há 3 horas". */
+/**
+ * Próximo aviso diário de atraso, ou null se o prazo ainda não passou.
+ *
+ * Repete no MESMO horário do prazo, um dia depois do outro: "o prazo era 14h de
+ * segunda" vira "em atraso há 1 dia" às 14h de terça. Assim o número de dias é
+ * exato, e não um arredondamento de um horário fixo qualquer.
+ *
+ * A conta usa o próximo múltiplo de 24h ainda no futuro, não "ontem + 1": se o
+ * tick ficou parado dois dias, o aviso que volta é o do dia certo, sem disparar
+ * a fila inteira de uma vez.
+ */
+function avisoDeAtraso(prazoMs, agoraMs = Date.now()) {
+  if (!Number.isFinite(prazoMs) || agoraMs < prazoMs) return null;
+  const dias = Math.floor((agoraMs - prazoMs) / DIA_MS) + 1;
+  return {
+    chave: `atraso-d${dias}`,
+    em: new Date(prazoMs + dias * DIA_MS).toISOString(),
+    rotulo: dias === 1 ? 'Em atraso há 1 dia' : `Em atraso há ${dias} dias`,
+  };
+}
+
 function comoFalta(prazoMs, agoraMs = Date.now()) {
   const delta = prazoMs - agoraMs;
   const atrasado = delta < 0;
@@ -1145,15 +1166,31 @@ async function tick(req, url) {
     const avisos = lembrete.avisos.map((a) => a.chave === aviso.chave
       ? { ...a, tentativas, enviadoEm: new Date(agora).toISOString(), entregues } : a);
 
-    // Prazo estourado e ainda pendente: cobra uma vez, duas horas depois.
-    let cobranca = null;
+    // Enquanto o prazo estiver vencido e o lembrete pendente, sempre existe o
+    // aviso do dia seguinte na fila. Cada disparo agenda o próximo, então a
+    // corrente anda sozinha e para no dia em que ela conclui — o tick ignora
+    // lembrete que não está mais pendente, e a linha da fila morre com ele.
+    const aAgendar = [];
+
+    // Cobrança do mesmo dia: uma vez, duas horas depois do prazo.
     if (aviso.chave === 'prazo' && entregues > 0) {
-      cobranca = { chave: 'atraso', em: new Date(agora + COBRANCA_ATRASO_MS).toISOString(),
-        rotulo: 'Passou do prazo e ainda está pendente' };
-      avisos.push(cobranca);
+      aAgendar.push({ chave: 'atraso', em: new Date(agora + COBRANCA_ATRASO_MS).toISOString(),
+        rotulo: 'Passou do prazo e ainda está pendente' });
     }
+
+    // O aviso diário não depende de a entrega ter dado certo: se ela ficou sem
+    // aparelho inscrito por uns dias, a corrente precisa estar viva quando
+    // voltar. Agendar duas vezes a mesma chave é o que o `some` evita.
+    // A referência é a hora MARCADA do aviso que acabou de sair, não o relógio.
+    // Disparando adiantado (tick fora de hora, retentativa), o relógio ainda
+    // apontaria para o mesmo dia e a corrente travaria repetindo a mesma chave.
+    const referencia = Math.max(agora, Date.parse(aviso.em) || 0);
+    const diario = avisoDeAtraso(Date.parse(lembrete.prazo), referencia);
+    if (diario && !avisos.some((a) => a.chave === diario.chave)) aAgendar.push(diario);
+
+    avisos.push(...aAgendar);
     await gravarAvisos(lembrete, avisos);
-    if (cobranca) await reenfileirar(lembrete.id, cobranca.chave, Date.parse(cobranca.em));
+    for (const novo of aAgendar) await reenfileirar(lembrete.id, novo.chave, Date.parse(novo.em));
 
     relatorio.push({ id: lembrete.id, chave: aviso.chave, titulo: lembrete.titulo,
       resultado: entregues > 0 ? 'entregue' : 'desistiu após 3 tentativas', entregues });

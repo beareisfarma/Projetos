@@ -113,12 +113,24 @@
 
   /* ── contadores ──────────────────────────────────────────────── */
   .contadores{display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-bottom:1rem;}
+  .contador{
+    display:flex; flex-direction:column; align-items:flex-start;
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:.8rem .85rem; box-shadow:var(--sombra);
+    font-family:inherit; text-align:left; cursor:pointer;
+    transition:border-color .12s, transform .12s;
+  }
+  .contador:hover{border-color:var(--line-forte);}
+  .contador:active{transform:scale(.98);}
+  .contador:focus-visible{outline:2px solid var(--acao); outline-offset:2px;}
   .contador .numero{
     font-size:2rem; font-weight:700; line-height:1; letter-spacing:-.03em;
-    font-variant-numeric:tabular-nums;
+    font-variant-numeric:tabular-nums; color:var(--ink);
   }
   .contador .rotulo{font-size:.82rem; color:var(--ink-2); margin-top:.3rem;}
   .contador.atraso .numero{color:var(--crit);}
+  /* Zerado não é notícia: o cartão recua para o número que importa saltar. */
+  .contador.vazio-zero{opacity:.55;}
 
   /* ── abas ────────────────────────────────────────────────────── */
   .abas{
@@ -358,6 +370,15 @@
       <p class="sobretitulo">Seus prazos, sem surpresa</p>
     </div>
 
+    <div class="contadores" id="painel">
+      <button type="button" class="contador" data-ir="pendentes">
+        <span class="numero" id="numPendentes">0</span><span class="rotulo">pendentes</span></button>
+      <button type="button" class="contador" data-ir="hoje">
+        <span class="numero" id="numHoje">0</span><span class="rotulo">para hoje</span></button>
+      <button type="button" class="contador atraso" data-ir="atrasado">
+        <span class="numero" id="numAtraso">0</span><span class="rotulo">em atraso</span></button>
+    </div>
+
     <section class="cartao">
       <label for="recado">Me conte o que você não pode esquecer</label>
       <textarea id="recado" placeholder="Ex.: enviar o relatório da Pharma sexta às 14h"></textarea>
@@ -407,12 +428,7 @@
       </div>
     </section>
 
-    <section class="cartao">
-      <div class="contadores">
-        <div class="contador"><div class="numero" id="numPendentes">0</div><div class="rotulo">pendentes</div></div>
-        <div class="contador"><div class="numero" id="numHoje">0</div><div class="rotulo">para hoje</div></div>
-        <div class="contador atraso"><div class="numero" id="numAtraso">0</div><div class="rotulo">em atraso</div></div>
-      </div>
+    <section class="cartao" id="secaoLista">
       <div class="abas" role="tablist">
         <button role="tab" data-aba="pendentes" aria-selected="true">Pendentes</button>
         <button role="tab" data-aba="hoje" aria-selected="false">Hoje</button>
@@ -597,9 +613,17 @@ function cartaoItem(l, concluido){
 
 function render(){
   const agoraLista = estado.aba === 'feitos' ? estado.feitos : estado.pendentes;
-  $('numPendentes').textContent = estado.pendentes.length;
-  $('numHoje').textContent = estado.pendentes.filter((l) => l.faixa === 'hoje').length;
-  $('numAtraso').textContent = estado.pendentes.filter((l) => l.faixa === 'atrasado').length;
+  const contagens = {
+    pendentes: estado.pendentes.length,
+    hoje: estado.pendentes.filter((l) => l.faixa === 'hoje').length,
+    atrasado: estado.pendentes.filter((l) => l.faixa === 'atrasado').length,
+  };
+  $('numPendentes').textContent = contagens.pendentes;
+  $('numHoje').textContent = contagens.hoje;
+  $('numAtraso').textContent = contagens.atrasado;
+  for (const botao of document.querySelectorAll('#painel [data-ir]')){
+    botao.classList.toggle('vazio-zero', contagens[botao.dataset.ir] === 0);
+  }
 
   const alvo = $('lista');
   if (estado.aba === 'feitos'){
@@ -623,18 +647,40 @@ function render(){
   const grupos = {};
   for (const l of filtrados) (grupos[l.faixa] ||= []).push(l);
   alvo.innerHTML = ORDEM.filter((f) => grupos[f]).map((f) => `
-    <p class="grupo-titulo ${f}">${TITULOS[f]} · ${grupos[f].length}</p>
+    <p class="grupo-titulo ${f}" data-faixa="${f}">${TITULOS[f]} · ${grupos[f].length}</p>
     ${grupos[f].map((l) => cartaoItem(l, false)).join('')}`).join('');
 }
 
-document.querySelector('.abas').addEventListener('click', (ev) => {
-  const b = ev.target.closest('button[data-aba]');
-  if (!b) return;
-  estado.aba = b.dataset.aba;
+// Clicar num contador não é só trocar de aba: tem que LEVAR até a lista, senão
+// o número no topo continua sendo um enfeite e ela rola atrás na mão.
+function irPara(destino){
+  const aba = destino === 'atrasado' ? 'pendentes' : destino;
+  selecionarAba(aba);
+  // O grupo "Em atraso" é o primeiro da lista quando existe; rolar até ele é
+  // mais útil do que parar no topo da seção.
+  requestAnimationFrame(() => {
+    const grupo = destino === 'atrasado'
+      ? document.querySelector('#lista [data-faixa="atrasado"]') : null;
+    (grupo || $('secaoLista')).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function selecionarAba(aba){
+  estado.aba = aba;
   document.querySelectorAll('.abas button').forEach((x) =>
     x.setAttribute('aria-selected', String(x.dataset.aba === estado.aba)));
   estado.editando = null;
   render();
+}
+
+$('painel').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-ir]');
+  if (b) irPara(b.dataset.ir);
+});
+
+document.querySelector('.abas').addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-aba]');
+  if (b) selecionarAba(b.dataset.aba);
 });
 
 // ─── Ações do item ──────────────────────────────────────────────────────────

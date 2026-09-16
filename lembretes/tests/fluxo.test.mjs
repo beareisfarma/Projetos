@@ -169,6 +169,56 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
     assert.ok(Date.parse(cobranca.em) > Date.now());
   });
 
+  await t.test('atraso vira uma corrente diária que diz quantos dias faz', async () => {
+    // Precisa de um lembrete DE VERDADE vencido: o de cima ainda vence daqui a
+    // três dias, e antecipar a fila não torna o prazo passado.
+    const prazo = new Date(Date.now() - 36 * 3600000).toISOString();   // 1,5 dia atrás
+    const criado = await chamar(reminders, fingirRequisicao({
+      method: 'POST', url: '/api/reminders', headers: comPin(),
+      body: { titulo: 'Entregar o laudo', prazo, antecedencias: [] },
+    }));
+    const atrasadoId = criado.corpo.lembrete.id;
+    // finally: se uma asserção falhar aqui, o lembrete temporário não pode
+    // sobrar e quebrar as contagens dos testes seguintes.
+    try {
+
+    // O aviso do prazo nasce para daqui a um minuto (prazo vencido não fica mudo).
+    await store.reenfileirar(atrasadoId, 'prazo', Date.now() - 1000);
+    const antesDoPush = push.recebidas.length;
+    await chamar(tick, fingirRequisicao({ url: `/api/tick?chave=${SEGREDO_CRON}` }));
+    assert.equal(push.recebidas.length, antesDoPush + 1, 'o aviso do prazo não saiu');
+
+    // Vencido há 1,5 dia: o próximo "novo dia" é o segundo.
+    const depois = await store.obter(atrasadoId);
+    const d2 = depois.avisos.find((a) => a.chave === 'atraso-d2');
+    assert.ok(d2, 'o prazo venceu e nenhum aviso diário foi agendado');
+    assert.equal(d2.rotulo, 'Em atraso há 2 dias');
+    assert.equal(Date.parse(d2.em) - Date.parse(prazo), 2 * 24 * 3600000);
+    assert.ok(Date.parse(d2.em) > Date.now(), 'agendou um aviso no passado');
+
+    // Disparar o do segundo dia agenda o do terceiro: a corrente anda sozinha.
+    await store.reenfileirar(atrasadoId, 'atraso-d2', Date.now() - 1000);
+    await chamar(tick, fingirRequisicao({ url: `/api/tick?chave=${SEGREDO_CRON}` }));
+    const d3 = (await store.obter(atrasadoId)).avisos.find((a) => a.chave === 'atraso-d3');
+    assert.ok(d3, 'a corrente parou no segundo dia');
+    assert.equal(d3.rotulo, 'Em atraso há 3 dias');
+
+    // Concluído, a corrente morre: o tick ignora quem não está mais pendente.
+    await chamar(reminders, fingirRequisicao({
+      method: 'PATCH', url: `/api/reminders?id=${atrasadoId}`, headers: comPin(),
+      body: { acao: 'concluir' } }));
+    await store.reenfileirar(atrasadoId, 'atraso-d3', Date.now() - 1000);
+    const marcaPush = push.recebidas.length;
+    const r = await chamar(tick, fingirRequisicao({ url: `/api/tick?chave=${SEGREDO_CRON}` }));
+    assert.equal(push.recebidas.length, marcaPush, 'notificou atraso de lembrete já concluído');
+    assert.equal(r.corpo.relatorio[0].resultado, 'já concluído');
+
+    } finally {
+      await chamar(reminders, fingirRequisicao({
+        method: 'DELETE', url: `/api/reminders?id=${atrasadoId}`, headers: comPin() }));
+    }
+  });
+
   await t.test('adiar mexe no aviso, nunca no prazo', async () => {
     const antes = await store.obter(id);
     const r = await chamar(reminders, fingirRequisicao({

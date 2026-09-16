@@ -63,6 +63,27 @@ export function montarAvisos(prazoMs, agoraMs = Date.now(), antecedencias = ANTE
 }
 
 /** Texto relativo em pt-BR: "em 2 dias", "atrasado há 3 horas". */
+/**
+ * Próximo aviso diário de atraso, ou null se o prazo ainda não passou.
+ *
+ * Repete no MESMO horário do prazo, um dia depois do outro: "o prazo era 14h de
+ * segunda" vira "em atraso há 1 dia" às 14h de terça. Assim o número de dias é
+ * exato, e não um arredondamento de um horário fixo qualquer.
+ *
+ * A conta usa o próximo múltiplo de 24h ainda no futuro, não "ontem + 1": se o
+ * tick ficou parado dois dias, o aviso que volta é o do dia certo, sem disparar
+ * a fila inteira de uma vez.
+ */
+export function avisoDeAtraso(prazoMs, agoraMs = Date.now()) {
+  if (!Number.isFinite(prazoMs) || agoraMs < prazoMs) return null;
+  const dias = Math.floor((agoraMs - prazoMs) / DIA_MS) + 1;
+  return {
+    chave: `atraso-d${dias}`,
+    em: new Date(prazoMs + dias * DIA_MS).toISOString(),
+    rotulo: dias === 1 ? 'Em atraso há 1 dia' : `Em atraso há ${dias} dias`,
+  };
+}
+
 export function comoFalta(prazoMs, agoraMs = Date.now()) {
   const delta = prazoMs - agoraMs;
   const atrasado = delta < 0;
