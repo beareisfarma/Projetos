@@ -96,9 +96,9 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   deduz) e marca o lembrete como explícito, sem cartão de conferência. Não voltar
   a esconder essas opções atrás do botão Adicionar — é um clique a mais no
   caminho de quem está com pressa.
-- **O selo da logo no cabeçalho tem fundo fixo** (`--selo-fundo:#16233f` nos dois
-  temas), nunca `var(--ink)`: no tema escuro `--ink` é quase branco e o P neon
-  some em cima dele. Logo não inverte com o tema — é a mesma marca nos dois,
+- **O selo da logo no cabeçalho tem fundo fixo** (`--selo-fundo:#fcfcfc` nos dois
+  temas), nunca `var(--ink)`: um token que vira quase branco no tema escuro já
+  fez a logo sumir uma vez. Logo não inverte com o tema — é a mesma marca nos dois,
   igual ao ícone da tela de início. **Toda mudança de logo/cor tem que ser vista
   nos dois temas**, não só no claro.
 - Elemento com `display:flex` no CSS ignora o atributo `hidden` (que só traz
@@ -184,18 +184,26 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   a ajuda e `Assistant` é quem ajuda, e ela escolheu `Assistant`.
   **O endereço continua `hdexternopremium.vercel.app`** (renomear o projeto na
   Vercel troca a URL e derruba o PWA já instalado no iPhone dela).
+- **Paleta do app: navy `#24293f`, azul `#4a749e`, off-white `#fcfcfc`**
+  (16/09/2026). As três foram **amostradas do arquivo** da referência que a
+  Beatriz trouxe (a logo do yeschat.ai), não estimadas no olho. O azul virou o
+  `--accent` do app inteiro — botões, fichas selecionadas, destaques — no lugar
+  do amarelo neon, que ficava brigando com a logo. `--on-accent` é branco:
+  contraste medido em 4.9:1, acima do 4.5 que o WCAG AA pede.
+  **O neon `#d7ff1a` só sobrevive no losango da logo pessoal BCR no rodapé** —
+  aquilo é marca dela, não tema do app. E segue valendo no Cronômetro/Placar.
 - **Ícone: o monograma "P"** de Personal Assistant — haste (corpo), bojo (ombro)
-  e um círculo cheio no vazio (cabeça). Sólido, não vazado: em 26px na aba do
-  navegador um traço fino some. Nasceu de uma referência que a Beatriz trouxe
-  (a logo do yeschat.ai), usada como direção e nunca como molde — o desenho é
-  próprio. A cabeça de robô com antena e o cérebro anterior foram aposentados.
+  e um círculo no vazio (cabeça), navy com a cabeça azul sobre ladrilho
+  off-white. Sólido, não vazado: em 26px na aba do navegador um traço fino some.
+  Nasceu de uma referência que a Beatriz trouxe (a logo do yeschat.ai), usada
+  como direção e nunca como molde — o desenho é próprio. A cabeça de robô com
+  antena e o cérebro anterior foram aposentados.
+  **O SVG carrega as próprias cores** (são duas, e a marca não muda com o tema),
+  então `gerar-icones.mjs` não recolore nada — só ajusta o tamanho e põe o fundo.
   A fonte é `lembretes/logo-assistente.svg`; os PNGs saem de `npm run gen:icons` (usa
   `sharp`, devDependency) e ficam commitados porque a tela de início do iPhone
   precisa deles. O mesmo SVG vai inline no cabeçalho do app — gerar a versão
   inline a partir do arquivo, nunca copiar à mão, senão as duas divergem.
-  **`gerar-icones.mjs` usa `replaceAll`, não `replace`**: um desenho com traço E
-  preenchimento tem `currentColor` em vários lugares, e só o primeiro sairia
-  colorido — o resto viria preto sobre o fundo azul, ou seja, invisível.
   As listras inclinadas seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
 - `npm test` em `lembretes/` roda 63 testes com PostgREST e serviço de push falsos.

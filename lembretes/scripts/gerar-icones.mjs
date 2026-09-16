@@ -6,19 +6,16 @@ import sharp from 'sharp';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
 const raiz = new URL('../', import.meta.url).pathname;
-const FUNDO = '#16233f';   // mesmo azul-marinho do texto do app
-const NEON  = '#d7ff1a';
+// Cores da referência, amostradas do arquivo. O desenho já traz as suas —
+// aqui só entra o fundo do ladrilho.
+const FUNDO = '#fcfcfc';
 
 const svg = readFileSync(raiz + 'logo-assistente.svg', 'utf8');
 
-/** O SVG usa currentColor; aqui a cor é fixada e o desenho é centralizado. */
+/** O desenho já traz as próprias cores; aqui só muda o tamanho. */
 function desenho(tamanho, ocupacao) {
   const lado = Math.round(tamanho * ocupacao);
-  // replaceAll, não replace: um desenho com traço E preenchimento tem
-  // currentColor em vários lugares, e só o primeiro sairia colorido — o resto
-  // viria preto sobre o fundo azul, ou seja, invisível.
-  return Buffer.from(svg.replaceAll('currentColor', NEON)
-    .replace('width="100" height="100"', `width="${lado}" height="${lado}"`));
+  return Buffer.from(svg.replace('width="100" height="100"', `width="${lado}" height="${lado}"`));
 }
 
 async function gerar(nome, tamanho, ocupacao, raioCanto) {

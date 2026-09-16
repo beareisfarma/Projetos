@@ -22,14 +22,14 @@
     --ink-3:#8b96ab;
     --line:rgba(22,35,63,.10);
     --line-forte:rgba(22,35,63,.18);
-    --accent:#d7ff1a;
-    --on-accent:#16233f;
+    --accent:#4a749e;   /* azul da referência: botões, fichas, destaques */
+    --on-accent:#ffffff;
     --acao:#2563c9;
     --crit:#c2410c;
     --crit-suave:rgba(194,65,12,.09);
     --ok:#15803d;
     --ok-suave:rgba(21,128,61,.10);
-    --selo-fundo:#16233f;
+    --selo-fundo:#fcfcfc;
     --alerta:#a16207;
     --alerta-suave:rgba(161,98,7,.10);
     --sombra:0 1px 2px rgba(22,35,63,.05), 0 8px 24px rgba(22,35,63,.05);
@@ -50,7 +50,7 @@
     --crit-suave:rgba(255,138,92,.12);
     --ok:#4ade80;
     --ok-suave:rgba(74,222,128,.13);
-    --selo-fundo:#16233f;
+    --selo-fundo:#fcfcfc;
     --alerta:#eab308;
     --alerta-suave:rgba(234,179,8,.12);
     --sombra:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
@@ -82,7 +82,7 @@
     background:var(--selo-fundo); display:flex; align-items:center; justify-content:center;
     flex:0 0 auto;
   }
-  .selo svg{width:1.75rem; height:1.75rem; color:var(--accent); display:block;}
+  .selo svg{width:1.75rem; height:1.75rem; display:block;}
   header h1{font-size:1.3rem; font-weight:700; letter-spacing:-.02em; margin:0;
     line-height:1.15; text-wrap:balance;}
   .acoes-topo{display:flex; gap:.35rem; flex:0 0 auto;}
@@ -200,9 +200,8 @@
     font-size:.85rem; font-family:inherit; font-weight:500; cursor:pointer;
   }
   .ficha[aria-pressed="true"]{
-    background:var(--ink); border-color:var(--ink); color:#fff; font-weight:600;
+    background:var(--accent); border-color:var(--accent); color:var(--on-accent); font-weight:600;
   }
-  html.dark .ficha[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--on-accent);}
   .ficha.fixa{
     background:var(--surface-2); border-style:dashed; cursor:default;
     color:var(--ink-2); font-weight:600;
@@ -272,7 +271,7 @@
 <div class="wrap">
   <header>
     <div class="marca">
-      <span class="selo" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"> <g fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round"> <path d="M30 24 H52 A20 20 0 0 1 52 64 H30"/> </g> <rect x="22" y="16" width="15" height="70" rx="7.5" fill="currentColor"/> <circle cx="52" cy="40" r="8" fill="currentColor"/> </svg></span>
+      <span class="selo" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"> <g fill="none" stroke="#24293f" stroke-width="15" stroke-linejoin="round"> <path d="M30 24 H52 A20 20 0 0 1 52 64 H30"/> </g> <rect x="22" y="16" width="15" height="70" rx="7.5" fill="#24293f"/> <circle cx="52" cy="40" r="8" fill="#4a749e"/> </svg></span>
       <div class="titulos">
         <h1>Personal Assistant</h1>
         <p class="apelido" id="apelido" hidden></p>
