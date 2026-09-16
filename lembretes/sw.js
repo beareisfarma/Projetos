@@ -1,5 +1,5 @@
 // Service worker: casca offline + recepção de push + ações da notificação.
-const CACHE = 'assistente-v17';
+const CACHE = 'assistente-v18';
 const CASCA = [
   './', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
@@ -71,11 +71,16 @@ self.addEventListener('push', (e) => {
     if (e.data) dados.corpo = e.data.text();
   }
   const id = dados.dados?.id;
+  // A tag faz o iOS SUBSTITUIR a notificação anterior em vez de empilhar. Um
+  // prazo usa o id do lembrete; o resumo diário usa uma tag fixa, senão várias
+  // inscrições do mesmo aparelho (uma por reinstalação) viram vários "bom dia"
+  // idênticos na tela de bloqueio.
+  const marca = dados.dados?.tipo === 'resumo' ? 'resumo-diario' : (id ? `lembrete-${id}` : undefined);
   e.waitUntil(self.registration.showNotification(dados.titulo, {
     body: dados.corpo,
     icon: './icons/icon-192.png',
     badge: './icons/icon-192.png',
-    tag: id ? `lembrete-${id}` : undefined,  // um prazo substitui o aviso anterior dele
+    tag: marca,
     renotify: true,
     requireInteraction: true,                 // não some sozinho antes de ela ver
     data: dados.dados || {},
