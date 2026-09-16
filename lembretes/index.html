@@ -231,6 +231,12 @@
     .abas button{font-size:.83rem;}
   }
   @media (prefers-reduced-motion:reduce){ *{animation:none!important; transition:none!important;} }
+  .limite{
+    margin:0 0 .9rem; padding:.75rem .9rem; border-radius:14px;
+    background:var(--alerta-suave); color:var(--alerta);
+    font-size:.92rem; font-weight:600; line-height:1.35;
+  }
+  .limite[hidden]{display:none;}
   .marcado{
     display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
     margin:-.4rem 0 .9rem; padding:.75rem .9rem; border-radius:14px;
@@ -276,6 +282,7 @@
   </section>
 
   <main id="app" hidden>
+    <p class="limite" id="limite" hidden></p>
     <div class="abertura">
       <p class="sobretitulo">Seus prazos, sem surpresa</p>
     </div>
@@ -632,14 +639,35 @@ function abrirEditor(id){
   };
 }
 
+// 401 e 429 querem coisas opostas. 401 é "essa senha não serve": tem que voltar
+// para o login. 429 é "espere um pouco" — a senha está certa e a sessão continua
+// valendo, então derrubar ela para a tela de login faz parecer que a senha mudou
+// sozinha, e a senha certa é recusada enquanto o bloqueio durar.
+function avisarLimite(mensagem){
+  $('limite').textContent = `⏳ ${mensagem} Sua senha está certa — é só o limite de tentativas.`;
+  $('limite').hidden = false;
+}
+const limparLimite = () => { $('limite').hidden = true; $('limite').textContent = ''; };
+
+/** true = já tratei o erro aqui; quem chamou não precisa fazer mais nada. */
+function tratouAcesso(e){
+  if (e.status === 401){ mostrarTelaPin(e.message); return true; }
+  if (e.status === 429){ avisarLimite(e.message); return true; }
+  return false;
+}
+
+function aplicar(dados){
+  estado.pendentes = dados.pendentes;
+  estado.feitos = dados.feitos;
+  limparLimite();
+  render();
+}
+
 async function carregar(){
   try {
-    const dados = await api('api/reminders');
-    estado.pendentes = dados.pendentes;
-    estado.feitos = dados.feitos;
-    render();
+    aplicar(await api('api/reminders'));
   } catch(e){
-    if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
+    if (tratouAcesso(e)) return;
     $('lista').innerHTML = `<p class="vazio">Não consegui carregar.<br>${esc(e.message)}</p>`;
   }
 }
@@ -705,8 +733,8 @@ async function interpretarRecado(texto, origem){
     else { esconderMarcado(); $('confirmacao').hidden = false; }
     await carregar();
   } catch(e){
-    if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
-    erroCaptura(e.message);
+    // Mesmo no 429 ela precisa ver por que o lembrete não entrou.
+    if (!tratouAcesso(e) || e.status === 429) erroCaptura(e.message);
   } finally { statusCaptura(''); $('btnAdicionar').disabled = false; }
 }
 
@@ -800,8 +828,7 @@ async function transcrever(blob){
     await interpretarRecado(texto, 'audio');
   } catch(e){
     statusCaptura('');
-    if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
-    erroCaptura(e.message);
+    if (!tratouAcesso(e) || e.status === 429) erroCaptura(e.message);
   }
 }
 
@@ -897,10 +924,16 @@ function mostrarTelaPin(mensagem){
 
 async function entrar(usuario, pin){
   estado.usuario = usuario; estado.pin = pin;
-  try { await api('api/reminders'); }
+  // Uma ida só ao servidor: ela confere a senha E já traz a lista. Duas
+  // requisições aqui gastavam duas das cinco tentativas do limite por abertura,
+  // então três aberturas com a senha guardada velha bastavam para bloquear.
+  let dados = null;
+  try { dados = await api('api/reminders'); }
   catch(e){
-    // 429 vem do limite de tentativas; a mensagem já diz quanto falta esperar.
-    if (e.status === 401 || e.status === 429) return mostrarTelaPin(e.message);
+    if (e.status === 401) return mostrarTelaPin(e.message);
+    if (e.status === 429) return mostrarTelaPin(`${e.message} Não é a senha: é o limite de tentativas.`);
+    // Qualquer outro erro é rede. O app é um PWA: abre assim mesmo e a lista
+    // aparece quando a conexão voltar.
   }
   try {
     localStorage.setItem('lembretes_usuario', usuario);
@@ -908,9 +941,10 @@ async function entrar(usuario, pin){
   } catch(e){}
   estado.pinNoBanco = await guardarPinNoBanco(usuario, pin);
   $('telaPin').hidden = true; $('app').hidden = false;
+  limparLimite();
   fichasDaCaptura();
   renderAvisos();
-  await carregar();
+  if (dados) aplicar(dados); else await carregar();
 }
 
 $('btnEntrar').onclick = () => {

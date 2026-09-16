@@ -124,6 +124,12 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - **Login com limite de tentativas** na função `autenticar_acesso`: 5 erros
   bloqueiam aquela origem por 15 min. Estar bloqueado vence a senha certa, de
   propósito — checar credencial antes deixaria o limite decorativo. Não inverter.
+  Login certo apaga o contador; estar bloqueado não estende o bloqueio.
+  **Na tela, 401 e 429 querem coisas opostas** (`tratouAcesso` em `index.html`):
+  401 volta para o login, 429 mantém a sessão e mostra a faixa `#limite`.
+  Derrubar no 429 faz a senha certa ser recusada e parecer que mudou sozinha.
+  E `entrar()` faz **uma** requisição só (ela valida e já traz a lista): duas
+  gastavam duas das cinco tentativas por abertura do app.
 - **Segredos ficam na tabela `config_app`** (RLS ligado, sem policy), lida pela
   função no primeiro request. Não colocar segredo em arquivo, em variável de
   ambiente nem no git.
