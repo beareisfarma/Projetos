@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { bancoFalso, pushFalso, pushDisponivel, fingirRequisicao, fingirResposta } from './apoio.mjs';
+import { paraLocal, naMesmaDataLocal } from '../api/_lib/tempo.js';
 
 const USUARIO = 'usuario-de-teste';
 const PIN = 'pin-de-teste-123';
@@ -217,6 +218,70 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
       await chamar(reminders, fingirRequisicao({
         method: 'DELETE', url: `/api/reminders?id=${atrasadoId}`, headers: comPin() }));
     }
+  });
+
+  await t.test('o resumo diário sai uma vez por dia, não uma por tick', async () => {
+    // O tick bate a cada minuto. Se o resumo não for idempotente, são 60 "bom
+    // dia" por hora — o jeito mais rápido de ela desligar as notificações.
+    // A hora tem que vir do MESMO fuso que o app usa (America/Sao_Paulo), não do
+    // relógio do processo — num runner em UTC são três horas de diferença e o
+    // resumo nunca entraria na janela.
+    const hora = paraLocal(new Date()).hora;
+    banco.espiar.usuarios.set(USUARIO, {
+      ...banco.espiar.usuarios.get(USUARIO), resumo_hora: hora, resumo_em: null });
+
+    // Um prazo para HOJE, senão o resumo diria "dia limpo" e a contagem — que é
+    // o ponto do resumo — não seria exercitada. 23:59 local é o fim de hoje
+    // dando a volta em qualquer hora que o teste rode.
+    const criado = await chamar(reminders, fingirRequisicao({
+      method: 'POST', url: '/api/reminders', headers: comPin(),
+      body: { titulo: 'Assinar o contrato', antecedencias: [],
+              prazo: naMesmaDataLocal(new Date(), 23, 59).toISOString() },
+    }));
+    const doDia = criado.corpo.lembrete.id;
+
+    const antes = push.recebidas.length;
+    const primeiro = await chamar(tick, fingirRequisicao({ url: `/api/tick?chave=${SEGREDO_CRON}` }));
+    const meu = primeiro.corpo.resumos.find((r) => r.usuario === USUARIO);
+    assert.ok(meu, 'o resumo não foi nem considerado');
+    assert.equal(meu.resultado, 'enviado');
+    assert.equal(push.recebidas.length, antes + 1, 'o resumo não chegou');
+    // No último minuto do dia o prazo já conta como atrasado; as duas formas
+    // são corretas, o que não pode é o número sair errado.
+    assert.match(meu.corpo, /1 tarefa (para hoje|atrasada)/, `contou errado: ${meu.corpo}`);
+
+    // Mais três ticks no mesmo dia: silêncio.
+    for (let i = 0; i < 3; i++) {
+      const r = await chamar(tick, fingirRequisicao({ url: `/api/tick?chave=${SEGREDO_CRON}` }));
+      assert.equal(r.corpo.resumos.length, 0, 'mandou o resumo de novo no mesmo dia');
+    }
+    assert.equal(push.recebidas.length, antes + 1, 'o resumo saiu mais de uma vez');
+
+    // Vira o dia: sai de novo.
+    banco.espiar.usuarios.set(USUARIO, {
+      ...banco.espiar.usuarios.get(USUARIO), resumo_em: '2000-01-01' });
+    const amanha = await chamar(tick, fingirRequisicao({ url: `/api/tick?chave=${SEGREDO_CRON}` }));
+    assert.equal(amanha.corpo.resumos.find((r) => r.usuario === USUARIO)?.resultado, 'enviado');
+    assert.equal(push.recebidas.length, antes + 2);
+
+    // Fora da janela o dia é dado por perdido, sem notificar fora de hora.
+    // Só dá para montar esse caso quando já passou das 5h locais: antes disso,
+    // "cinco horas atrás" cai no dia anterior e viraria 'cedo', não 'tarde'.
+    if (hora >= 5) {
+      banco.espiar.usuarios.set(USUARIO, { ...banco.espiar.usuarios.get(USUARIO),
+        resumo_hora: hora - 5, resumo_em: '2000-01-01' });
+      const marca = push.recebidas.length;
+      const fora = await chamar(tick, fingirRequisicao({ url: `/api/tick?chave=${SEGREDO_CRON}` }));
+      const r = fora.corpo.resumos.find((x) => x.usuario === USUARIO);
+      assert.equal(r?.resultado, 'fora da janela');
+      assert.equal(push.recebidas.length, marca, 'notificou fora da janela');
+    }
+
+    // Desliga e limpa, para não contaminar os testes seguintes.
+    banco.espiar.usuarios.set(USUARIO, {
+      ...banco.espiar.usuarios.get(USUARIO), resumo_hora: null, resumo_em: null });
+    await chamar(reminders, fingirRequisicao({
+      method: 'DELETE', url: `/api/reminders?id=${doDia}`, headers: comPin() }));
   });
 
   await t.test('adiar mexe no aviso, nunca no prazo', async () => {

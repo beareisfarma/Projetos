@@ -11,7 +11,12 @@ export function bancoFalso(contasIniciais = {}) {
   const contas = new Map(Object.entries(contasIniciais));
   // A senha mora em `contas` (como o hash mora fora do alcance da API no banco
   // real); a linha de `usuarios` guarda só o que a API pode ler e escrever.
-  for (const usuario of contas.keys()) tabelas.usuarios.set(usuario, { usuario, assistente: null });
+  // resumo_hora nasce NULL aqui de propósito, ao contrário do banco real, onde o
+  // default é 7: assim o resumo diário não dispara no meio dos outros testes e
+  // bagunça a contagem de pushes. Quem testa resumo liga explicitamente.
+  for (const usuario of contas.keys()) {
+    tabelas.usuarios.set(usuario, { usuario, assistente: null, resumo_hora: null, resumo_em: null });
+  }
   const chaveFila = (r) => `${r.lembrete_id}#${r.chave}`;
   const chavePrimaria = (tabela, r) =>
     tabela === 'avisos_fila' ? chaveFila(r) : tabela === 'usuarios' ? r.usuario : r.id;
@@ -19,13 +24,33 @@ export function bancoFalso(contasIniciais = {}) {
   // Só os filtros que o store.js realmente emite: id=eq.X, status=eq.Y,
   // lembrete_id=eq.Z. Se aparecer um operador novo, o teste falha alto em vez
   // de fingir que filtrou.
+  /** Um dos poucos testes de coluna do PostgREST: eq, lt, is.null e not.is.null. */
+  function casa(linha, campo, bruto) {
+    const [op, valor] = String(bruto).split(/\.(.+)/);
+    if (op === 'eq') return String(linha[campo]) === valor;
+    if (op === 'lt') return linha[campo] !== null && linha[campo] !== undefined
+                         && String(linha[campo]) < valor;
+    if (op === 'is') return valor === 'null'
+      ? (linha[campo] === null || linha[campo] === undefined)
+      : String(linha[campo]) === valor;
+    if (op === 'not') return !casa(linha, campo, valor);
+    throw new Error(`operador não implementado no falso: ${campo}=${bruto}`);
+  }
+
   function filtrar(tabela, params) {
     let linhas = [...tabelas[tabela].values()];
     for (const [campo, bruto] of params.entries()) {
       if (['select', 'order', 'limit', 'offset'].includes(campo)) continue;
-      const [op, valor] = String(bruto).split(/\.(.+)/);
-      if (op !== 'eq') throw new Error(`operador não implementado no falso: ${campo}=${bruto}`);
-      linhas = linhas.filter((r) => String(r[campo]) === valor);
+      // or=(a.is.null,b.lt.X) — basta uma das condições valer.
+      if (campo === 'or') {
+        const partes = String(bruto).replace(/^\(|\)$/g, '').split(',');
+        linhas = linhas.filter((r) => partes.some((cond) => {
+          const [c, ...resto] = cond.split('.');
+          return casa(r, c, resto.join('.'));
+        }));
+        continue;
+      }
+      linhas = linhas.filter((r) => casa(r, campo, bruto));
     }
     const ordem = params.get('order');
     if (ordem) {
@@ -104,8 +129,16 @@ export function bancoFalso(contasIniciais = {}) {
       }
 
       if (req.method === 'PATCH') {
+        const tocadas = [];
         for (const linha of filtrar(tabela, url.searchParams)) {
-          tabelas[tabela].set(chavePrimaria(tabela, linha), { ...linha, ...corpo });
+          const nova = { ...linha, ...corpo };
+          tabelas[tabela].set(chavePrimaria(tabela, linha), nova);
+          tocadas.push(nova);
+        }
+        // Prefer: return=representation devolve o que mudou — é assim que o
+        // store sabe se a marcação do resumo pegou ou se outro tick chegou antes.
+        if (String(req.headers.prefer || '').includes('return=representation')) {
+          res.statusCode = 200; res.end(JSON.stringify(tocadas)); return;
         }
         res.statusCode = 204; res.end(''); return;
       }

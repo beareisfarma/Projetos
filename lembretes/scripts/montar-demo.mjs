@@ -35,6 +35,7 @@ ${nucleo}
 
   const banco = new Map();
   let assistente = '';
+  let resumoHora = 7;
   let senhaDemo = 'Mike2026';
   const novoId = () => Math.random().toString(36).slice(2, 10);
 
@@ -118,7 +119,11 @@ ${nucleo}
     }
 
     if (url.pathname === '/api/perfil') {
-      if (metodo === 'GET') return responder({ perfil: { usuario: 'demo', assistente } });
+      if (metodo === 'GET') return responder({ perfil: { usuario: 'demo', assistente, resumoHora } });
+      if (corpo.resumoHora !== undefined) {
+        resumoHora = corpo.resumoHora === null || corpo.resumoHora === '' ? null : Number(corpo.resumoHora);
+        return responder({ perfil: { usuario: 'demo', assistente, resumoHora } });
+      }
       if (corpo.senhaNova !== undefined) {
         if (corpo.senhaAtual !== senhaDemo) return responder({ erro: 'Senha atual incorreta.' }, 400);
         if (String(corpo.senhaNova).length < 6) {
@@ -128,7 +133,7 @@ ${nucleo}
         return responder({ trocada: true });
       }
       assistente = String(corpo.assistente || '').trim().slice(0, 24);
-      return responder({ perfil: { usuario: 'demo', assistente } });
+      return responder({ perfil: { usuario: 'demo', assistente, resumoHora } });
     }
 
     if (url.pathname === '/api/transcribe') {

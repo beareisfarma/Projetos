@@ -263,6 +263,11 @@
   .boas-vindas .fala-2{margin:.3rem 0 .9rem; color:var(--ink-2); line-height:1.4;}
   .divisor{height:1px; background:var(--line); margin:1.1rem 0 .9rem;}
   .ok-linha{margin:.5rem 0 0; font-size:.88rem; font-weight:600; color:var(--ok);}
+  #cfgResumo{
+    width:100%; background:var(--surface-2); color:var(--ink);
+    border:1px solid var(--line); border-radius:12px;
+    padding:.7rem .8rem; font-family:inherit; font-size:1rem;
+  }
   .ok-linha[hidden]{display:none;}
   .limite{
     margin:0 0 .9rem; padding:.75rem .9rem; border-radius:14px;
@@ -342,6 +347,15 @@
       </div>
       <p class="erro" id="cfgErroNome" hidden></p>
       <p class="ok-linha" id="cfgOkNome" hidden></p>
+
+      <div class="divisor"></div>
+
+      <label for="cfgResumo">Resumo diário</label>
+      <p class="nota-fichas" style="margin:.35rem 0 .5rem;">
+        Uma notificação por dia com o que tem para hoje e o que está em atraso.</p>
+      <select id="cfgResumo"></select>
+      <p class="erro" id="cfgErroResumo" hidden></p>
+      <p class="ok-linha" id="cfgOkResumo" hidden></p>
 
       <div class="divisor"></div>
 
@@ -461,7 +475,7 @@ const estado = {
   usuario: null, pin: null, pendentes: [], feitos: [], proposta: null,
   gravador: null, pedacos: [], aba: 'pendentes',
   antecedenciasNovas: ['d1', 'h1'], editando: null, pinNoBanco: null,
-  assistente: '',
+  assistente: '', resumoHora: null,
 };
 
 // As opções de antecedência: precisam bater com ANTECEDENCIAS em api/_lib/agenda.js.
@@ -793,6 +807,14 @@ async function carregar(){
 }
 
 // ─── Perfil: o nome que ela deu ao assistente ───────────────────────────────
+// Opções do resumo: desligado + as 24 horas. Montado uma vez.
+(function montarHorasDoResumo(){
+  const sel = $('cfgResumo');
+  const z = (n) => String(n).padStart(2, '0');
+  sel.innerHTML = '<option value="">Desligado</option>'
+    + Array.from({ length: 24 }, (_, h) => `<option value="${h}">${z(h)}:00</option>`).join('');
+})();
+
 function mostrarApelido(){
   const nome = estado.assistente;
   $('apelido').textContent = nome || '';
@@ -810,6 +832,8 @@ async function carregarPerfil(){
     if (e.status === 401) return;
   }
   estado.assistente = perfil?.assistente || '';
+  // undefined = a resposta nem trouxe o campo; não mexe no que está na tela.
+  if (perfil && perfil.resumoHora !== undefined) estado.resumoHora = perfil.resumoHora;
   mostrarApelido();
   $('btnConfig').hidden = false;
   // `perfil` nulo = não consegui perguntar. Nesse caso NÃO me apresento: quem
@@ -850,8 +874,10 @@ $('nomeAssistente').addEventListener('keydown', (e) => {
 // ─── Configurações ──────────────────────────────────────────────────────────
 function abrirConfig(){
   mostrarApelido();
+  $('cfgResumo').value = estado.resumoHora === null ? '' : String(estado.resumoHora);
   for (const id of ['cfgSenhaAtual','cfgSenhaNova','cfgSenhaConfere']) $(id).value = '';
-  for (const id of ['cfgErroNome','cfgOkNome','cfgErroSenha','cfgOkSenha']) $(id).hidden = true;
+  for (const id of ['cfgErroNome','cfgOkNome','cfgErroSenha','cfgOkSenha',
+                    'cfgErroResumo','cfgOkResumo']) $(id).hidden = true;
   $('config').hidden = false;
   $('boasVindas').hidden = true;
 }
@@ -863,7 +889,8 @@ $('btnSalvarConfig').onclick = async () => {
   const nova = $('cfgSenhaNova').value;
   const confere = $('cfgSenhaConfere').value;
   const erroSenha = (t) => { $('cfgErroSenha').textContent = t || ''; $('cfgErroSenha').hidden = !t; };
-  $('cfgOkNome').hidden = true; $('cfgOkSenha').hidden = true; erroSenha('');
+  for (const id of ['cfgOkNome','cfgOkSenha','cfgOkResumo','cfgErroResumo']) $(id).hidden = true;
+  erroSenha('');
 
   $('btnSalvarConfig').disabled = true;
   try {
@@ -875,7 +902,29 @@ $('btnSalvarConfig').onclick = async () => {
       }
     }
 
-    if (!atual && !nova && !confere) return;                 // só mexeu no nome
+    // Resumo diário: '' é desligado, '0' é meia-noite. Comparar como texto
+    // evita que o zero seja tratado como "vazio".
+    const escolhida = $('cfgResumo').value;
+    const atualTexto = estado.resumoHora === null ? '' : String(estado.resumoHora);
+    if (escolhida !== atualTexto){
+      try {
+        const { perfil } = await api('api/perfil', {
+          method: 'PATCH',
+          body: JSON.stringify({ resumoHora: escolhida === '' ? null : Number(escolhida) }),
+        });
+        estado.resumoHora = perfil?.resumoHora ?? null;
+        $('cfgOkResumo').textContent = estado.resumoHora === null
+          ? '✓ Resumo diário desligado.'
+          : `✓ Resumo diário às ${String(estado.resumoHora).padStart(2,'0')}:00.`;
+        $('cfgOkResumo').hidden = false;
+      } catch(e){
+        if (!tratouAcesso(e) || e.status === 429){
+          $('cfgErroResumo').textContent = e.message; $('cfgErroResumo').hidden = false;
+        }
+      }
+    }
+
+    if (!atual && !nova && !confere) return;                 // nada de senha
     if (!atual) return erroSenha('Informe a senha atual.');
     if (nova.length < 6) return erroSenha('A senha nova precisa ter pelo menos 6 caracteres.');
     if (nova !== confere) return erroSenha('As duas senhas novas não batem.');

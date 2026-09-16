@@ -162,6 +162,19 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - **O núcleo é agnóstico de canal**: `api/_lib/canais.js` é uma lista de
   adaptadores. Plugar Telegram ou WhatsApp é acrescentar um objeto ali — o
   README traz o exemplo pronto do Telegram.
+- **Resumo diário** (`api/_lib/resumo.js` + `enviarResumos` no tick): uma
+  notificação por dia, por conta — "Bom dia! Você tem X tarefas para hoje e Y
+  atrasadas". Hora escolhida por conta em `usuarios.resumo_hora` (padrão **7**,
+  `NULL` desliga; **0 é meia-noite, não "desligado"** — comparar contra null, não
+  contra a veracidade do número).
+  **A idempotência é `usuarios.resumo_em`** (data LOCAL do último resumo): o tick
+  bate a cada minuto e sem isso seriam 60 "bom dia" por hora. A marcação é
+  condicional na data anterior, então dois ticks cruzados não duplicam.
+  `JANELA_HORAS = 4`: passou disso o dia é dado por perdido (um "bom dia" às 22h
+  é pior que nenhum) e a data é marcada mesmo sem enviar. Só marca como enviado
+  quando chegou em alguém — sem aparelho às 7h, ainda dá tempo dentro da janela.
+  **O tick não pode mais retornar cedo quando não há aviso vencido**: o resumo
+  roda em todo tick.
 - **Atraso vira uma corrente diária** (`avisoDeAtraso` em `agenda.js`): vencido e
   ainda pendente, todo disparo agenda o aviso do dia seguinte, no **mesmo
   horário do prazo** (assim o número de dias é exato, não arredondamento de um
@@ -228,4 +241,4 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   inline a partir do arquivo, nunca copiar à mão, senão as duas divergem.
   As listras inclinadas seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
-- `npm test` em `lembretes/` roda 65 testes com PostgREST e serviço de push falsos.
+- `npm test` em `lembretes/` roda 72 testes com PostgREST e serviço de push falsos.

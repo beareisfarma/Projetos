@@ -230,12 +230,43 @@ export async function autenticarAcesso(usuario, senha, ip) {
   return { permitido: r.permitido, usuario: r.usuario, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
 }
 
-/** Perfil da conta: por enquanto só o nome que ela deu ao assistente. */
+/** Perfil da conta: o nome do assistente e a hora do resumo diário. */
 export async function obterPerfil(usuario) {
   const linhas = await selecionar(
-    `/usuarios?usuario=eq.${encodeURIComponent(usuario)}&select=usuario,assistente`);
+    `/usuarios?usuario=eq.${encodeURIComponent(usuario)}&select=usuario,assistente,resumo_hora`);
   const r = linhas?.[0];
-  return r ? { usuario: r.usuario, assistente: r.assistente || '' } : null;
+  return r ? {
+    usuario: r.usuario,
+    assistente: r.assistente || '',
+    // null é "desligado", e é diferente de 0, que é meia-noite.
+    resumoHora: r.resumo_hora === null || r.resumo_hora === undefined ? null : Number(r.resumo_hora),
+  } : null;
+}
+
+export async function definirResumoHora(usuario, hora) {
+  await atualizar(`/usuarios?usuario=eq.${encodeURIComponent(usuario)}`, { resumo_hora: hora });
+  return obterPerfil(usuario);
+}
+
+/** Contas com resumo ligado e que ainda não receberam o de hoje. */
+export async function contasComResumoPendente(dataLocalHoje) {
+  return (await selecionar(
+    `/usuarios?resumo_hora=not.is.null&or=(resumo_em.is.null,resumo_em.lt.${dataLocalHoje})`
+    + `&select=usuario,assistente,resumo_hora,resumo_em`)) || [];
+}
+
+/**
+ * Marca o resumo de hoje como enviado. Condicional na data anterior: se dois
+ * ticks se cruzarem, o segundo não encontra linha para atualizar e desiste,
+ * em vez de mandar o resumo duas vezes.
+ */
+export async function marcarResumoEnviado(usuario, dataLocalHoje) {
+  const linhas = await rest(
+    `/usuarios?usuario=eq.${encodeURIComponent(usuario)}`
+    + `&or=(resumo_em.is.null,resumo_em.lt.${dataLocalHoje})`,
+    { method: 'PATCH', headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ resumo_em: dataLocalHoje }) });
+  return Array.isArray(linhas) && linhas.length > 0;
 }
 
 export async function definirAssistente(usuario, nome) {

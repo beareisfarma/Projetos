@@ -138,12 +138,26 @@ async function perfil(req) {
     return json({ trocada: true });
   }
 
+  if (corpo.resumoHora !== undefined) {
+    // null desliga. 0 é meia-noite, e é um valor válido — por isso o teste é
+    // contra null/'' e não contra a "veracidade" do número.
+    const bruto = corpo.resumoHora;
+    let hora = null;
+    if (bruto !== null && bruto !== '') {
+      hora = Number(bruto);
+      if (!Number.isInteger(hora) || hora < 0 || hora > 23) {
+        return erro(400, 'A hora do resumo precisa ser um número de 0 a 23.');
+      }
+    }
+    return json({ perfil: await definirResumoHora(usuario, hora) });
+  }
+
   if (corpo.assistente !== undefined) {
     const nome = String(corpo.assistente).trim().slice(0, 24);
     return json({ perfil: await definirAssistente(usuario, nome) });
   }
 
-  return erro(400, 'Envie "assistente" ou "senhaAtual" + "senhaNova".');
+  return erro(400, 'Envie "assistente", "resumoHora" ou "senhaAtual" + "senhaNova".');
 }
 
 async function reminders(req, url) {
@@ -253,16 +267,56 @@ async function reminders(req, url) {
   }
 }
 
+/**
+ * O resumo diário de cada conta. Roda em TODO tick, inclusive nos que não têm
+ * aviso vencido — foi por isso que o retorno antecipado daqui saiu.
+ * A idempotência é da coluna `resumo_em` (data local do último resumo): o tick
+ * bate a cada minuto e não pode mandar sessenta "bom dia".
+ */
+async function enviarResumos(agora) {
+  const hoje = dataLocal(agora);
+  const contas = await contasComResumoPendente(hoje);
+  const feitos = [];
+
+  for (const conta of contas) {
+    const momento = momentoDoResumo(conta.resumo_hora, agora);
+    if (momento === 'cedo') continue;
+    if (momento === 'tarde') {
+      // Tick parado a manhã inteira: dá o dia por perdido em vez de mandar um
+      // "bom dia" às 22h. Marcar é o que impede a tentativa de voltar amanhã
+      // com a data de hoje.
+      await marcarResumoEnviado(conta.usuario, hoje);
+      feitos.push({ usuario: conta.usuario, resultado: 'fora da janela' });
+      continue;
+    }
+
+    const pendentes = (await listarPendentes(conta.usuario))
+      .map((l) => ({ ...l, faixa: faixa(Date.parse(l.prazo), agora) }));
+    const mensagem = textoDoResumo(pendentes, agora, conta.assistente || '');
+    const resultados = await despachar(mensagem, conta.usuario);
+    const entregues = resultados.reduce((total, r) => total + (r.enviados || 0), 0);
+
+    // Só marca quando chegou em alguém. Sem aparelho inscrito às 7h, ela ainda
+    // recebe o resumo se o celular voltar dentro da janela.
+    if (entregues > 0) await marcarResumoEnviado(conta.usuario, hoje);
+    feitos.push({ usuario: conta.usuario, resultado: entregues > 0 ? 'enviado' : 'sem entrega',
+                  entregues, corpo: mensagem.corpo });
+  }
+  return feitos;
+}
+
 async function tick(req, url) {
   if (!autorizadoCron(req, url)) return erro(401, 'Segredo do cron inválido.');
   if (!armazenamentoConfigurado()) return erro(503, 'Banco não configurado.');
 
   const agora = Date.now();
+  // O resumo diário vem primeiro e não depende de haver aviso vencido.
+  const resumos = await enviarResumos(agora);
   // Pega e remove os vencidos num passo atômico dentro do banco.
   const vencidos = await avisosVencidos(agora);
   if (!vencidos.length) {
     return json({ agora: new Date(agora).toISOString(), disparados: 0,
-      canais: canaisAtivos().map((c) => c.nome) });
+      resumos, canais: canaisAtivos().map((c) => c.nome) });
   }
 
   const relatorio = [];
@@ -322,5 +376,5 @@ async function tick(req, url) {
   }
 
   return json({ agora: new Date(agora).toISOString(), disparados: relatorio.length,
-    canais: canaisAtivos().map((c) => c.nome), relatorio });
+    resumos, canais: canaisAtivos().map((c) => c.nome), relatorio });
 }

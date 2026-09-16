@@ -472,6 +472,62 @@ function textoDoAviso(lembrete, aviso) {
   };
 }
 
+// O resumo diário: uma notificação por dia com o estado geral, em vez de só
+// avisos de lembretes individuais. É o "bom dia" do assistente.
+//
+// Mora aqui, fora do tick, porque a decisão de QUANDO enviar e O QUE dizer é
+// pura — dá para testar sem banco, sem push e sem esperar dar 7h da manhã.
+
+
+/**
+ * Quantas horas depois da hora marcada ainda vale mandar. Se o tick ficou
+ * parado a manhã inteira, um "bom dia" às 22h é pior que nenhum — passada a
+ * janela o dia é dado por perdido em vez de disparar fora de hora.
+ */
+const JANELA_HORAS = 4;
+
+/** Data local no formato YYYY-MM-DD: é a chave de "já mandei hoje". */
+function dataLocal(instante) {
+  const p = paraLocal(instante);
+  const z = (n, c = 2) => String(n).padStart(c, '0');
+  return `${z(p.ano, 4)}-${z(p.mes)}-${z(p.dia)}`;
+}
+
+/** 'cedo' = ainda não deu a hora | 'agora' = manda | 'tarde' = passou da janela */
+function momentoDoResumo(resumoHora, instante) {
+  if (resumoHora === null || resumoHora === undefined) return 'cedo';
+  const { hora } = paraLocal(instante);
+  if (hora < resumoHora) return 'cedo';
+  if (hora < resumoHora + JANELA_HORAS) return 'agora';
+  return 'tarde';
+}
+
+const saudacao = (hora) => (hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite');
+const conta = (n, um, muitos) => `${n} ${n === 1 ? um : muitos}`;
+
+/**
+ * O texto do resumo. `pendentes` já vem com a faixa calculada pela API.
+ * @returns {{titulo, corpo, dados}}
+ */
+function textoDoResumo(pendentes, instante, assistente = '') {
+  const hoje = pendentes.filter((l) => l.faixa === 'hoje').length;
+  const atrasadas = pendentes.filter((l) => l.faixa === 'atrasado').length;
+  const { hora } = paraLocal(instante);
+
+  const titulo = assistente ? `${saudacao(hora)}! — ${assistente}` : `${saudacao(hora)}!`;
+
+  let corpo;
+  if (hoje === 0 && atrasadas === 0) corpo = 'Nenhum prazo para hoje e nada em atraso. Dia limpo.';
+  else if (atrasadas === 0) corpo = `Você tem ${conta(hoje, 'tarefa', 'tarefas')} para hoje.`;
+  else if (hoje === 0) corpo = `Você tem ${conta(atrasadas, 'tarefa atrasada', 'tarefas atrasadas')}.`;
+  else {
+    corpo = `Você tem ${conta(hoje, 'tarefa', 'tarefas')} para hoje`
+          + ` e ${conta(atrasadas, 'atrasada', 'atrasadas')}.`;
+  }
+
+  return { titulo, corpo, dados: { tipo: 'resumo', hoje, atrasadas } };
+}
+
 // Persistência em Postgres (Supabase), acessada pela API REST (PostgREST) com
 // fetch puro — sem driver e sem conexão persistente, que é o que funciona bem
 // em função serverless.
@@ -704,12 +760,43 @@ async function autenticarAcesso(usuario, senha, ip) {
   return { permitido: r.permitido, usuario: r.usuario, bloqueadoAte: r.bloqueado_ate, erros: r.erros };
 }
 
-/** Perfil da conta: por enquanto só o nome que ela deu ao assistente. */
+/** Perfil da conta: o nome do assistente e a hora do resumo diário. */
 async function obterPerfil(usuario) {
   const linhas = await selecionar(
-    `/usuarios?usuario=eq.${encodeURIComponent(usuario)}&select=usuario,assistente`);
+    `/usuarios?usuario=eq.${encodeURIComponent(usuario)}&select=usuario,assistente,resumo_hora`);
   const r = linhas?.[0];
-  return r ? { usuario: r.usuario, assistente: r.assistente || '' } : null;
+  return r ? {
+    usuario: r.usuario,
+    assistente: r.assistente || '',
+    // null é "desligado", e é diferente de 0, que é meia-noite.
+    resumoHora: r.resumo_hora === null || r.resumo_hora === undefined ? null : Number(r.resumo_hora),
+  } : null;
+}
+
+async function definirResumoHora(usuario, hora) {
+  await atualizar(`/usuarios?usuario=eq.${encodeURIComponent(usuario)}`, { resumo_hora: hora });
+  return obterPerfil(usuario);
+}
+
+/** Contas com resumo ligado e que ainda não receberam o de hoje. */
+async function contasComResumoPendente(dataLocalHoje) {
+  return (await selecionar(
+    `/usuarios?resumo_hora=not.is.null&or=(resumo_em.is.null,resumo_em.lt.${dataLocalHoje})`
+    + `&select=usuario,assistente,resumo_hora,resumo_em`)) || [];
+}
+
+/**
+ * Marca o resumo de hoje como enviado. Condicional na data anterior: se dois
+ * ticks se cruzarem, o segundo não encontra linha para atualizar e desiste,
+ * em vez de mandar o resumo duas vezes.
+ */
+async function marcarResumoEnviado(usuario, dataLocalHoje) {
+  const linhas = await rest(
+    `/usuarios?usuario=eq.${encodeURIComponent(usuario)}`
+    + `&or=(resumo_em.is.null,resumo_em.lt.${dataLocalHoje})`,
+    { method: 'PATCH', headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ resumo_em: dataLocalHoje }) });
+  return Array.isArray(linhas) && linhas.length > 0;
 }
 
 async function definirAssistente(usuario, nome) {
@@ -1013,12 +1100,26 @@ async function perfil(req) {
     return json({ trocada: true });
   }
 
+  if (corpo.resumoHora !== undefined) {
+    // null desliga. 0 é meia-noite, e é um valor válido — por isso o teste é
+    // contra null/'' e não contra a "veracidade" do número.
+    const bruto = corpo.resumoHora;
+    let hora = null;
+    if (bruto !== null && bruto !== '') {
+      hora = Number(bruto);
+      if (!Number.isInteger(hora) || hora < 0 || hora > 23) {
+        return erro(400, 'A hora do resumo precisa ser um número de 0 a 23.');
+      }
+    }
+    return json({ perfil: await definirResumoHora(usuario, hora) });
+  }
+
   if (corpo.assistente !== undefined) {
     const nome = String(corpo.assistente).trim().slice(0, 24);
     return json({ perfil: await definirAssistente(usuario, nome) });
   }
 
-  return erro(400, 'Envie "assistente" ou "senhaAtual" + "senhaNova".');
+  return erro(400, 'Envie "assistente", "resumoHora" ou "senhaAtual" + "senhaNova".');
 }
 
 async function reminders(req, url) {
@@ -1128,16 +1229,56 @@ async function reminders(req, url) {
   }
 }
 
+/**
+ * O resumo diário de cada conta. Roda em TODO tick, inclusive nos que não têm
+ * aviso vencido — foi por isso que o retorno antecipado daqui saiu.
+ * A idempotência é da coluna `resumo_em` (data local do último resumo): o tick
+ * bate a cada minuto e não pode mandar sessenta "bom dia".
+ */
+async function enviarResumos(agora) {
+  const hoje = dataLocal(agora);
+  const contas = await contasComResumoPendente(hoje);
+  const feitos = [];
+
+  for (const conta of contas) {
+    const momento = momentoDoResumo(conta.resumo_hora, agora);
+    if (momento === 'cedo') continue;
+    if (momento === 'tarde') {
+      // Tick parado a manhã inteira: dá o dia por perdido em vez de mandar um
+      // "bom dia" às 22h. Marcar é o que impede a tentativa de voltar amanhã
+      // com a data de hoje.
+      await marcarResumoEnviado(conta.usuario, hoje);
+      feitos.push({ usuario: conta.usuario, resultado: 'fora da janela' });
+      continue;
+    }
+
+    const pendentes = (await listarPendentes(conta.usuario))
+      .map((l) => ({ ...l, faixa: faixa(Date.parse(l.prazo), agora) }));
+    const mensagem = textoDoResumo(pendentes, agora, conta.assistente || '');
+    const resultados = await despachar(mensagem, conta.usuario);
+    const entregues = resultados.reduce((total, r) => total + (r.enviados || 0), 0);
+
+    // Só marca quando chegou em alguém. Sem aparelho inscrito às 7h, ela ainda
+    // recebe o resumo se o celular voltar dentro da janela.
+    if (entregues > 0) await marcarResumoEnviado(conta.usuario, hoje);
+    feitos.push({ usuario: conta.usuario, resultado: entregues > 0 ? 'enviado' : 'sem entrega',
+                  entregues, corpo: mensagem.corpo });
+  }
+  return feitos;
+}
+
 async function tick(req, url) {
   if (!autorizadoCron(req, url)) return erro(401, 'Segredo do cron inválido.');
   if (!armazenamentoConfigurado()) return erro(503, 'Banco não configurado.');
 
   const agora = Date.now();
+  // O resumo diário vem primeiro e não depende de haver aviso vencido.
+  const resumos = await enviarResumos(agora);
   // Pega e remove os vencidos num passo atômico dentro do banco.
   const vencidos = await avisosVencidos(agora);
   if (!vencidos.length) {
     return json({ agora: new Date(agora).toISOString(), disparados: 0,
-      canais: canaisAtivos().map((c) => c.nome) });
+      resumos, canais: canaisAtivos().map((c) => c.nome) });
   }
 
   const relatorio = [];
@@ -1197,7 +1338,7 @@ async function tick(req, url) {
   }
 
   return json({ agora: new Date(agora).toISOString(), disparados: relatorio.length,
-    canais: canaisAtivos().map((c) => c.nome), relatorio });
+    resumos, canais: canaisAtivos().map((c) => c.nome), relatorio });
 }
 
 

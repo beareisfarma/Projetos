@@ -16,7 +16,7 @@ const semModulos = (arquivo) =>
     .replace(/^export \{[^}]*\};$/gm, '');
 
 const nucleo = [
-  'tempo.js', 'agenda.js', 'interpretador-local.js', 'lembrete.js', 'store.js', 'canais.js',
+  'tempo.js', 'agenda.js', 'interpretador-local.js', 'lembrete.js', 'resumo.js', 'store.js', 'canais.js',
 ].map((f) => semModulos('api/_lib/' + f)).join('\n');
 
 const funcao = `// GERADO por scripts/montar-funcao.mjs — não edite aqui.
