@@ -160,13 +160,18 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   a ajuda e `Assistant` é quem ajuda, e ela escolheu `Assistant`.
   **O endereço continua `hdexternopremium.vercel.app`** (renomear o projeto na
   Vercel troca a URL e derruba o PWA já instalado no iPhone dela).
-- **Ícone: uma cabeça de assistente com antena.** A fonte é
-  `lembretes/logo-assistente.svg`; os PNGs saem de `npm run gen:icons` (usa
+- **Ícone: o monograma "P"** de Personal Assistant — haste (corpo), bojo (ombro)
+  e um círculo cheio no vazio (cabeça). Sólido, não vazado: em 26px na aba do
+  navegador um traço fino some. Nasceu de uma referência que a Beatriz trouxe
+  (a logo do yeschat.ai), usada como direção e nunca como molde — o desenho é
+  próprio. A cabeça de robô com antena e o cérebro anterior foram aposentados.
+  A fonte é `lembretes/logo-assistente.svg`; os PNGs saem de `npm run gen:icons` (usa
   `sharp`, devDependency) e ficam commitados porque a tela de início do iPhone
   precisa deles. O mesmo SVG vai inline no cabeçalho do app — gerar a versão
   inline a partir do arquivo, nunca copiar à mão, senão as duas divergem.
-  Olhos e ponta da antena são cheios: círculo vazado de 5px fecha em 40px.
-  O cérebro anterior e as listras inclinadas foram aposentados aqui — as
-  listras seguem valendo no Cronômetro/Placar.
+  **`gerar-icones.mjs` usa `replaceAll`, não `replace`**: um desenho com traço E
+  preenchimento tem `currentColor` em vários lugares, e só o primeiro sairia
+  colorido — o resto viria preto sobre o fundo azul, ou seja, invisível.
+  As listras inclinadas seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
 - `npm test` em `lembretes/` roda 54 testes com PostgREST e serviço de push falsos.

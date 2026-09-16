@@ -14,7 +14,10 @@ const svg = readFileSync(raiz + 'logo-assistente.svg', 'utf8');
 /** O SVG usa currentColor; aqui a cor é fixada e o desenho é centralizado. */
 function desenho(tamanho, ocupacao) {
   const lado = Math.round(tamanho * ocupacao);
-  return Buffer.from(svg.replace('currentColor', NEON)
+  // replaceAll, não replace: um desenho com traço E preenchimento tem
+  // currentColor em vários lugares, e só o primeiro sairia colorido — o resto
+  // viria preto sobre o fundo azul, ou seja, invisível.
+  return Buffer.from(svg.replaceAll('currentColor', NEON)
     .replace('width="100" height="100"', `width="${lado}" height="${lado}"`));
 }
 
