@@ -1,6 +1,6 @@
 # Personal Assistant
 
-**No ar: https://hdexternopremium.vercel.app**
+**No ar: https://assistentepessoal.vercel.app**
 
 Assistente pessoal de prazos: você manda um recado por **texto ou áudio**, ele
 interpreta a data, agenda uma **escada de avisos** e te **notifica no celular**

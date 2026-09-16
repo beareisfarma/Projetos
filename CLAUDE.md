@@ -159,9 +159,16 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - Regras que não devem ser quebradas em manutenções futuras: adiar move o
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
-- **URL: https://hdexternopremium.vercel.app** (deploy automático da `main`). O projeto na Vercel
-  chama-se `hdexternopremium` — endereço antigo, mantido de propósito: o app se
-  chama Personal Assistant, mas trocar o nome do projeto trocaria a URL.
+- **URL oficial: https://assistentepessoal.vercel.app** (16/09/2026, escolhida pela
+  Beatriz; deploy automático da `main`). O projeto na Vercel continua chamado
+  `hdexternopremium` — ela **acrescentou domínios** em vez de renomear o projeto,
+  então os endereços antigos seguem vivos e apontam para o mesmo deploy:
+  `hdexternopremium.vercel.app`, `assistentepremium.vercel.app` e
+  `lembretes-olive.vercel.app`.
+  **Cada endereço é uma origem diferente para o navegador**: login, permissão de
+  notificação, inscrição de push, cache e tema são separados por URL. Instalar o
+  app em dois endereços com notificação ligada nos dois = **duas notificações por
+  lembrete**, porque o tick despacha para todas as inscrições da conta.
   **Verificado ponta a ponta em 15/09/2026**: recado → escada → pg_cron → Web Push
   → notificação na tela de bloqueio do iPhone dela (`entregues: 1`).
 - **No Safari do iPhone fora da tela de início, `window.Notification` não existe.**
