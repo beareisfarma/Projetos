@@ -232,6 +232,10 @@ const PERIODOS = [
 ];
 
 const RE_HORA = re(`(?:${I}[àa]s\\s+)?${I}([01]?\\d|2[0-3])\\s*(?:h|:|horas?)\\s*([0-5]\\d)?${F}`);
+// O período dito DEPOIS de uma hora explícita: "8h da noite". Sem isto o "da
+// noite" não era consumido nem aplicado — "8h da noite" virava 8 da manhã, que
+// é o tipo de erro que faz perder o compromisso e ainda parece que funcionou.
+const RE_PERIODO_APOS = /^[\s,]*(?:d[ao]|[àa]|pela)s?\s+(tarde|noite|manh[ãa]|madrugada)(?![\p{L}\p{N}])/iu;
 const RE_HORA_PERIODO = re(`${I}[àa]s\\s+(\\d{1,2})\\s+(?:da|de|à)\\s+(tarde|noite|manh[ãa])${F}`);
 const RE_DEPOIS_AMANHA = re(`${I}depois\\s+de\\s+amanh[ãa]${F}`);
 const RE_AMANHA = re(`${I}amanh[ãa]${F}`);
@@ -261,7 +265,18 @@ function acharHora(texto, trechos) {
   }
   if ((m = RE_HORA.exec(texto))) {
     consumir(trechos, m);
-    return { hora: +m[1], minuto: m[2] ? +m[2] : 0 };
+    let hora = +m[1];
+    // "8h da noite" → 20h. O trecho do período também sai do título.
+    const fim = m.index + m[0].length;
+    const p = RE_PERIODO_APOS.exec(texto.slice(fim));
+    if (p) {
+      trechos.push([fim, fim + p[0].length]);
+      const periodo = p[1].toLowerCase();
+      if (/tarde|noite/.test(periodo) && hora < 12) hora += 12;
+      // "12 da manhã" e "12 da madrugada" são meia-noite, não meio-dia.
+      if (/manh|madrugada/.test(periodo) && hora === 12) hora = 0;
+    }
+    return { hora, minuto: m[2] ? +m[2] : 0 };
   }
   for (const periodo of PERIODOS) {
     if ((m = periodo.re.exec(texto))) { consumir(trechos, m); return { hora: periodo.hora, minuto: 0 }; }
@@ -375,8 +390,13 @@ function limparTitulo(original, trechos) {
   for (const padrao of PREFIXOS_LIXO) texto = texto.replace(padrao, '');
   texto = texto
     .replace(/\s+/g, ' ')
+    // Recortar a data do meio da frase deixa pontuação órfã: "Palestra, , da
+    // manhã". Junta as vírgulas que sobraram numa só antes de aparar as pontas.
+    .replace(/(?:\s*[,;]\s*){2,}/g, ', ')
     .replace(/^[\s,;.:\-–—]+|[\s,;.:\-–—]+$/g, '')
-    .replace(/\s+(?:n[ao]|em|at[ée]|para|pra|pro|d[eoa]|às|as)$/iu, '')
+    // Preposição solta no fim, sobra de recortar a data logo depois dela:
+    // "almoço com a Ana ao" (meio-dia), "reunião na" (sexta).
+    .replace(/\s+(?:n[ao]s?|a?os?|em|at[ée]|para|pra|pro|d[eoa]s?|às|as)$/iu, '')
     .trim();
   if (!texto) return '';
   return texto.charAt(0).toUpperCase() + texto.slice(1);

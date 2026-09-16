@@ -109,6 +109,15 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   colorido, mas isso é tentativa: quem garante o layout é a largura fixa.
 - Elemento com `display:flex` no CSS ignora o atributo `hidden` (que só traz
   `display:none` de fábrica). Sempre acompanhar de `.classe[hidden]{display:none;}`.
+- **Período dito depois da hora manda no relógio**: "8h da noite" é 20h, não 8h.
+  `RE_PERIODO_APOS` em `interpretador-local.js` consome o trecho (para sair do
+  título) e corrige a hora. "12 da manhã"/"da madrugada" é meia-noite. Esse bug
+  não fazia o app parecer quebrado — fazia marcar de manhã um compromisso da
+  noite, que é pior.
+- **Transcrição de áudio vem pontuada** e recortar a data do meio deixa lixo no
+  título (", ,") e preposição solta no fim ("almoço com a Ana ao"). `limparTitulo`
+  junta vírgulas repetidas e apara preposição final. Ao mexer nos recortes,
+  conferir o título, não só a data.
 - Nas regex em português, usar as bordas Unicode `(?<![\p{L}\p{N}])` /
   `(?![\p{L}\p{N}])`: o `\b` do JavaScript é ASCII e falha depois de ã/ç/ê.
 - **OneSignal foi avaliado e descartado** (não economiza nada, não contorna a
@@ -241,4 +250,4 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   inline a partir do arquivo, nunca copiar à mão, senão as duas divergem.
   As listras inclinadas seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
-- `npm test` em `lembretes/` roda 72 testes com PostgREST e serviço de push falsos.
+- `npm test` em `lembretes/` roda 74 testes com PostgREST e serviço de push falsos.

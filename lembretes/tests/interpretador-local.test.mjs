@@ -149,3 +149,33 @@ test('só a hora, sem dia, não conta como data explícita', () => {
   assert.equal(r.dataExplicita, false);
   assert.equal(r.horaExplicita, true);
 });
+
+test('período dito depois da hora manda no relógio', () => {
+  // O caso que motivou isto veio do gravador: "8h da noite" virava 8 da manhã.
+  // Errar aqui não faz o app parecer quebrado — faz ela perder o compromisso.
+  confere('reunião dia 20 às 8h da noite', '20/09/2026 20:00');
+  confere('jantar sexta 7h da noite', '18/09/2026 19:00');
+  confere('buscar a encomenda dia 20 às 4h da tarde', '20/09/2026 16:00');
+  // De manhã o número não muda.
+  confere('academia dia 20 às 6h da manhã', '20/09/2026 06:00');
+  // "12 da manhã" é meia-noite, não meio-dia.
+  confere('plantão dia 20 às 12h da manhã', '20/09/2026 00:00');
+  // Hora sem período continua como está.
+  confere('remédio dia 20 às 8h', '20/09/2026 08:00');
+});
+
+test('o título não fica com sobras de pontuação nem preposição solta', () => {
+  // Transcrição de áudio vem pontuada, e recortar a data do meio deixa lixo.
+  const casos = [
+    ['Palestra online, 25 de setembro, 8h da manhã', 'Palestra online'],
+    ['palestra on-line 25 de setembro 8h da manhã', 'Palestra on-line'],
+    ['reunião dia 20 às 8h da noite', 'Reunião'],
+    ['almoço com a Ana ao meio-dia', 'Almoço com a Ana'],
+    ['consulta, amanhã, de manhã', 'Consulta'],
+  ];
+  for (const [recado, titulo] of casos) {
+    const r = interpretarLocal(recado, TERCA);
+    assert.equal(r.titulo, titulo, `título errado em: ${recado}`);
+    assert.doesNotMatch(r.titulo, /,\s*,|^\s|\s$/, `sobrou pontuação em: ${recado}`);
+  }
+});
