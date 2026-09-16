@@ -96,6 +96,11 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   deduz) e marca o lembrete como explícito, sem cartão de conferência. Não voltar
   a esconder essas opções atrás do botão Adicionar — é um clique a mais no
   caminho de quem está com pressa.
+- **O selo da logo no cabeçalho tem fundo fixo** (`--selo-fundo:#16233f` nos dois
+  temas), nunca `var(--ink)`: no tema escuro `--ink` é quase branco e o P neon
+  some em cima dele. Logo não inverte com o tema — é a mesma marca nos dois,
+  igual ao ícone da tela de início. **Toda mudança de logo/cor tem que ser vista
+  nos dois temas**, não só no claro.
 - Elemento com `display:flex` no CSS ignora o atributo `hidden` (que só traz
   `display:none` de fábrica). Sempre acompanhar de `.classe[hidden]{display:none;}`.
 - Nas regex em português, usar as bordas Unicode `(?<![\p{L}\p{N}])` /
