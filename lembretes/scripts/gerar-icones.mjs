@@ -1,4 +1,4 @@
-// Gera os ícones do PWA a partir de logo-cerebro.svg.
+// Gera os ícones do PWA a partir de logo-assistente.svg.
 // O SVG é a fonte da verdade: para mudar o desenho, edite lá e rode
 //   npm run gen:icons
 // Os PNGs ficam commitados porque a tela de início do iPhone precisa deles.
@@ -9,7 +9,7 @@ const raiz = new URL('../', import.meta.url).pathname;
 const FUNDO = '#16233f';   // mesmo azul-marinho do texto do app
 const NEON  = '#d7ff1a';
 
-const svg = readFileSync(raiz + 'logo-cerebro.svg', 'utf8');
+const svg = readFileSync(raiz + 'logo-assistente.svg', 'utf8');
 
 /** O SVG usa currentColor; aqui a cor é fixada e o desenho é centralizado. */
 function desenho(tamanho, ocupacao) {

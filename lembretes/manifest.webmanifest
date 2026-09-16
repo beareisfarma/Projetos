@@ -1,7 +1,7 @@
 {
-  "name": "HD Externo Premium",
-  "short_name": "HD Externo",
-  "description": "O HD externo da sua memória: captura por texto ou áudio e avisa antes do prazo.",
+  "name": "Personal Assistant",
+  "short_name": "Assistant",
+  "description": "Seu assistente de prazos: captura por texto ou áudio e avisa antes da hora.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

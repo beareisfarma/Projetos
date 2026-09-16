@@ -143,8 +143,8 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   aviso e **nunca** o prazo; aviso não entregue é reenfileirado (3 tentativas);
   o aviso sai da fila antes de disparar (evita notificar em loop).
 - **URL: https://hdexternopremium.vercel.app** (deploy automático da `main`). O projeto na Vercel
-  chama-se `hdexternopremium`; o endereço antigo `lembretes-olive.vercel.app`
-  saiu do ar com a renomeação.
+  chama-se `hdexternopremium` — endereço antigo, mantido de propósito: o app se
+  chama Personal Assistant, mas trocar o nome do projeto trocaria a URL.
   **Verificado ponta a ponta em 15/09/2026**: recado → escada → pg_cron → Web Push
   → notificação na tela de bloqueio do iPhone dela (`entregues: 1`).
 - **No Safari do iPhone fora da tela de início, `window.Notification` não existe.**
@@ -154,10 +154,19 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   (o construtor não exibe nada no iOS).
 - Endpoints em `api/*.js` são a variante Vercel, mantida porque os 41 testes a
   exercitam e ela serve de reserva; o que está publicado é a Edge Function.
-- **Ícone: um cérebro** (memória). A fonte é `lembretes/logo-cerebro.svg`; os
-  PNGs saem de `npm run gen:icons` (usa `sharp`, devDependency) e ficam
-  commitados porque a tela de início do iPhone precisa deles. O mesmo SVG vai
-  inline no cabeçalho do app. As listras inclinadas antigas foram aposentadas
-  aqui — seguem valendo no Cronômetro/Placar.
+- **Nome do app: "Personal Assistant"** (16/09/2026). Era "HD Externo Premium",
+  que era o HD da memória — mas o produto é um assistente, então o nome passou a
+  dizer isso. A Beatriz pediu "Personal Assistance"; apontei que `Assistance` é
+  a ajuda e `Assistant` é quem ajuda, e ela escolheu `Assistant`.
+  **O endereço continua `hdexternopremium.vercel.app`** (renomear o projeto na
+  Vercel troca a URL e derruba o PWA já instalado no iPhone dela).
+- **Ícone: uma cabeça de assistente com antena.** A fonte é
+  `lembretes/logo-assistente.svg`; os PNGs saem de `npm run gen:icons` (usa
+  `sharp`, devDependency) e ficam commitados porque a tela de início do iPhone
+  precisa deles. O mesmo SVG vai inline no cabeçalho do app — gerar a versão
+  inline a partir do arquivo, nunca copiar à mão, senão as duas divergem.
+  Olhos e ponta da antena são cheios: círculo vazado de 5px fecha em 40px.
+  O cérebro anterior e as listras inclinadas foram aposentados aqui — as
+  listras seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
 - `npm test` em `lembretes/` roda 54 testes com PostgREST e serviço de push falsos.
