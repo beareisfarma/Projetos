@@ -140,8 +140,17 @@ async function reminders(req, url) {
     if (corpo.recado) {
       const lido = interpretar(corpo.recado, new Date(agora));
       explicito = { dataExplicita: Boolean(lido.dataExplicita), horaExplicita: Boolean(lido.horaExplicita) };
+      // Prazo digitado no cartão vence o que foi lido da frase: ela olhou o
+      // calendário, o interpretador só deduz. E aí não há o que conferir.
+      let escolhido = null;
+      if (corpo.prazo) {
+        escolhido = new Date(corpo.prazo);
+        if (Number.isNaN(escolhido.getTime())) return erro(400, 'Prazo inválido.');
+        explicito = { dataExplicita: true, horaExplicita: true };
+      }
       // A observação que ela escreveu vence a que o interpretador deduziu.
       lembrete = criarLembrete({ ...lido,
+        ...(escolhido ? { prazo: escolhido, confianca: 'alta', observacao: '', motor: 'manual' } : {}),
         detalhes: corpo.detalhes !== undefined ? String(corpo.detalhes).slice(0, 500) : lido.detalhes,
         origem: corpo.origem || 'texto', antecedencias: corpo.antecedencias, agora: new Date(agora) });
     } else if (corpo.titulo && corpo.prazo) {

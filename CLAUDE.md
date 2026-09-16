@@ -90,6 +90,12 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   Dia da semana pelo nome com a hora já vencida rola para a semana seguinte;
   "hoje"/"dia 20" com hora vencida avisam que passou em vez de inventar outra
   data — ela nomeou um dia, mover seria mentir.
+- **Prazo e fichas de aviso ficam no próprio cartão de captura**, abaixo da
+  Observação e antes dos botões. O POST aceita `recado` + `prazo` junto: o prazo
+  digitado vence o que o interpretador leria (ela olhou o calendário; o parser
+  deduz) e marca o lembrete como explícito, sem cartão de conferência. Não voltar
+  a esconder essas opções atrás do botão Adicionar — é um clique a mais no
+  caminho de quem está com pressa.
 - Elemento com `display:flex` no CSS ignora o atributo `hidden` (que só traz
   `display:none` de fábrica). Sempre acompanhar de `.classe[hidden]{display:none;}`.
 - Nas regex em português, usar as bordas Unicode `(?<![\p{L}\p{N}])` /
@@ -148,4 +154,4 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   inline no cabeçalho do app. As listras inclinadas antigas foram aposentadas
   aqui — seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
-- `npm test` em `lembretes/` roda 52 testes com PostgREST e serviço de push falsos.
+- `npm test` em `lembretes/` roda 54 testes com PostgREST e serviço de push falsos.

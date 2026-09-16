@@ -287,6 +287,15 @@
         <label for="obsNova">Observação <span style="text-transform:none;letter-spacing:0;font-weight:500;">(opcional)</span></label>
         <textarea id="obsNova" style="min-height:3.2rem;" placeholder="Ex.: levar as duas vias assinadas"></textarea>
       </div>
+      <div style="margin-top:.7rem;">
+        <label for="prazoNovo">Prazo <span style="text-transform:none;letter-spacing:0;font-weight:500;">(opcional — se você disser na frase, eu preencho)</span></label>
+        <input type="datetime-local" id="prazoNovo">
+      </div>
+      <div style="margin-top:.9rem;">
+        <label>Quando quer ser avisada</label>
+        <div class="fichas" id="fichasNovas"></div>
+        <p class="nota-fichas">Você sempre recebe um aviso na hora exata do prazo.</p>
+      </div>
       <div class="botoes">
         <button class="btn neutro" id="btnGravar">&#127908; Gravar</button>
         <button class="btn principal" id="btnAdicionar">Adicionar</button>
@@ -452,6 +461,14 @@ function desenharFichas(caixa, escolhidas, aoMudar){
     const marcadas = [...caixa.querySelectorAll('button.ficha[aria-pressed="true"]')].map((x) => x.dataset.chave);
     aoMudar(ANTECEDENCIAS.filter((a) => marcadas.includes(a.chave)).map((a) => a.chave));
   };
+}
+
+// As fichas do cartão de captura ficam na tela o tempo todo: ela escolhe o
+// aviso antes de mandar o recado, sem um segundo botão no caminho.
+function fichasDaCaptura(){
+  desenharFichas($('fichasNovas'), estado.antecedenciasNovas, (novas) => {
+    estado.antecedenciasNovas = novas;
+  });
 }
 
 // ─── Lista ──────────────────────────────────────────────────────────────────
@@ -649,18 +666,23 @@ function mostrarMarcado(lembrete){
 
 async function interpretarRecado(texto, origem){
   erroCaptura(''); esconderMarcado(); statusCaptura('Interpretando…');
+  const prazoManual = $('prazoNovo').value;
   $('btnAdicionar').disabled = true;
   try {
     const { lembrete } = await api('api/reminders', {
       method:'POST',
       body: JSON.stringify({ recado: texto, origem, detalhes: $('obsNova').value.trim(),
-                             antecedencias: estado.antecedenciasNovas }),
+                             antecedencias: estado.antecedenciasNovas,
+                             // Prazo digitado vence o que o interpretador leria:
+                             // ela olhou o calendário, o parser só adivinha.
+                             prazo: prazoManual ? new Date(prazoManual).toISOString() : undefined }),
     });
     // Salvo já — a confirmação serve para corrigir, não para autorizar. Um prazo
     // que depende de um segundo toque é um prazo que se perde no segundo toque.
     estado.proposta = lembrete;
     $('recado').value = '';
     $('obsNova').value = '';
+    $('prazoNovo').value = '';
     $('confTitulo').value = lembrete.titulo;
     // `detalhes` é a observação que ela escreve; `observacao` é o alerta do
     // interpretador sobre a data. Nomes parecidos, papéis diferentes.
@@ -886,6 +908,7 @@ async function entrar(usuario, pin){
   } catch(e){}
   estado.pinNoBanco = await guardarPinNoBanco(usuario, pin);
   $('telaPin').hidden = true; $('app').hidden = false;
+  fichasDaCaptura();
   renderAvisos();
   await carregar();
 }

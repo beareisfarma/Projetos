@@ -102,6 +102,32 @@ test('fluxo completo do lembrete', { skip: pushDisponivel() ? false : 'openssl i
     assert.ok(r.corpo.lembrete.proximoAviso, 'nasceu sem próximo aviso');
   });
 
+  await t.test('prazo digitado no cartão vence a data lida da frase', async () => {
+    // Ela olhou o calendário; o interpretador só deduz. E aí não sobra nada
+    // para conferir: a tela pode marcar direto.
+    const prazo = new Date(Date.now() + 10 * 86400000).toISOString();
+    const r = await chamar(reminders, fingirRequisicao({
+      method: 'POST', url: '/api/reminders', headers: comPin(),
+      body: { recado: 'jogo do Fluminense amanhã às 14h', prazo, antecedencias: ['h1'] },
+    }));
+    assert.equal(r.codigo, 201);
+    assert.equal(r.corpo.lembrete.prazo, prazo, 'ignorou o prazo que ela digitou');
+    assert.equal(r.corpo.lembrete.confianca, 'alta');
+    assert.equal(r.corpo.lembrete.observacao, '');
+    assert.equal(r.corpo.lembrete.dataExplicita, true);
+    assert.equal(r.corpo.lembrete.horaExplicita, true);
+    await chamar(reminders, fingirRequisicao({
+      method: 'DELETE', url: `/api/reminders?id=${r.corpo.lembrete.id}`, headers: comPin() }));
+  });
+
+  await t.test('prazo digitado inválido é recusado, não vira data torta', async () => {
+    const r = await chamar(reminders, fingirRequisicao({
+      method: 'POST', url: '/api/reminders', headers: comPin(),
+      body: { recado: 'qualquer coisa amanhã', prazo: 'quinta-feira que vem' },
+    }));
+    assert.equal(r.codigo, 400);
+  });
+
   await t.test('aparece na lista de pendentes com faixa e texto relativo', async () => {
     const r = await chamar(reminders, fingirRequisicao({ url: '/api/reminders', headers: comPin() }));
     assert.equal(r.codigo, 200);

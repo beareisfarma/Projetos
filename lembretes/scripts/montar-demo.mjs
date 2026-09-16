@@ -135,9 +135,12 @@ ${nucleo}
           prazo: new Date(Date.now() + 86400e3), confianca: 'baixa', motor: 'palpite',
           observacao: 'Não identifiquei data no recado — deixei para amanhã. Ajuste o prazo.',
         };
+        const manual = corpo.prazo ? new Date(corpo.prazo) : null;
+        if (manual) Object.assign(lido, { prazo: manual, confianca: 'alta', observacao: '' });
         return responder({ lembrete: {
           ...enriquecer(montar(lido, corpo.origem || 'texto', corpo.antecedencias, corpo.detalhes)),
-          dataExplicita: Boolean(lido.dataExplicita), horaExplicita: Boolean(lido.horaExplicita),
+          dataExplicita: manual ? true : Boolean(lido.dataExplicita),
+          horaExplicita: manual ? true : Boolean(lido.horaExplicita),
         } }, 201);
       }
       const l = banco.get(id);
