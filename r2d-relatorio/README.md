@@ -45,19 +45,26 @@ Não há cadastro, login, e-mail ou senha. Abra e use.
 
 ## O documento gerado
 
+**Quatro páginas para um ciclo típico**, não doze. O documento é curto de
+propósito: o gestor tem quinze minutos, não uma tarde.
+
 | Página | Conteúdo |
 |---|---|
-| 1 | Capa: marca institucional, título, produto, representante, período |
-| 2 | Contexto do R2D: objetivos, estratégias, desafios, ações previstas |
-| 3 | Indicadores: números do período e evolução |
-| 4 | Execução do plano: previsto × realizado, ações por tipo, cobertura |
-| 5+ | Ações realizadas em ordem cronológica, com evidências |
+| 1 | **Painel**: título, números do período, execução, evolução dos indicadores, o que o R2D previa e a tira planejado → executado |
+| 2+ | Ações realizadas em ordem cronológica, com evidências |
 | última | Resultados e próximos passos |
 
-Páginas sem conteúdo não são geradas: sem indicadores, não existe página de
-indicadores. A paginação das ações é **medida no DOM** — cada bloco é
-inserido, o `scrollHeight` é comparado com o `clientHeight` e, se passou,
-abre página nova. Por isso uma ação com três fotos nunca vaza do papel.
+**Não há capa.** Uma folha quase vazia antes do conteúdo só adia a informação
+que o gestor abriu o arquivo para ver — a página 1 já é o painel.
+
+Ações e fechamento são paginados num **fluxo contínuo**, sem quebra forçada
+entre eles: o fechamento começa onde a última ação terminou, se couber.
+Forçar a quebra rendia uma folha com uma ação e três quartos de papel em branco.
+
+A paginação é **medida no DOM** — cada bloco é inserido, o `scrollHeight` é
+comparado com o `clientHeight` e, se passou, abre página nova. Por isso uma
+ação com três fotos nunca vaza do papel. Seções sem conteúdo simplesmente não
+existem: sem indicadores, não há gráficos.
 
 ### Exportação
 
@@ -172,14 +179,14 @@ senão o PWA e o compartilhamento não funcionam.
 index.html            casca; as seis telas vivem em <section data-tela>
 css/app.css           a ferramenta
 css/relatorio.css     o documento A4 (vale na tela e na exportação)
-js/marca.js           marca institucional — fonte única do símbolo
+js/marca.js           marca institucional vetorizada — fonte única
 js/estado.js          modelo do relatório e persistência
 js/db.js              IndexedDB
 js/extrator.js        leitor local do R2D (padrão)
 js/pdf-leitor.js      extração de texto do PDF
 js/ia.js              cliente das rotas opcionais
 js/graficos.js        SVG escrito na mão, sem biblioteca
-js/relatorio.js       monta as páginas e pagina medindo no DOM
+js/relatorio.js       monta o painel, as ações e o fechamento; pagina medindo no DOM
 js/exportar.js        PDF, PNG e impressão
 js/telas/*.js         uma por etapa
 api/*.js              funções serverless opcionais

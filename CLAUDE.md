@@ -269,15 +269,29 @@ Nasceu em 17/09/2026. Identidade **APSEN** (não é a marca pessoal da Beatriz).
 - **A logo institucional é FIXA**: não há caminho no app para trocar, remover
   ou subir outra. A pessoa só acrescenta a **logo do produto**, opcional e
   discreta no alto da capa.
-- **O símbolo APSEN em `js/marca.js` é uma reconstrução vetorial** feita a
-  partir do material de referência, não o arquivo oficial. Trocar pela constante
-  `SIMBOLO` quando o SVG oficial aparecer (proporção 148 × 74) e rodar
-  `npm run gen:icons`. O logotipo "APSEN" e a assinatura são **texto HTML**, não
-  `<text>` no SVG: o html2canvas serializa SVG como imagem e a webfont não
-  carrega nesse caminho — sairia com a fonte errada no PDF.
+- **A marca em `js/marca.js` foi vetorizada do arquivo oficial** que a Beatriz
+  enviou (PNG 1024 com alfa, traçado com potrace). Duas constantes: `SIMBOLO`
+  (só a montanha — cabeçalho das páginas internas e ícones) e `MARCA` (montanha
+  + logotipo — painel e barra do app). Nada de `<text>` em SVG: o html2canvas
+  serializa SVG como imagem e a webfont não carrega nesse caminho.
+  **O `fill-rule` é `evenodd` e não pode sair**: a estrela e a gota são vazados
+  no mesmo path do contorno; com a regra padrão (nonzero) o miolo da estrela é
+  preenchido e ela vira um borrão azul saindo da montanha. Esse bug já aconteceu
+  — o extrator de path copiou só o `d` e deixou o `fill-rule` do potrace para trás.
+  A cor sai da constante `COR` (`#004080`, navy do material impresso); o arquivo
+  oficial vem em `#0913b1`, e trocar `COR` é o único passo se for esse o valor certo.
 - Paleta amostrada do material: navy **#004080** (marca, títulos, estrutura) e
   **#1163b0** só para marca de dado em gráfico (o navy reprova na banda de
   luminosidade de cor de gráfico).
+- **O documento tem QUATRO páginas num ciclo típico, e isso é requisito.**
+  A primeira versão tinha sete e a Beatriz recusou: "ficou muito extenso".
+  Estrutura: **painel** (título no formato da referência, números, execução,
+  gráficos, o que o R2D previa, tira planejado → executado) → **ações** →
+  **resultados**. **Não existe capa** — folha quase vazia só adia a informação.
+  Ações e fechamento são paginados num **fluxo contínuo**, sem quebra forçada:
+  forçar rendia uma folha com uma ação e três quartos de papel em branco.
+  Não voltar a repetir a cobertura do plano em duas páginas, e não deixar foto
+  passar de um terço da largura — foram essas duas coisas que incharam a v1.
 - **Um gráfico por indicador, lado a lado.** Market share, índice de evolução e
   atingimento de cota são todos "%" mas medem coisas diferentes: num gráfico só
   precisariam de dois eixos. Série única ⇒ sem legenda; rótulo direto só no
@@ -309,5 +323,5 @@ Nasceu em 17/09/2026. Identidade **APSEN** (não é a marca pessoal da Beatriz).
     valem igual aqui).
 - `npm test` roda 17 testes (leitor do R2D, gráficos, formatação). O fluxo de
   tela foi verificado ponta a ponta com Playwright: upload de PDF → 4 ações com
-  6 fotos → 3 períodos de indicadores → prévia de 7 páginas → PDF de 2,1 MB em
-  3,2 s e 7 PNGs, sem erro de console, no desktop e no iPhone.
+  6 fotos → 3 períodos de indicadores → prévia de 4 páginas → PDF de 1,27 MB em
+  2,0 s e 4 PNGs, sem erro de console, no desktop e no iPhone.

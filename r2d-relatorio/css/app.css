@@ -50,17 +50,16 @@ img{max-width:100%}
 [hidden]{display:none !important}
 
 /* ---------- marca institucional ---------- */
-.marca{color:var(--navy);width:var(--marca-w,120px);font-size:var(--marca-w,120px);display:block;line-height:1}
-.marca__simbolo svg{display:block;width:100%;height:auto}
-.marca__nome{font-weight:700;font-size:.335em;letter-spacing:.012em;text-align:center;margin-top:.055em}
-.marca__assinatura{font-weight:400;font-size:.082em;letter-spacing:.13em;line-height:1.35;
-  text-transform:uppercase;color:#40607f;text-align:center;margin:.5em auto 0;width:78%}
+/* A marca é um SVG inteiro (montanha + logotipo), vetorizado do arquivo
+   oficial. Só se define a largura; a altura acompanha. */
+.marca{display:block;width:var(--marca-w,120px)}
+.marca svg{display:block;width:100%;height:auto}
 
 /* ---------- cabeçalho do app ---------- */
 .topo{background:var(--papel);border-bottom:1px solid var(--linha);position:sticky;top:0;z-index:40}
 .topo__barra{max-width:var(--largura);margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
 .topo__esq{display:flex;align-items:center}
-.topo__esq .marca{--marca-w:54px;margin-right:16px}
+.topo__esq .marca{--marca-w:50px;margin-right:16px}
 .topo__titulo{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-3);font-weight:600}
 .topo__sub{font-size:16px;font-weight:600;color:var(--tinta);letter-spacing:-.01em}
 .topo__acoes{display:flex;align-items:center;gap:10px}
@@ -274,7 +273,7 @@ input::placeholder,textarea::placeholder{color:var(--tinta-3)}
      seguinte. Espremer os dois lados fazia o título quebrar em três linhas. */
   .topo__barra{padding:10px 16px;flex-wrap:wrap;row-gap:8px}
   .topo__esq{flex:1 1 100%}
-  .topo__esq .marca{--marca-w:44px;margin-right:12px}
+  .topo__esq .marca{--marca-w:40px;margin-right:12px}
   .topo__titulo{display:none}
   .topo__sub{font-size:15px;white-space:nowrap}
   .topo__acoes{flex:1 1 100%;justify-content:flex-end;gap:4px}

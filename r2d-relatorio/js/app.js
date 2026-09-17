@@ -10,7 +10,7 @@
 
 import { estado, carregar, gravarAgora, recomecar, mudou, projetoVazio } from './estado.js';
 import { $, $$, esc, recado, confirmar, baixar, nomeLimpo } from './ui.js';
-import { marcaInstitucional } from './marca.js';
+import { MARCA } from './marca.js';
 import { db } from './db.js';
 
 import * as telaInicio from './telas/inicio.js';
@@ -129,7 +129,7 @@ async function importarBackup(arquivo) {
 /* --- início ------------------------------------------------------------ */
 
 async function comecar() {
-  $('#marca-topo').innerHTML = marcaInstitucional({ assinatura: false });
+  $('#marca-topo').innerHTML = MARCA;
 
   await carregar();
 
