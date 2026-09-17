@@ -251,3 +251,63 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
   As listras inclinadas seguem valendo no Cronômetro/Placar.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
 - `npm test` em `lembretes/` roda 74 testes com PostgREST e serviço de push falsos.
+
+## App "Relatório de Ações do R2D" (`r2d-relatorio/`)
+
+Ferramenta para representante da indústria farmacêutica documentar **o que fez
+para executar o R2D** e entregar ao gestor um relatório executivo em PDF/imagem.
+Nasceu em 17/09/2026. Identidade **APSEN** (não é a marca pessoal da Beatriz).
+
+- **O princípio, e ele não pode ser diluído: o R2D é o PLANO e este app não o
+  cria, não o altera e não o substitui.** O PDF entra só como referência; o que
+  é gerado é um documento **complementar**, chamado "Relatório de Ações do R2D"
+  na capa, no cabeçalho de toda página e no nome do arquivo. Nunca chamar de
+  "novo R2D" nem deixar a tela sugerir isso.
+- **Sem cadastro, sem login, sem e-mail.** Abre e usa. A contrapartida é que
+  tudo mora no IndexedDB daquele navegador — por isso existem os botões
+  **Backup** e **Restaurar** (JSON com as fotos embutidas) no topo.
+- **A logo institucional é FIXA**: não há caminho no app para trocar, remover
+  ou subir outra. A pessoa só acrescenta a **logo do produto**, opcional e
+  discreta no alto da capa.
+- **O símbolo APSEN em `js/marca.js` é uma reconstrução vetorial** feita a
+  partir do material de referência, não o arquivo oficial. Trocar pela constante
+  `SIMBOLO` quando o SVG oficial aparecer (proporção 148 × 74) e rodar
+  `npm run gen:icons`. O logotipo "APSEN" e a assinatura são **texto HTML**, não
+  `<text>` no SVG: o html2canvas serializa SVG como imagem e a webfont não
+  carrega nesse caminho — sairia com a fonte errada no PDF.
+- Paleta amostrada do material: navy **#004080** (marca, títulos, estrutura) e
+  **#1163b0** só para marca de dado em gráfico (o navy reprova na banda de
+  luminosidade de cor de gráfico).
+- **Um gráfico por indicador, lado a lado.** Market share, índice de evolução e
+  atingimento de cota são todos "%" mas medem coisas diferentes: num gráfico só
+  precisariam de dois eixos. Série única ⇒ sem legenda; rótulo direto só no
+  primeiro e no último ponto; a tabela abaixo é a versão acessível. Menos de
+  dois períodos não desenha nada.
+- **A IA é opcional e fica fora do caminho crítico** (mesma decisão do app de
+  lembretes). A leitura padrão do R2D é o `js/extrator.js`, local e
+  determinístico, que devolve vazio em vez de chutar. `api/interpretar.js` e
+  `api/resumir.js` usam `claude-opus-5` com JSON Schema e `fallbacks: "default"`;
+  sem `ANTHROPIC_API_KEY` respondem 501 e nada deixa de funcionar. **Cada chamada
+  custa dinheiro** — este app não é de custo zero se a chave for cadastrada.
+- **Nada de CDN**: pdf.js, html2canvas, jsPDF e a fonte Source Sans 3 estão em
+  `vendor/`/`fonts/` e o service worker guarda tudo. O app abre offline, que é o
+  cenário real (corredor de farmácia, consultório).
+- Armadilhas já pagas, todas com o porquê no `README.md` e no código:
+  - **Foto de evidência nunca é `<img>`** — o html2canvas ignora `object-fit` e
+    estica no PDF. Sempre `background-image` + `background-size:cover` num div.
+  - **Espaçamento entre ações ancorado no `:first-child`**, nunca no
+    `:last-child`: anexar o bloco seguinte fazia o anterior crescer 14 mm depois
+    de já medido, e a última foto vazava da página.
+  - **Toda tela é esvaziada na troca de etapa**, não só a que entra — as seis
+    convivem no mesmo documento e `#listas`/`#b-seguir` casavam com a etapa errada.
+  - **A exportação monta um palco próprio em tamanho natural**, fora da vista:
+    capturar a prévia (que é reduzida por transform) daria um PDF na escala da
+    janela.
+  - Cabeçalho de página interna leva **só o símbolo** — o logotipo não cabe nos
+    11 mm e passa por cima do filete.
+  - Datas ISO montadas na mão; bordas Unicode nas regex (ver as seções acima,
+    valem igual aqui).
+- `npm test` roda 17 testes (leitor do R2D, gráficos, formatação). O fluxo de
+  tela foi verificado ponta a ponta com Playwright: upload de PDF → 4 ações com
+  6 fotos → 3 períodos de indicadores → prévia de 7 páginas → PDF de 2,1 MB em
+  3,2 s e 7 PNGs, sem erro de console, no desktop e no iPhone.
