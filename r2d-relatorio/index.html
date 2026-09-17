@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Relatório de Ações do R2D — Apsen</title>
+<meta name="description" content="Ferramenta para o representante documentar as ações realizadas na execução do R2D e gerar um relatório executivo em PDF.">
+<meta name="theme-color" content="#004080">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icone-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/icone-180.png">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/relatorio.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo__barra">
+    <div class="topo__esq">
+      <div id="marca-topo"></div>
+      <div>
+        <div class="topo__titulo">Apsen</div>
+        <div class="topo__sub">Relatório de Ações do R2D</div>
+      </div>
+    </div>
+    <div class="topo__acoes nao-imprime">
+      <label class="btn btn--fantasma" style="cursor:pointer">
+        Restaurar
+        <input type="file" accept="application/json,.json" hidden id="f-restaurar">
+      </label>
+      <button class="btn btn--fantasma" type="button" id="b-backup">Backup</button>
+      <button class="btn" type="button" id="b-novo">Novo relatório</button>
+    </div>
+  </div>
+</header>
+
+<nav class="etapas nao-imprime" aria-label="Etapas do relatório">
+  <ul class="etapas__lista" id="etapas"></ul>
+</nav>
+
+<main class="pagina-app">
+  <section class="tela" data-tela="inicio" aria-label="Dados e R2D"></section>
+  <section class="tela" data-tela="plano" aria-label="Plano do R2D"></section>
+  <section class="tela" data-tela="acoes" aria-label="Ações realizadas"></section>
+  <section class="tela" data-tela="indicadores" aria-label="Indicadores"></section>
+  <section class="tela" data-tela="fechamento" aria-label="Resultados"></section>
+  <section class="tela" data-tela="previa" aria-label="Relatório"></section>
+</main>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

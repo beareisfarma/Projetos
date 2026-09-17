@@ -1,0 +1,19 @@
+{
+  "name": "r2d-relatorio-acoes",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Relatório de Ações do R2D — documenta a execução do plano e gera um relatório executivo em PDF.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "npx --yes http-server -p 8080 -c-1 .",
+    "gen:icons": "node scripts/gerar-icones.mjs",
+    "test": "node scripts/testar.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.4"
+  }
+}

@@ -1,0 +1,262 @@
+/* ==========================================================================
+   RELATÓRIO DE AÇÕES DO R2D — folha do documento.
+
+   Vale tanto para a prévia na tela quanto para o PDF/PNG exportados: é a mesma
+   marcação capturada pelo html2canvas. Duas regras que não podem ser quebradas:
+
+   1) Foto de evidência NUNCA é <img>. O html2canvas ignora `object-fit` e
+      estica a imagem no PDF. Toda foto entra como `background-image` +
+      `background-size:cover` num <div>, que ele desenha certo.
+   2) Nada de `filter`, `mix-blend-mode` ou `background-clip:text` — o
+      html2canvas não desenha e a página sai diferente do que se vê.
+
+   Medidas em mm e texto em pt: é um documento A4, não uma tela.
+   ========================================================================== */
+
+.doc{
+  --pg-l:210mm; --pg-a:297mm;
+  --mx:17mm; --m-topo:15mm; --m-baixo:13mm;
+
+  --navy:#004080;
+  --navy-fundo:#002b56;
+  --azul-dado:#1163b0;
+  --azul-claro:#eaf3fc;
+  --painel:#f7fafd;
+  --tinta:#17222e;
+  --tinta-2:#55636f;
+  --tinta-3:#93a0ac;
+  --linha:#e1e8ef;
+  --linha-forte:#c6d4e3;
+
+  font-family:'Source Sans 3',-apple-system,'Segoe UI',sans-serif;
+  font-variant-numeric:tabular-nums;
+  color:var(--tinta);
+}
+
+/* ---------- a página ---------- */
+.pg{
+  width:var(--pg-l);height:var(--pg-a);background:#fff;position:relative;
+  overflow:hidden;font-size:9.5pt;line-height:1.5;
+}
+.pg__cab{
+  position:absolute;left:var(--mx);right:var(--mx);top:var(--m-topo);height:11mm;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  border-bottom:.35mm solid var(--navy);padding-bottom:3mm;
+}
+/* No topo das páginas internas entra só o símbolo: o logotipo completo não
+   cabe na faixa de 11 mm e passaria por cima do filete. A marca por extenso
+   está na capa e no rodapé de toda página. */
+.pg__cab .marca{--marca-w:13mm;flex:none}
+.pg__cab .marca__nome,
+.pg__cab .marca__assinatura{display:none}
+.pg__cab-dir{text-align:right;padding-top:.5mm}
+.pg__cab-tit{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--navy)}
+.pg__cab-sub{font-size:7.5pt;color:var(--tinta-2);margin-top:.6mm}
+
+.pg__corpo{
+  position:absolute;left:var(--mx);right:var(--mx);
+  top:calc(var(--m-topo) + 18mm);bottom:calc(var(--m-baixo) + 9mm);
+  overflow:hidden;
+}
+.pg__rodape{
+  position:absolute;left:var(--mx);right:var(--mx);bottom:var(--m-baixo);
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:.2mm solid var(--linha);padding-top:2.4mm;
+  font-size:7pt;color:var(--tinta-3);letter-spacing:.04em;
+}
+.pg__rodape strong{font-weight:600;color:var(--tinta-2)}
+.pg__num{font-weight:700;color:var(--navy);font-size:7.5pt}
+
+/* ---------- títulos de seção ---------- */
+.tit-secao{margin-bottom:7mm}
+.tit-secao__rot{font-size:7pt;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--azul-dado)}
+.tit-secao__h{font-size:19pt;font-weight:600;letter-spacing:-.015em;line-height:1.12;margin-top:1.5mm;color:var(--navy-fundo)}
+.tit-secao__sub{font-size:10pt;color:var(--tinta-2);margin-top:1.8mm;max-width:135mm;line-height:1.45}
+
+.rot{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-3)}
+
+/* ==========================================================================
+   CAPA
+   ========================================================================== */
+.pg--capa .capa__topo{
+  position:absolute;left:var(--mx);right:var(--mx);top:20mm;
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.pg--capa .marca{--marca-w:30mm}
+.capa__logo-produto{max-width:44mm;max-height:18mm;display:block}
+.capa__produto-nome{font-size:9pt;font-weight:600;color:var(--tinta-2);text-align:right;letter-spacing:.02em}
+
+.capa__regua{position:absolute;left:var(--mx);top:130mm;width:26mm;height:.9mm;background:var(--navy)}
+
+.capa__bloco{position:absolute;left:var(--mx);right:var(--mx);top:140mm}
+.capa__rot{font-size:8pt;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--azul-dado)}
+.capa__tit{font-size:31pt;font-weight:600;letter-spacing:-.025em;line-height:1.06;color:var(--navy-fundo);margin-top:4mm}
+.capa__produto{font-size:15pt;font-weight:400;color:var(--tinta-2);margin-top:4mm;letter-spacing:-.005em}
+
+.capa__meta{
+  position:absolute;left:var(--mx);right:var(--mx);bottom:34mm;
+  display:flex;border-top:.35mm solid var(--navy);padding-top:5mm;
+}
+.capa__meta-item{flex:1;padding-right:8mm}
+.capa__meta-item:last-child{padding-right:0}
+.capa__meta-rot{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-3)}
+.capa__meta-val{font-size:11pt;font-weight:600;color:var(--tinta);margin-top:1.4mm;line-height:1.3}
+
+.capa__pe{
+  position:absolute;left:var(--mx);right:var(--mx);bottom:var(--m-baixo);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:7pt;color:var(--tinta-3);letter-spacing:.06em;text-transform:uppercase;
+}
+
+/* ==========================================================================
+   CONTEXTO DO R2D
+   ========================================================================== */
+.chamada{
+  font-size:12.5pt;line-height:1.45;color:var(--navy-fundo);font-weight:400;
+  border-left:.9mm solid var(--navy);padding-left:6mm;margin-bottom:9mm;
+}
+.colunas{display:flex;margin:0 -5mm}
+.coluna{flex:1;padding:0 5mm;min-width:0}
+.bloco{margin-bottom:8mm}
+.coluna .bloco:last-child{margin-bottom:0}
+.bloco__tit{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--navy);border-bottom:.2mm solid var(--linha-forte);padding-bottom:1.8mm;margin-bottom:3mm}
+.lista{list-style:none;margin:0;padding:0}
+.lista li{position:relative;padding:1.6mm 0 1.6mm 10mm;border-top:.2mm solid var(--linha);line-height:1.42}
+.lista li:first-child{border-top:0}
+.lista__sig{position:absolute;left:0;top:1.9mm;font-size:6.6pt;font-weight:700;color:var(--azul-dado);letter-spacing:.04em}
+.lista--simples li{padding-left:4mm}
+.lista--simples li::before{content:"";position:absolute;left:0;top:3.4mm;width:1.6mm;height:1.6mm;
+  border-radius:50%;background:var(--linha-forte)}
+
+.nota-fonte{
+  margin-top:8mm;border-top:.2mm solid var(--linha);padding-top:3mm;
+  font-size:7.5pt;color:var(--tinta-3);line-height:1.45;
+}
+
+/* ==========================================================================
+   INDICADORES
+   ========================================================================== */
+.kpis{display:flex;margin:0 -3mm 10mm}
+.kpi{flex:1;padding:0 3mm;min-width:0}
+.kpi__int{border-top:.7mm solid var(--navy);padding-top:3.5mm}
+.kpi__rot{font-size:7pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-2)}
+.kpi__val{font-size:29pt;font-weight:600;letter-spacing:-.03em;line-height:1.02;color:var(--navy-fundo);margin-top:2mm}
+.kpi__delta{font-size:8.5pt;font-weight:600;margin-top:1.5mm}
+.kpi__delta--sobe{color:#1a7f5a}
+.kpi__delta--desce{color:#b3261e}
+.kpi__delta--igual{color:var(--tinta-3)}
+.kpi__pe{font-size:7.5pt;color:var(--tinta-3);margin-top:.8mm}
+
+.graficos{display:flex;margin:0 -3mm}
+.grafico{flex:1;padding:0 3mm;min-width:0}
+.grafico__tit{font-size:8pt;font-weight:600;color:var(--tinta-2);margin-bottom:2.5mm}
+.grafico svg{display:block;width:100%;height:auto}
+
+.serie{width:100%;border-collapse:collapse;font-size:8.5pt;margin-top:9mm}
+.serie th{font-size:6.8pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-3);
+  text-align:right;padding:0 3mm 2mm;border-bottom:.2mm solid var(--linha-forte)}
+.serie th:first-child{text-align:left;padding-left:0}
+.serie td{padding:2.2mm 3mm;border-bottom:.2mm solid var(--linha);text-align:right;color:var(--tinta-2)}
+.serie td:first-child{text-align:left;padding-left:0;font-weight:600;color:var(--tinta)}
+.serie tr:last-child td{border-bottom:0}
+
+/* ==========================================================================
+   EXECUÇÃO DO PLANO
+   ========================================================================== */
+.exec{display:flex;align-items:flex-end;margin-bottom:8mm}
+.exec__pct{flex:none;padding-right:10mm}
+.exec__pct-val{font-size:40pt;font-weight:600;letter-spacing:-.035em;line-height:.95;color:var(--navy)}
+.exec__pct-rot{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-2);margin-top:2mm}
+.exec__lados{flex:1;display:flex;padding-bottom:1mm}
+.exec__lado{flex:1}
+.exec__lado-val{font-size:17pt;font-weight:600;color:var(--tinta);line-height:1.1}
+.exec__lado-rot{font-size:7pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-3);margin-top:1mm}
+
+.trilho{height:3mm;background:var(--linha);border-radius:1.5mm;overflow:hidden;margin-bottom:9mm}
+.trilho__cheio{height:100%;background:var(--navy);border-radius:1.5mm}
+
+.barras{margin:0}
+.barra-l{margin-bottom:4mm}
+.barra-l:last-child{margin-bottom:0}
+.barra-l__topo{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.4mm}
+.barra-l__nome{font-size:9pt;color:var(--tinta)}
+.barra-l__n{font-size:9pt;font-weight:600;color:var(--tinta-2)}
+.barra-l__trilho{height:2.2mm;background:var(--painel);border-radius:1.1mm;overflow:hidden}
+.barra-l__cheio{height:100%;background:var(--azul-dado);border-radius:1.1mm}
+
+/* ==========================================================================
+   AÇÕES REALIZADAS
+   ========================================================================== */
+/* O espaçamento é ancorado no PRIMEIRO item, nunca no último: a paginação
+   mede cada bloco na hora em que o anexa, e uma regra :last-child faria o
+   bloco anterior CRESCER depois de já ter sido aprovado — a última foto da
+   página vazava para fora do papel. Anexar no fim não muda o :first-child. */
+.acao{padding-top:7mm;margin-top:7mm;border-top:.2mm solid var(--linha)}
+.acao:first-child{padding-top:0;margin-top:0;border-top:0}
+.acao__topo{display:flex;align-items:baseline;margin-bottom:2mm}
+.acao__data{font-size:7.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--azul-dado);flex:none;width:34mm}
+.acao__tit{font-size:12pt;font-weight:600;color:var(--navy-fundo);flex:1;line-height:1.25;letter-spacing:-.01em}
+.acao__cat{font-size:7pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-3);
+  flex:none;padding-left:5mm;text-align:right}
+.acao__int{padding-left:34mm}
+.acao__vinc{
+  font-size:8pt;color:var(--tinta-2);background:var(--painel);border-left:.7mm solid var(--azul-claro);
+  padding:2mm 3.5mm;margin-bottom:3mm;line-height:1.4;
+}
+.acao__vinc b{font-weight:700;color:var(--azul-dado);letter-spacing:.06em;font-size:7pt;text-transform:uppercase}
+.acao__local{font-size:8.5pt;color:var(--tinta-2);margin-bottom:2mm}
+.acao__local b{font-size:6.8pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tinta-3);margin-right:2mm}
+.acao__desc{font-size:9.5pt;line-height:1.5;color:var(--tinta);margin-bottom:3mm}
+.acao__campos{display:flex;margin:0 -4mm 3mm}
+.acao__campo{flex:1;padding:0 4mm;min-width:0}
+.acao__campo-rot{font-size:6.8pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-3)}
+.acao__campo-val{font-size:9pt;line-height:1.45;color:var(--tinta);margin-top:.8mm}
+
+/* fotos: div com background-image, nunca <img> — ver o topo do arquivo */
+.evid{display:flex;flex-wrap:wrap;margin:0 -1.5mm}
+.evid__item{padding:0 1.5mm 3mm;width:33.333%}
+.evid--2 .evid__item{width:50%}
+.evid--1 .evid__item{width:62%}
+.evid__foto{
+  width:100%;height:34mm;background-color:var(--painel);
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  border:.2mm solid var(--linha);border-radius:1mm;
+}
+.evid--1 .evid__foto,.evid--2 .evid__foto{height:44mm}
+.evid__legenda{font-size:7.2pt;color:var(--tinta-3);margin-top:1.2mm;line-height:1.35}
+
+/* ==========================================================================
+   RESULTADOS E PRÓXIMOS PASSOS
+   ========================================================================== */
+.destaque{background:var(--painel);border-top:.7mm solid var(--navy);padding:5mm 6mm;margin-bottom:8mm}
+.destaque__rot{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--navy)}
+.destaque__txt{font-size:10.5pt;line-height:1.5;color:var(--tinta);margin-top:2.5mm}
+
+.passos{list-style:none;margin:0;padding:0;counter-reset:passo}
+.passos li{position:relative;padding:2.6mm 0 2.6mm 9mm;border-top:.2mm solid var(--linha);line-height:1.42}
+.passos li:first-child{border-top:0}
+.passos li::before{
+  counter-increment:passo;content:counter(passo);position:absolute;left:0;top:2.9mm;
+  width:5.5mm;height:5.5mm;border-radius:50%;background:var(--azul-claro);color:var(--navy);
+  font-size:7pt;font-weight:700;text-align:center;line-height:5.5mm;
+}
+.atencao li::before{background:#fdf0df;color:#8a5200}
+
+.vazio-doc{font-size:9pt;color:var(--tinta-3);font-style:italic;padding:2mm 0}
+
+/* ---------- prévia na tela ---------- */
+.previa__pag .pg{margin:0}
+
+@media print{
+  body{background:#fff}
+  .topo,.etapas,.previa__barra,.recados,.nao-imprime{display:none !important}
+  .pagina-app{padding:0;max-width:none}
+  .previa{background:none;padding:0;overflow:visible}
+  .previa__pilha{gap:0}
+  .previa__pag{box-shadow:none;break-after:page;page-break-after:always}
+  .previa__pag:last-child{break-after:auto;page-break-after:auto}
+  @page{size:A4;margin:0}
+}
