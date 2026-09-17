@@ -23,7 +23,7 @@ export async function desenhar(raiz) {
     <div class="secao">
       <div class="secao__cab">
         <div>
-          <h2 class="secao__titulo">Relatório de Ações do R2D</h2>
+          <h2 class="secao__titulo">Relatório de Execução do R2D</h2>
           <p class="secao__desc">Confira antes de exportar. Para mudar alguma coisa, volte à etapa correspondente.</p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export async function desenhar(raiz) {
       </div>
     </div>`;
 
-  $('#b-voltar', raiz).addEventListener('click', () => irPara('fechamento'));
+  $('#b-voltar', raiz).addEventListener('click', () => irPara('indicadores'));
   $('#b-pdf', raiz).addEventListener('click', () => exportarPdf({ compartilhar: podeCompartilhar() }));
   $('#b-img', raiz).addEventListener('click', () => exportarImagens({ compartilhar: true }));
   $('#b-print', raiz).addEventListener('click', imprimir);

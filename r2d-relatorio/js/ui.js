@@ -58,16 +58,36 @@ export function num(v, casas = 1) {
   return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
 }
 
-export function pct(v, casas = 1) {
-  if (v === '' || v == null || Number.isNaN(Number(v))) return '—';
-  return num(v, casas) + '%';
-}
-
-/** Com sinal explícito — para índice de evolução, onde +8 e 8 dizem coisas diferentes. */
-export function pctSinal(v, casas = 1) {
+/**
+ * Valor de indicador com a unidade que a pessoa escolheu.
+ * Unidade em branco é número índice — sai sem sufixo nenhum.
+ */
+export function valorFmt(v, unidade = '') {
   if (v === '' || v == null || Number.isNaN(Number(v))) return '—';
   const n = Number(v);
-  return (n > 0 ? '+' : '') + num(n, casas) + '%';
+  // índice costuma ser inteiro (108); percentual costuma ter uma casa (28,2)
+  const casas = unidade === '%' ? 1 : (Number.isInteger(n) ? 0 : 1);
+  return num(n, casas) + (unidade ? (unidade === '%' ? '%' : ' ' + unidade) : '');
+}
+
+/**
+ * Diferença entre a posição atual e a referência.
+ *
+ * É comparação, não cálculo de indicador: os dois números foram digitados por
+ * ela. Em percentual a diferença é em pontos percentuais; em número índice é
+ * só a diferença.
+ */
+export function variacaoFmt(variacao, unidade = '') {
+  if (variacao == null || Number.isNaN(Number(variacao))) return null;
+  const n = Number(variacao);
+  const quase = Math.abs(n) < 0.05;
+  const casas = Number.isInteger(n) ? 0 : 1;
+  const sufixo = unidade === '%' ? ' p.p.' : (unidade ? ' ' + unidade : '');
+  return {
+    texto: (quase ? '● ' : n > 0 ? '▲ ' : '▼ ') + num(Math.abs(n), casas) + sufixo,
+    cor: quase ? '#93a0ac' : n > 0 ? '#1a7f5a' : '#b3261e',
+    sentido: quase ? 'igual' : n > 0 ? 'sobe' : 'desce',
+  };
 }
 
 export function tamanhoArquivo(bytes) {

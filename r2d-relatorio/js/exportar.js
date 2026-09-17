@@ -75,7 +75,7 @@ const respirar = () => new Promise((r) => setTimeout(r, 0));
 
 function nomeBase() {
   const p = estado.projeto;
-  return `relatorio-acoes-r2d-${nomeLimpo(p.produto || 'produto')}`;
+  return `relatorio-execucao-r2d-${nomeLimpo(p.produto || 'produto')}`;
 }
 
 /* --- PDF --------------------------------------------------------------- */
@@ -97,10 +97,10 @@ export async function exportarPdf({ compartilhar = false } = {}) {
     });
 
     pdf.setProperties({
-      title: `Relatório de Ações do R2D — ${estado.projeto.produto || ''}`.trim(),
-      subject: 'Relatório de ações realizadas para execução do R2D',
+      title: `Relatório de Execução do R2D — ${estado.projeto.produto || ''}`.trim(),
+      subject: 'Ações realizadas e evolução dos indicadores na execução do R2D',
       author: estado.projeto.representante || '',
-      creator: 'Relatório de Ações do R2D',
+      creator: 'Relatório de Execução do R2D',
     });
 
     const blob = pdf.output('blob');
@@ -152,7 +152,7 @@ export async function exportarImagens({ compartilhar = true } = {}) {
 async function tentarCompartilhar(arquivos) {
   if (!navigator.canShare?.({ files: arquivos })) return false;
   try {
-    await navigator.share({ files: arquivos, title: 'Relatório de Ações do R2D' });
+    await navigator.share({ files: arquivos, title: 'Relatório de Execução do R2D' });
     return true;
   } catch (e) {
     // a pessoa cancelou a folha de compartilhamento: não é erro, e não cai

@@ -14,19 +14,19 @@ import { MARCA } from './marca.js';
 import { db } from './db.js';
 
 import * as telaInicio from './telas/inicio.js';
-import * as telaPlano from './telas/plano.js';
 import * as telaAcoes from './telas/acoes.js';
 import * as telaIndicadores from './telas/indicadores.js';
-import * as telaFechamento from './telas/fechamento.js';
 import * as telaPrevia from './telas/previa.js';
 
+// Quatro etapas, na ordem em que a pessoa trabalha: identifica e envia o R2D,
+// vai registrando as ações ao longo do ciclo, alimenta os indicadores quando
+// o mês fecha, e gera o relatório. Nada de tela para editar o plano: o R2D já
+// existe e foi aprovado com a gerente.
 const ETAPAS = [
-  { id: 'inicio', rotulo: 'Dados e R2D', modulo: telaInicio },
-  { id: 'plano', rotulo: 'Plano do R2D', modulo: telaPlano },
+  { id: 'inicio', rotulo: 'Identificação e R2D', modulo: telaInicio },
   { id: 'acoes', rotulo: 'Ações realizadas', modulo: telaAcoes },
   { id: 'indicadores', rotulo: 'Indicadores', modulo: telaIndicadores },
-  { id: 'fechamento', rotulo: 'Resultados', modulo: telaFechamento },
-  { id: 'previa', rotulo: 'Relatório', modulo: telaPrevia },
+  { id: 'relatorio', rotulo: 'Relatório', modulo: telaPrevia },
 ];
 
 let atual = null;
@@ -58,10 +58,8 @@ function completa(id) {
   const p = estado.projeto;
   switch (id) {
     case 'inicio': return Boolean(p.representante && p.produto);
-    case 'plano': return p.plano.objetivos.length > 0 || p.plano.estrategias.length > 0;
     case 'acoes': return p.acoes.length > 0;
-    case 'indicadores': return p.indicadores.length > 0;
-    case 'fechamento': return Boolean(p.fechamento.resumo) || p.fechamento.proximosPassos.length > 0;
+    case 'indicadores': return p.indicadores.periodos.length > 0;
     default: return false;
   }
 }

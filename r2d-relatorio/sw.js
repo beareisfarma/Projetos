@@ -9,7 +9,7 @@
  * ou funcionam online ou falham e a tela segue com a leitura local.
  */
 
-const CACHE = 'r2d-relatorio-v1';
+const CACHE = 'r2d-relatorio-v2';
 
 const ESSENCIAL = [
   './',
@@ -22,7 +22,6 @@ const ESSENCIAL = [
   'js/db.js',
   'js/ui.js',
   'js/marca.js',
-  'js/componentes.js',
   'js/graficos.js',
   'js/fotos.js',
   'js/ia.js',
@@ -31,10 +30,8 @@ const ESSENCIAL = [
   'js/relatorio.js',
   'js/exportar.js',
   'js/telas/inicio.js',
-  'js/telas/plano.js',
   'js/telas/acoes.js',
   'js/telas/indicadores.js',
-  'js/telas/fechamento.js',
   'js/telas/previa.js',
   'fonts/source-sans-3-latin-400-normal.woff2',
   'fonts/source-sans-3-latin-600-normal.woff2',

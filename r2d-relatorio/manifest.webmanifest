@@ -1,7 +1,7 @@
 {
-  "name": "Relatório de Ações do R2D",
+  "name": "Relatório de Execução do R2D",
   "short_name": "Relatório R2D",
-  "description": "Documente as ações realizadas na execução do R2D e gere um relatório executivo.",
+  "description": "Registre as ações realizadas para executar o R2D e acompanhe a evolução dos indicadores.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

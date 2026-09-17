@@ -1,40 +1,34 @@
 /**
  * O modelo do relatório e sua persistência.
  *
- * Princípio do produto, que o modelo espelha: o R2D é o PLANO e não é tocado
- * aqui. `projeto.plano` é uma LEITURA do PDF enviado — serve de referência
- * para as ações se ligarem a ela. `projeto.acoes` é a EXECUÇÃO: o que a
- * pessoa de fato fez. Nada neste arquivo escreve no PDF original.
+ * O R2D é o PLANO, já elaborado e aprovado com a gerente. Este app não o cria,
+ * não o edita e não o substitui. `projeto.plano` guarda só a LEITURA de três
+ * coisas do PDF — objetivo, gap e ações previstas — que entram no relatório
+ * como contexto e nada mais.
+ *
+ * O que o app de fato registra é `acoes` (o que foi feito) e `indicadores`
+ * (como o produto evoluiu). Nada além disso.
  */
 
 import { db, esquecerFoto } from './db.js';
-
-export const CATEGORIAS = [
-  'Visita médica',
-  'Ação em PDV',
-  'Evento',
-  'Treinamento',
-  'Reunião',
-  'Ação com cliente',
-  'Material promocional',
-  'Monitoramento de mercado',
-  'Outra',
-];
-
-export const INDICADORES = [
-  { chave: 'marketShare', nome: 'Market share', unidade: '%', sentido: 'sobe' },
-  { chave: 'evolucao', nome: 'Índice de evolução', unidade: '%', sentido: 'sobe', sinal: true },
-  { chave: 'cota', nome: 'Atingimento de cota', unidade: '%', sentido: 'sobe' },
-];
 
 export function novoId(prefixo = 'id') {
   return prefixo + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+/** Os dois indicadores que todo R2D acompanha. A pessoa acrescenta outros. */
+export function indicadoresPadrao() {
+  return [
+    { id: novoId('ind'), nome: 'Market Share', unidade: '%' },
+    { id: novoId('ind'), nome: 'Índice de Evolução', unidade: '' },
+  ];
+}
+
 export function projetoVazio() {
   return {
-    versao: 1,
+    versao: 2,
     criadoEm: new Date().toISOString(),
+
     representante: '',
     produto: '',
     logoProduto: null,          // data: URL, opcional — logo do PRODUTO, nunca a institucional
@@ -46,29 +40,20 @@ export function projetoVazio() {
       nomeArquivo: '',
       paginas: 0,
       enviadoEm: '',
-      texto: '',                // texto extraído, guardado para reinterpretar sem reenviar
+      texto: '',                // guardado para reinterpretar sem reenviar o arquivo
       origemLeitura: '',        // 'ia' | 'local' | 'manual' | ''
     },
 
-    plano: {                    // o que o R2D previa (editável, nunca reescreve o PDF)
-      contexto: '',
-      objetivos: [],            // [{id, sigla, texto}]
-      estrategias: [],
-      desafios: [],
-      acoesPlanejadas: [],
-      metas: [],
-      totalPlanejadas: null,    // número de ações previstas, para o % de execução
+    plano: {                    // o que o R2D dizia — contexto, não gestão
+      objetivo: '',
+      gap: '',
+      acoesPrevistas: [],       // lista de textos, só para exibição
     },
 
-    acoes: [],                  // a execução
-    indicadores: [],            // [{id, rotulo, marketShare, evolucao, cota}]
-
-    fechamento: {
-      resumo: '',
-      entregas: [],
-      pendencias: [],
-      proximosPassos: [],
-      atencao: [],
+    acoes: [],                  // o que foi feito
+    indicadores: {
+      definicoes: indicadoresPadrao(),
+      periodos: [],             // [{id, rotulo, referencia, valores: {defId: número}}]
     },
   };
 }
@@ -76,19 +61,17 @@ export function projetoVazio() {
 export function acaoVazia() {
   return {
     id: novoId('ac'),
-    registradoEm: new Date().toISOString(),  // preenchido pelo sistema, não pela pessoa
+    registradoEm: new Date().toISOString(),  // preenchido pelo sistema
     data: hojeISO(),
     titulo: '',
-    categoria: 'Visita médica',
-    vinculos: [],                             // ids de itens do plano
-    objetivo: '',
-    descricao: '',
     local: '',
     resultado: '',
-    proximoPasso: '',
-    observacoes: '',
-    fotos: [],                                // [{id, legenda}]
+    fotos: [],                               // [{id, legenda}]
   };
+}
+
+export function periodoVazio(rotulo = '', referencia = false) {
+  return { id: novoId('per'), rotulo, referencia, valores: {} };
 }
 
 export function hojeISO() {
@@ -130,12 +113,85 @@ export async function gravarAgora() {
 export async function carregar() {
   try {
     const guardado = await db.lerProjeto();
-    if (guardado) estado.projeto = { ...projetoVazio(), ...guardado };
+    if (guardado) estado.projeto = migrar(guardado);
   } catch (e) {
     console.error('Não consegui ler o projeto guardado', e);
   }
   estado.pronto = true;
   return estado.projeto;
+}
+
+/**
+ * Traz um projeto da versão 1 para a 2.
+ *
+ * A v1 tinha um plano estruturado (objetivos, estratégias, desafios, ações
+ * planejadas, com siglas) e ações amarradas a ele. Virou contexto simples.
+ * Nada do que a pessoa escreveu é jogado fora sem aviso: o que existia vira
+ * texto nos campos novos.
+ */
+function migrar(guardado) {
+  const base = projetoVazio();
+  if ((guardado.versao || 1) >= 2) {
+    return {
+      ...base, ...guardado,
+      plano: { ...base.plano, ...(guardado.plano || {}) },
+      indicadores: {
+        definicoes: guardado.indicadores?.definicoes?.length
+          ? guardado.indicadores.definicoes : base.indicadores.definicoes,
+        periodos: guardado.indicadores?.periodos || [],
+      },
+    };
+  }
+
+  const velho = guardado.plano || {};
+  const texto = (lista) => (lista || []).map((i) => i.texto || i).filter(Boolean);
+  const novo = {
+    ...base,
+    ...guardado,
+    versao: 2,
+    plano: {
+      objetivo: velho.contexto || texto(velho.objetivos).join(' ') || '',
+      gap: texto(velho.desafios).join(' ') || '',
+      acoesPrevistas: [...texto(velho.acoesPlanejadas), ...texto(velho.estrategias)].slice(0, 8),
+    },
+    acoes: (guardado.acoes || []).map((a) => ({
+      id: a.id, registradoEm: a.registradoEm, data: a.data,
+      titulo: a.titulo, local: a.local,
+      resultado: [a.descricao, a.resultado, a.observacoes].filter(Boolean).join('\n\n'),
+      fotos: a.fotos || [],
+    })),
+    indicadores: base.indicadores,
+  };
+
+  // a tabela antiga tinha três colunas fixas; vira definições + períodos
+  const antigos = guardado.indicadores;
+  if (Array.isArray(antigos) && antigos.length) {
+    const defs = [
+      { id: novoId('ind'), nome: 'Market Share', unidade: '%', de: 'marketShare' },
+      { id: novoId('ind'), nome: 'Índice de Evolução', unidade: '', de: 'evolucao' },
+      { id: novoId('ind'), nome: 'Atingimento de cota', unidade: '%', de: 'cota' },
+    ];
+    novo.indicadores = {
+      definicoes: defs.map(({ de, ...d }) => d),
+      periodos: antigos.map((linha, i) => ({
+        id: novoId('per'),
+        rotulo: linha.rotulo || `Período ${i + 1}`,
+        referencia: i === 0,
+        valores: Object.fromEntries(defs
+          .map((d, j) => [novo.indicadores?.definicoes?.[j]?.id ?? defs[j].id, linha[d.de]])
+          .filter(([, v]) => v !== '' && v != null)),
+      })),
+    };
+    // refaz os ids agora que as definições existem
+    novo.indicadores.periodos.forEach((p, i) => {
+      p.valores = Object.fromEntries(novo.indicadores.definicoes
+        .map((d, j) => [d.id, antigos[i][defs[j].de]])
+        .filter(([, v]) => v !== '' && v != null));
+    });
+  }
+
+  delete novo.fechamento;
+  return novo;
 }
 
 export async function recomecar() {
@@ -147,42 +203,7 @@ export async function recomecar() {
   mudou();
 }
 
-/* --- itens do plano ---------------------------------------------------- */
-
-const SIGLAS = { objetivos: 'OBJ', estrategias: 'EST', desafios: 'DES', acoesPlanejadas: 'PLN', metas: 'MET' };
-
-export function itemDePlano(lista, texto) {
-  const usados = estado.projeto.plano[lista] || [];
-  return { id: novoId(lista.slice(0, 3)), sigla: `${SIGLAS[lista]}${usados.length + 1}`, texto };
-}
-
-/** Renumera as siglas depois de remover um item, para não ficar OBJ1, OBJ3. */
-export function renumerar(lista) {
-  (estado.projeto.plano[lista] || []).forEach((item, i) => { item.sigla = `${SIGLAS[lista]}${i + 1}`; });
-}
-
-/** Todos os itens do plano em uma lista só, para o seletor de vínculo. */
-export function itensDoPlano() {
-  const p = estado.projeto.plano;
-  const grupos = [
-    ['Objetivos', p.objetivos],
-    ['Estratégias', p.estrategias],
-    ['Ações planejadas', p.acoesPlanejadas],
-    ['Desafios', p.desafios],
-  ];
-  return grupos.filter(([, itens]) => itens && itens.length);
-}
-
-export function acharItemDoPlano(id) {
-  const p = estado.projeto.plano;
-  for (const lista of ['objetivos', 'estrategias', 'acoesPlanejadas', 'desafios', 'metas']) {
-    const achado = (p[lista] || []).find((i) => i.id === id);
-    if (achado) return achado;
-  }
-  return null;
-}
-
-/* --- números derivados ------------------------------------------------- */
+/* --- números derivados --------------------------------------------- */
 
 export function acoesEmOrdem() {
   return [...estado.projeto.acoes].sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : 0));
@@ -192,41 +213,37 @@ export function totalDeFotos() {
   return estado.projeto.acoes.reduce((n, a) => n + a.fotos.length, 0);
 }
 
-/** Último período com pelo menos um indicador preenchido. */
-export function ultimoIndicador() {
-  const preenchidos = estado.projeto.indicadores.filter(
-    (i) => INDICADORES.some((d) => i[d.chave] !== '' && i[d.chave] != null),
-  );
-  return preenchidos.length ? preenchidos[preenchidos.length - 1] : null;
+const temValor = (v) => v !== '' && v != null && !Number.isNaN(Number(v));
+
+/** Períodos com pelo menos um valor preenchido, na ordem em que foram criados. */
+export function periodosPreenchidos() {
+  const { definicoes, periodos } = estado.projeto.indicadores;
+  return periodos.filter((p) => definicoes.some((d) => temValor(p.valores[d.id])));
 }
 
-export function penultimoIndicador() {
-  const preenchidos = estado.projeto.indicadores.filter(
-    (i) => INDICADORES.some((d) => i[d.chave] !== '' && i[d.chave] != null),
-  );
-  return preenchidos.length > 1 ? preenchidos[preenchidos.length - 2] : null;
+/**
+ * Referência (o marco inicial do R2D) e a posição mais recente de um indicador.
+ * O app não calcula nem estima valor nenhum: só lê o que foi digitado e compara.
+ */
+export function leituraDoIndicador(def) {
+  const comValor = periodosPreenchidos().filter((p) => temValor(p.valores[def.id]));
+  if (!comValor.length) return null;
+
+  const marcada = comValor.find((p) => p.referencia);
+  const referencia = marcada || comValor[0];
+  const atual = comValor[comValor.length - 1];
+  const mesma = referencia.id === atual.id;
+
+  return {
+    referencia: { rotulo: referencia.rotulo, valor: Number(referencia.valores[def.id]) },
+    atual: { rotulo: atual.rotulo, valor: Number(atual.valores[def.id]) },
+    variacao: mesma ? null : Number(atual.valores[def.id]) - Number(referencia.valores[def.id]),
+  };
 }
 
-export function execucao() {
-  const previstas = Number(estado.projeto.plano.totalPlanejadas);
-  const feitas = estado.projeto.acoes.length;
-  if (!previstas || previstas <= 0) return { previstas: null, feitas, pct: null };
-  return { previstas, feitas, pct: (feitas / previstas) * 100 };
-}
-
-export function porCategoria() {
-  const mapa = new Map();
-  estado.projeto.acoes.forEach((a) => mapa.set(a.categoria, (mapa.get(a.categoria) || 0) + 1));
-  return [...mapa].sort((a, b) => b[1] - a[1]);
-}
-
-/** Quantas ações se ligaram a cada item do plano — é a coluna
- *  "planejado → executado" do relatório. */
-export function cobertura() {
-  const p = estado.projeto.plano;
-  const alvo = [...(p.objetivos || []), ...(p.estrategias || []), ...(p.acoesPlanejadas || [])];
-  return alvo.map((item) => ({
-    item,
-    quantas: estado.projeto.acoes.filter((a) => a.vinculos.includes(item.id)).length,
-  }));
+/** Série completa de um indicador, para o gráfico. */
+export function serieDoIndicador(def) {
+  return estado.projeto.indicadores.periodos
+    .map((p) => ({ rotulo: p.rotulo, valor: p.valores[def.id], referencia: p.referencia }))
+    .filter((p) => temValor(p.valor));
 }

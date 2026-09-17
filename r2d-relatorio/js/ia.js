@@ -39,5 +39,4 @@ async function chamar(rota, corpo) {
 
 export const ia = {
   interpretarR2D: (texto) => chamar('/api/interpretar', { texto }),
-  resumir: (material) => chamar('/api/resumir', { material }),
 };

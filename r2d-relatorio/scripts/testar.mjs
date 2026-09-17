@@ -10,8 +10,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { lerR2D } from '../js/extrator.js';
-import { linhaEvolucao, barrasCategoria } from '../js/graficos.js';
-import { dataCurta, dataLonga, num, pct, pctSinal, nomeLimpo, esc, periodoPorExtenso } from '../js/ui.js';
+import { linhaEvolucao } from '../js/graficos.js';
+import { dataCurta, dataLonga, num, valorFmt, variacaoFmt, nomeLimpo, esc, periodoPorExtenso } from '../js/ui.js';
 
 /* ---------------------------------------------------------------- */
 /* Leitor do R2D                                                     */
@@ -42,19 +42,16 @@ AÇÕES PLANEJADAS
 INDICADORES
 • Market share de 32% até dezembro.`;
 
-test('lê produto, período e seções do R2D', () => {
+test('lê produto, período, objetivo, gap e ações previstas', () => {
   const r = lerR2D(R2D);
   assert.equal(r.produto, 'LOGNIS');
   assert.equal(r.periodoRotulo, 'Ciclo 7 · Setembro de 2026');
   assert.equal(r.periodoInicio, '2026-09-01');
   assert.equal(r.periodoFim, '2026-09-30');
-  assert.equal(r.objetivos.length, 2);
-  assert.match(r.objetivos[0], /^Ampliar a conversão/);
-  assert.equal(r.estrategias.length, 2);
-  assert.equal(r.desafios.length, 1);
-  assert.equal(r.acoesPlanejadas.length, 2);
-  assert.equal(r.metas.length, 1);
-  assert.match(r.contexto, /suplementos para função cognitiva/);
+  assert.match(r.objetivo, /Ampliar a conversão/);
+  assert.match(r.gap, /perfil do paciente/);
+  assert.equal(r.acoesPrevistas.length, 2);
+  assert.match(r.acoesPrevistas[0], /^Realizar ações de PDV/);
 });
 
 test('reconhece faixa de datas explícita', () => {
@@ -65,34 +62,45 @@ test('reconhece faixa de datas explícita', () => {
 
 test('aceita título com o conteúdo na mesma linha', () => {
   const r = lerR2D('OBJETIVO: Ampliar a conversão nos médicos de alto potencial.');
-  assert.equal(r.objetivos.length, 1);
-  assert.match(r.objetivos[0], /Ampliar a conversão/);
+  assert.match(r.objetivo, /Ampliar a conversão/);
 });
 
-test('junta linhas quebradas num item só quando não há marcador', () => {
-  const r = lerR2D('ESTRATÉGIA\nAumentar a frequência de visitação nos médicos\nde alto potencial do painel.');
-  assert.equal(r.estrategias.length, 1);
-  assert.match(r.estrategias[0], /médicos de alto potencial/);
+test('junta linhas quebradas numa frase só', () => {
+  const r = lerR2D('GAP\nA conversão nos médicos de alto potencial\nainda está abaixo do esperado.');
+  assert.match(r.gap, /médicos de alto potencial ainda está/);
 });
 
-test('não inventa seção que o documento não tem', () => {
+test('a seção de indicadores é descartada, não vira ação prevista', () => {
+  // os números de indicador são digitados pela pessoa; ler do PDF seria inventar
+  const r = lerR2D('AÇÕES PLANEJADAS\n1. Visitar o painel.\nINDICADORES\n• Market share de 32% até dezembro.');
+  assert.equal(r.acoesPrevistas.length, 1);
+  assert.equal(JSON.stringify(r).includes('32%'), false);
+});
+
+test('estratégia só entra quando não há lista de ações', () => {
+  const comAcoes = lerR2D('ESTRATÉGIA\n• Painel.\nAÇÕES PLANEJADAS\n1. Visitar o painel.');
+  assert.equal(comAcoes.acoesPrevistas.length, 1);
+  const semAcoes = lerR2D('ESTRATÉGIA\n• Ações de baixo custo.\n• Aumento da visitação.');
+  assert.equal(semAcoes.acoesPrevistas.length, 2);
+});
+
+test('não inventa campo que o documento não tem', () => {
   const r = lerR2D('R2D\nProduto: LOGNIS\nOBJETIVO: crescer');
-  assert.deepEqual(r.estrategias, []);
-  assert.deepEqual(r.acoesPlanejadas, []);
-  assert.deepEqual(r.desafios, []);
-  assert.equal(r.contexto, '');
+  assert.equal(r.gap, '');
+  assert.deepEqual(r.acoesPrevistas, []);
 });
 
 test('texto vazio devolve tudo vazio, sem estourar', () => {
   const r = lerR2D('');
   assert.equal(r.produto, '');
-  assert.deepEqual(r.objetivos, []);
+  assert.equal(r.objetivo, '');
+  assert.deepEqual(r.acoesPrevistas, []);
 });
 
 test('bordas Unicode: "ações" não casa dentro de outra palavra', () => {
   // "Reações adversas" não pode virar título da seção "ações"
   const r = lerR2D('Reações adversas relatadas no ciclo anterior foram poucas.\nOBJETIVO: crescer');
-  assert.deepEqual(r.acoesPlanejadas, []);
+  assert.deepEqual(r.acoesPrevistas, []);
 });
 
 /* ---------------------------------------------------------------- */
@@ -107,21 +115,29 @@ test('não desenha linha com menos de dois pontos', () => {
 
 test('desenha a linha e rotula só o primeiro e o último ponto', () => {
   const svg = linhaEvolucao([
-    { rotulo: 'Agosto', valor: 24.5 },
+    { rotulo: 'Agosto', valor: 24.5, referencia: true },
     { rotulo: 'Setembro', valor: 28.2 },
     { rotulo: 'Outubro', valor: 32.5 },
-  ]);
+  ], { unidade: '%' });
   assert.match(svg, /<svg/);
-  assert.equal((svg.match(/<circle/g) || []).length, 3);
+  assert.equal((svg.match(/<circle/g) || []).length, 4, 'três pontos mais o anel da referência');
   assert.match(svg, /24,5%/);
   assert.match(svg, /32,5%/);
   assert.equal(svg.includes('>28,2%<'), false, 'o ponto do meio não leva rótulo');
 });
 
-test('índice de evolução sai com sinal', () => {
-  const svg = linhaEvolucao([{ rotulo: 'Ago', valor: 8 }, { rotulo: 'Set', valor: 15 }], { sinal: true });
-  assert.match(svg, /\+8,0%/);
-  assert.match(svg, /\+15,0%/);
+test('número índice sai sem símbolo de porcentagem', () => {
+  const svg = linhaEvolucao([{ rotulo: 'Ago', valor: 100 }, { rotulo: 'Set', valor: 108 }], { unidade: '' });
+  assert.match(svg, />100</);
+  assert.match(svg, />108</);
+  assert.equal(svg.includes('%'), false);
+});
+
+test('a referência ganha um anel para a gerente achar o ponto de partida', () => {
+  const comRef = linhaEvolucao([{ rotulo: 'Ago', valor: 1, referencia: true }, { rotulo: 'Set', valor: 2 }]);
+  const semRef = linhaEvolucao([{ rotulo: 'Ago', valor: 1 }, { rotulo: 'Set', valor: 2 }]);
+  assert.match(comRef, /referência/);
+  assert.equal((comRef.match(/<circle/g) || []).length, (semRef.match(/<circle/g) || []).length + 1);
 });
 
 test('rótulo de período é escapado no SVG', () => {
@@ -130,12 +146,6 @@ test('rótulo de período é escapado no SVG', () => {
     { rotulo: 'Set', valor: 2 },
   ]);
   assert.equal(svg.includes('<script>'), false);
-});
-
-test('barras por categoria trazem a maior em 100%', () => {
-  const html = barrasCategoria([['Ação em PDV', 4], ['Visita médica', 2]], { total: 6 });
-  assert.match(html, /width:100%/);
-  assert.match(html, /width:50%/);
 });
 
 /* ---------------------------------------------------------------- */
@@ -150,11 +160,25 @@ test('data ISO vira dd/mm/aaaa sem escorregar de fuso', () => {
 
 test('números em português', () => {
   assert.equal(num(28.25, 1), '28,3');
-  assert.equal(pct(94), '94,0%');
-  assert.equal(pctSinal(18.4), '+18,4%');
-  assert.equal(pctSinal(-3), '-3,0%');
-  assert.equal(pct(''), '—');
-  assert.equal(pct(null), '—');
+});
+
+test('valor sai com a unidade que a pessoa escolheu', () => {
+  assert.equal(valorFmt(28.2, '%'), '28,2%');
+  assert.equal(valorFmt(94, '%'), '94,0%');
+  assert.equal(valorFmt(108, ''), '108');        // número índice: sem sufixo
+  assert.equal(valorFmt(108.4, ''), '108,4');
+  assert.equal(valorFmt(12, 'un'), '12 un');
+  assert.equal(valorFmt(''), '—');
+  assert.equal(valorFmt(null), '—');
+});
+
+test('variação é comparação, não cálculo de indicador', () => {
+  // percentual compara em pontos percentuais; índice, só a diferença
+  assert.equal(variacaoFmt(3.7, '%').texto, '▲ 3,7 p.p.');
+  assert.equal(variacaoFmt(8, '').texto, '▲ 8');
+  assert.equal(variacaoFmt(-2, '%').sentido, 'desce');
+  assert.equal(variacaoFmt(0, '').sentido, 'igual');
+  assert.equal(variacaoFmt(null), null);
 });
 
 test('período por extenso aceita só uma das pontas', () => {

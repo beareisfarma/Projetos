@@ -1,30 +1,26 @@
 /**
- * Monta o RELATÓRIO DE AÇÕES DO R2D.
+ * Monta o RELATÓRIO DE EXECUÇÃO DO R2D.
  *
- * O documento é complementar ao R2D: mostra a EXECUÇÃO do plano. Em nenhum
- * lugar ele se apresenta como um plano novo — o título é "Relatório de Ações",
- * o R2D aparece como a linha de referência acima dele, e a página 1 diz por
- * escrito que o arquivo original não foi alterado.
+ * O R2D é o plano, já aprovado com a gerente; este documento é a execução
+ * dele. A ordem responde à pergunta da gerente na sequência em que ela a faz:
  *
- * A estrutura é curta de propósito: um PAINEL que se lê em trinta segundos,
- * as ações realizadas, e o fechamento. Não existe capa — uma folha quase vazia
- * antes do conteúdo só adia a informação que o gestor abriu o arquivo para ver.
+ *   1. Como o produto está?      → faixa de indicadores (referência → atual)
+ *   2. O que o plano queria?     → objetivo e gap, em duas colunas
+ *   3. O que você fez?           → ações em ordem cronológica, com fotos
+ *   4. E os números, mês a mês?  → gráficos e tabela de evolução
  *
- * A paginação das ações é medida no DOM de verdade: cada bloco entra na página,
- * o scrollHeight é comparado com o clientHeight e, se passou, o bloco volta e
- * abre página nova. Estimar altura por contagem de caracteres erra sempre que
- * a ação tem foto — e é justamente aí que o estouro apareceria.
+ * A paginação das ações é medida no DOM de verdade: cada bloco entra na
+ * página, o scrollHeight é comparado com o clientHeight e, se passou, o bloco
+ * volta e abre página nova. Estimar altura por contagem de caracteres erra
+ * sempre que a ação tem foto — e é justamente aí que o estouro apareceria.
  */
 
-import { estado, INDICADORES, acoesEmOrdem, execucao, porCategoria, cobertura,
-  ultimoIndicador, penultimoIndicador, acharItemDoPlano, totalDeFotos } from './estado.js';
+import { estado, acoesEmOrdem, totalDeFotos, leituraDoIndicador, serieDoIndicador,
+  periodosPreenchidos } from './estado.js';
 import { SIMBOLO, MARCA, SLOGAN } from './marca.js';
-import { esc, escLinhas, dataCurta, num, pct, pctSinal, periodoPorExtenso } from './ui.js';
-import { linhaEvolucao, barrasCategoria } from './graficos.js';
+import { esc, escLinhas, dataCurta, valorFmt, variacaoFmt, periodoPorExtenso } from './ui.js';
+import { linhaEvolucao } from './graficos.js';
 import { db, comoDataUrl } from './db.js';
-
-/** Quantos itens de cada lista do plano cabem na banda do painel. */
-const ITENS_NO_PAINEL = 4;
 
 /* ------------------------------------------------------------------ */
 /* Caixa de páginas                                                     */
@@ -83,8 +79,6 @@ function paginar(blocos, criarPagina, palco) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Montagem                                                             */
-/* ------------------------------------------------------------------ */
 
 /**
  * @param {HTMLElement} palco container já no DOM (pode estar fora da vista)
@@ -94,30 +88,40 @@ export async function montarRelatorio(palco) {
   palco.innerHTML = '';
   const p = estado.projeto;
   const fotos = await carregarFotos();
-  const paginas = [paginaPainel(p)];
 
-  // Ações e fechamento vão num fluxo só, sem quebra de página forçada entre
-  // eles: o fechamento começa onde a última ação terminou, se couber. Forçar
-  // a quebra rendia uma folha com uma ação e três quartos de papel em branco.
+  // Tudo num fluxo só, sem quebra de página forçada em lugar nenhum: as ações
+  // começam na própria página de abertura, se couber, e os gráficos começam
+  // onde a última ação terminou. Forçar as quebras deixava meia folha em
+  // branco embaixo do cabeçalho e no fim das ações.
   const corrida = [
+    blocoDeAbertura(p),
     ...acoesEmOrdem().map((a, i) => blocoDeAcao(a, i + 1, fotos)),
-    ...blocosDeFechamento(p),
+    ...blocosDeEvolucao(p),
   ];
-  if (corrida.length) {
-    const criar = () => paginaVazia({ rotulo: '', sub: cabSub(p) });
-    paginar(corrida, criar, palco).forEach(({ pg, corpo }) => {
-      // o título de cada página sai do primeiro bloco que ela recebeu
-      const primeiro = corpo.firstElementChild?.dataset.secao;
-      pg.querySelector('.pg__cab-tit').textContent =
-        primeiro === 'fecho' ? 'Resultados e próximos passos' : 'Ações realizadas';
-      paginas.push(pg);
-    });
-  }
 
-  // as paginadas já estão no palco; as fixas ainda não — remonta na ordem
+  let primeira = true;
+  const criar = () => {
+    if (primeira) {
+      primeira = false;
+      // a página de abertura troca o cabeçalho corrido pelo masthead
+      const pagina = paginaVazia({ rotulo: '', sub: '', classe: 'pg--abertura' });
+      pagina.pg.querySelector('.pg__cab').remove();
+      return pagina;
+    }
+    return paginaVazia({ rotulo: '', sub: cabSub(p) });
+  };
+
+  const paginas = paginar(corrida, criar, palco).map(({ pg, corpo }) => {
+    const titulo = pg.querySelector('.pg__cab-tit');
+    if (titulo) {
+      const secao = corpo.firstElementChild?.dataset.secao;
+      titulo.textContent = secao === 'evolucao' ? 'Evolução dos indicadores' : 'Ações realizadas';
+    }
+    return pg;
+  });
+
   palco.innerHTML = '';
   paginas.forEach((pg) => palco.appendChild(pg));
-
   paginas.forEach((pg, i) => {
     const marca = pg.querySelector('[data-num]');
     if (marca) marca.textContent = `${i + 1} / ${paginas.length}`;
@@ -144,21 +148,13 @@ async function carregarFotos() {
 }
 
 /* ================================================================== */
-/* PÁGINA 1 — PAINEL                                                   */
+/* PÁGINA 1 — abertura                                                 */
 /* ================================================================== */
 
-function paginaPainel(p) {
-  const { pg, corpo } = paginaVazia({ rotulo: '', sub: '', classe: 'pg--painel' });
-  pg.querySelector('.pg__cab').remove();   // o masthead faz esse papel aqui
-
-  corpo.innerHTML = masthead(p)
-    + faixaDeNumeros(p)
-    + linhaDeExecucao()
-    + graficosDeEvolucao(p)
-    + bandaDoPlano(p)
-    + tiraDeCobertura()
-    + notaDaFonte(p);
-  return pg;
+function blocoDeAbertura(p) {
+  return elemento(`<div data-secao="abertura">
+    ${masthead(p)}${faixaDeNumeros(p)}${bandaDoPlano(p)}${notaDaFonte(p)}
+  </div>`);
 }
 
 function masthead(p) {
@@ -169,7 +165,7 @@ function masthead(p) {
       <div class="marca">${MARCA}</div>
       <div class="mast__meio">
         <div class="mast__rot">R2D — Plano de ação${p.produto ? ` · ${esc(p.produto)}` : ''}</div>
-        <h1 class="mast__h">Relatório de Ações</h1>
+        <h1 class="mast__h">Relatório de Execução</h1>
         <div class="mast__sub">${linha.length
           ? `<b>${esc(linha[0])}</b>${linha[1] ? ` · ${esc(linha[1])}` : ''}`
           : 'Acompanhamento da execução do plano de ação.'}</div>
@@ -180,178 +176,91 @@ function masthead(p) {
     </header>`;
 }
 
+/** Como o produto está: referência do início do plano → posição atual. */
 function faixaDeNumeros(p) {
-  const ultimo = ultimoIndicador();
-  const anterior = penultimoIndicador();
+  const defs = p.indicadores.definicoes.filter((d) => d.nome.trim());
+  const itens = [];
 
-  const deIndicador = (d) => {
-    const v = ultimo?.[d.chave];
-    const a = anterior?.[d.chave];
-    const tem = v !== '' && v != null;
-    const temDelta = tem && a !== '' && a != null;
-    const delta = temDelta ? Number(v) - Number(a) : null;
-    const classe = delta == null ? 'igual' : delta > 0.05 ? 'sobe' : delta < -0.05 ? 'desce' : 'igual';
-    const seta = delta == null ? '' : delta > 0.05 ? '▲ ' : delta < -0.05 ? '▼ ' : '● ';
-    return item(
-      d.nome,
-      tem ? (d.sinal ? pctSinal(v) : pct(v)) : '—',
-      temDelta
-        ? `<div class="faixa__delta faixa__delta--${classe}">${seta}${num(Math.abs(delta), 1)} p.p.</div>`
-        : '',
-      !tem,
-    );
-  };
+  for (const d of defs) {
+    const l = leituraDoIndicador(d);
+    if (!l) continue;
+    const v = variacaoFmt(l.variacao, d.unidade);
+    itens.push(`
+      <div class="faixa__item">
+        <div class="faixa__val">${esc(valorFmt(l.atual.valor, d.unidade))}</div>
+        <div class="faixa__rot">${esc(d.nome)}</div>
+        <div class="faixa__pe">${esc(l.atual.rotulo)}</div>
+        ${v ? `<div class="faixa__delta faixa__delta--${v.sentido}">${esc(v.texto)}
+                 <span class="faixa__ref">vs. ${esc(l.referencia.rotulo)}
+                   (${esc(valorFmt(l.referencia.valor, d.unidade))})</span></div>`
+            : '<div class="faixa__delta faixa__delta--igual">sem referência anterior</div>'}
+      </div>`);
+  }
 
-  const item = (rot, val, pe = '', fraco = false) => `
+  const simples = (rot, val, pe) => `
     <div class="faixa__item">
-      <div class="faixa__val${fraco ? ' faixa__val--fraco' : ''}">${val}</div>
+      <div class="faixa__val">${esc(val)}</div>
       <div class="faixa__rot">${esc(rot)}</div>
-      ${pe}
+      <div class="faixa__pe">${esc(pe)}</div>
     </div>`;
 
-  return `<div class="faixa">
-    ${INDICADORES.map(deIndicador).join('')}
-    ${item('Ações realizadas', String(p.acoes.length))}
-    ${item('Evidências', String(totalDeFotos()))}
-  </div>`;
+  itens.push(simples('Ações realizadas', String(p.acoes.length), 'no período'));
+  itens.push(simples('Evidências', String(totalDeFotos()), 'fotos anexadas'));
+
+  return `<div class="faixa">${itens.join('')}</div>`;
 }
 
-function linhaDeExecucao() {
-  const e = execucao();
-  if (e.pct == null) {
-    return `<div class="exec-l">
-      <div class="exec-l__rot">Execução do plano</div>
-      <div class="exec-l__txt" style="padding-left:0;white-space:normal;color:#93a0ac">
-        O R2D não informou o total de ações previstas, então o percentual não é calculado.</div>
-    </div>`;
-  }
-  return `<div class="exec-l">
-    <div class="exec-l__rot">Execução do plano</div>
-    <div class="exec-l__trilho"><div class="exec-l__cheio" style="width:${Math.min(e.pct, 100)}%"></div></div>
-    <div class="exec-l__txt"><b>${num(Math.min(e.pct, 999), 1)}%</b>
-      &nbsp;·&nbsp; ${e.feitas} de ${e.previstas} ações previstas</div>
-  </div>`;
-}
-
-function graficosDeEvolucao(p) {
-  const graficos = INDICADORES.map((d) => {
-    const svg = linhaEvolucao(
-      p.indicadores.map((i) => ({ rotulo: i.rotulo, valor: i[d.chave] })),
-      { sinal: d.sinal, nome: d.nome },
-    );
-    return svg ? `<div class="grafico"><div class="grafico__tit">${esc(d.nome)}</div>${svg}</div>` : '';
-  }).join('');
-  return graficos ? `<div class="graficos">${graficos}</div>` : '';
-}
-
+/** O que o plano queria: objetivo e gap. */
 function bandaDoPlano(p) {
-  const plano = p.plano;
-  const colunas = [
-    ['Objetivo do plano', plano.objetivos],
-    ['Desafios e causa raiz', plano.desafios],
-    ['Estratégia', plano.estrategias],
-  ].filter(([, itens]) => (itens || []).length);
+  const { objetivo, gap, acoesPrevistas } = p.plano;
+  if (!objetivo && !gap && !(acoesPrevistas || []).length) return '';
 
-  if (!colunas.length) {
-    // sem plano lido, a banda mostra o que existir de contexto — ou nada
-    return plano.contexto
-      ? `<div class="plano-b"><div class="plano-b__cab">O que o R2D previa</div>
-           <div style="font-size:9pt;line-height:1.45">${escLinhas(recortar(plano.contexto, 420))}</div></div>`
-      : '';
-  }
+  const coluna = (titulo, texto) => texto
+    ? `<div class="plano-b__col">
+         <div class="plano-b__tit">${esc(titulo)}</div>
+         <div class="plano-b__txt">${escLinhas(recortar(texto, 420))}</div>
+       </div>`
+    : '';
+
+  const previstas = (acoesPrevistas || []).slice(0, 6);
 
   return `<div class="plano-b">
     <div class="plano-b__cab">O que o R2D previa</div>
-    ${plano.contexto ? `<div style="font-size:8.6pt;line-height:1.45;color:#55636f;margin-bottom:4mm;
-      padding-bottom:3.5mm;border-bottom:.2mm solid #c6d4e3">${esc(recortar(plano.contexto, 300))}</div>` : ''}
     <div class="plano-b__cols">
-      ${colunas.map(([titulo, itens]) => {
-        const mostra = itens.slice(0, ITENS_NO_PAINEL);
-        const sobra = itens.length - mostra.length;
-        return `<div class="plano-b__col">
-          <div class="plano-b__tit">${esc(titulo)}</div>
-          <ul class="plano-b__lista">
-            ${mostra.map((i) => `<li><span class="plano-b__sig">${esc(i.sigla)}</span>${esc(recortar(i.texto, 130))}</li>`).join('')}
-          </ul>
-          ${sobra > 0 ? `<div class="plano-b__mais">e mais ${sobra} no R2D original.</div>` : ''}
-        </div>`;
-      }).join('')}
+      ${coluna('Objetivo do plano', objetivo)}
+      ${coluna('Gap identificado', gap)}
     </div>
-  </div>`;
-}
-
-/**
- * Planejado → executado, item a item. É a pergunta que o gestor faz primeiro,
- * então ela fica no painel e não numa página lá adiante.
- */
-function tiraDeCobertura() {
-  const cob = cobertura();
-  if (!cob.length) return '';
-  const cobertos = cob.filter((c) => c.quantas > 0).length;
-
-  return `<div class="cobre">
-    <div class="cobre__cab">
-      <span class="cobre__tit">Planejado → executado</span>
-      <span class="cobre__resumo"><b>${cobertos} de ${cob.length}</b>
-        ${cob.length === 1 ? 'item do plano com ação registrada' : 'itens do plano com ação registrada'}</span>
-    </div>
-    <div class="cobre__fichas">
-      ${cob.map((c) => `<span class="cobre__f${c.quantas ? '' : ' cobre__f--zero'}" title="${esc(c.item.texto)}">
-        <span class="cobre__sig">${esc(c.item.sigla)}</span>
-        <span class="cobre__n">${c.quantas}</span></span>`).join('')}
-    </div>
+    ${previstas.length ? `<div class="plano-b__prev">
+      <div class="plano-b__tit">Ações previstas no plano</div>
+      <ul class="plano-b__lista">${previstas.map((t) => `<li>${esc(recortar(t, 140))}</li>`).join('')}</ul>
+      ${acoesPrevistas.length > previstas.length
+        ? `<div class="plano-b__mais">e mais ${acoesPrevistas.length - previstas.length} no R2D original.</div>` : ''}
+    </div>` : ''}
   </div>`;
 }
 
 function notaDaFonte(p) {
   const r = p.r2d;
-
-  const fonte = r.nomeArquivo
-    ? `Fonte: <strong>${esc(r.nomeArquivo)}</strong>${r.paginas ? ` · ${r.paginas} ${r.paginas === 1 ? 'página' : 'páginas'}` : ''}${r.enviadoEm ? ` · enviado em ${esc(dataCurta(r.enviadoEm))}` : ''}. O arquivo original não foi modificado.`
-    : 'Plano informado manualmente pelo representante. Nenhum R2D foi alterado.';
-
-  return `<div class="nota-fonte">${fonte}</div>`;
+  return `<div class="nota-fonte">${r.nomeArquivo
+    ? `Fonte: <strong>${esc(r.nomeArquivo)}</strong>${r.paginas ? ` · ${r.paginas} ${r.paginas === 1 ? 'página' : 'páginas'}` : ''}${r.enviadoEm ? ` · enviado em ${esc(dataCurta(r.enviadoEm))}` : ''}. O R2D aprovado não foi modificado.`
+    : 'Contexto informado pelo representante. Nenhum R2D foi alterado.'}</div>`;
 }
 
 /* ================================================================== */
-/* PÁGINAS 2+ — AÇÕES REALIZADAS                                       */
+/* PÁGINAS 2+ — ações realizadas                                       */
 /* ================================================================== */
 
 function blocoDeAcao(acao, n, fotos) {
-  const vinculos = acao.vinculos.map(acharItemDoPlano).filter(Boolean);
   const comFoto = acao.fotos.filter((f) => fotos.has(f.id));
-  const temMeta = acao.local || vinculos.length;
 
   return elemento(`
     <article class="acao" data-secao="acoes">
       <div class="acao__cab">
         <span class="acao__data">${esc(dataCurta(acao.data))}</span>
         <h3 class="acao__tit">${esc(acao.titulo || `Ação ${n}`)}</h3>
-        <span class="acao__cat">${esc(acao.categoria)}</span>
       </div>
-
-      ${temMeta ? `<div class="acao__meta">
-        ${acao.local ? `<span><b>Local</b>${esc(acao.local)}</span>` : ''}
-        ${vinculos.length ? `<span><b>R2D</b>${vinculos
-          .map((v) => `<span class="sig" title="${esc(v.texto)}">${esc(v.sigla)}</span>`).join('')}</span>` : ''}
-      </div>` : ''}
-
-      ${acao.objetivo ? `<div class="acao__desc"><strong>Objetivo.</strong> ${escLinhas(acao.objetivo)}</div>` : ''}
-      ${acao.descricao ? `<div class="acao__desc">${escLinhas(acao.descricao)}</div>` : ''}
-
-      ${(acao.resultado || acao.proximoPasso) ? `<div class="acao__campos">
-        ${acao.resultado ? `<div class="acao__campo">
-          <div class="acao__campo-rot">Resultado</div>
-          <div class="acao__campo-val">${escLinhas(acao.resultado)}</div></div>` : ''}
-        ${acao.proximoPasso ? `<div class="acao__campo">
-          <div class="acao__campo-rot">Próximo passo</div>
-          <div class="acao__campo-val">${escLinhas(acao.proximoPasso)}</div></div>` : ''}
-      </div>` : ''}
-
-      ${acao.observacoes ? `<div class="acao__campo" style="padding:0;margin-bottom:2.4mm">
-        <div class="acao__campo-rot">Observações</div>
-        <div class="acao__campo-val">${escLinhas(acao.observacoes)}</div></div>` : ''}
-
+      ${acao.local ? `<div class="acao__local"><b>Local</b>${esc(acao.local)}</div>` : ''}
+      ${acao.resultado ? `<div class="acao__desc">${escLinhas(acao.resultado)}</div>` : ''}
       ${comFoto.length ? `<div class="evid">${comFoto.map((f) => `
         <div class="evid__item">
           <div class="evid__foto" style="background-image:url('${fotos.get(f.id)}')"></div>
@@ -361,70 +270,46 @@ function blocoDeAcao(acao, n, fotos) {
 }
 
 /* ================================================================== */
-/* ÚLTIMA PÁGINA — RESULTADOS E PRÓXIMOS PASSOS                        */
+/* ÚLTIMAS PÁGINAS — evolução dos indicadores                          */
 /* ================================================================== */
 
-function blocosDeFechamento(p) {
-  const f = p.fechamento;
-  const temTexto = f.resumo || [f.entregas, f.pendencias, f.proximosPassos, f.atencao].some((l) => (l || []).length);
-  const categorias = porCategoria();
-  if (!temTexto && !categorias.length) return [];
+function blocosDeEvolucao(p) {
+  const defs = p.indicadores.definicoes.filter((d) => d.nome.trim());
+  const periodos = periodosPreenchidos();
+  const comLeitura = defs.filter((d) => leituraDoIndicador(d));
+  if (!comLeitura.length) return [];
 
-  // O título anda junto do primeiro conteúdo, num elemento só: separados, a
-  // paginação podia deixar o cabeçalho sozinho no pé de uma página.
+  // O título anda junto dos gráficos, num elemento só: separados, a paginação
+  // podia deixar o cabeçalho sozinho no pé de uma página.
+  const graficos = comLeitura.map((d) => {
+    const svg = linhaEvolucao(serieDoIndicador(d), { unidade: d.unidade, nome: d.nome });
+    return svg ? `<div class="grafico"><div class="grafico__tit">${esc(d.nome)}</div>${svg}</div>` : '';
+  }).filter(Boolean).join('');
+
   const blocos = [elemento(`
-    <div data-secao="fecho">
+    <div data-secao="evolucao">
       <div class="tit-secao">
-        <div class="tit-secao__rot">Fechamento do período</div>
-        <h2 class="tit-secao__h">Resultados e próximos passos</h2>
-        <p class="tit-secao__sub">O que a execução do R2D entregou até aqui e o que segue em andamento.</p>
+        <div class="tit-secao__rot">Acompanhamento do produto</div>
+        <h2 class="tit-secao__h">Evolução dos indicadores</h2>
+        <p class="tit-secao__sub">Valores informados pelo representante a partir dos relatórios da empresa,
+          do início do plano até o período mais recente.</p>
       </div>
-      ${f.resumo ? `<div class="destaque">
-        <div class="destaque__rot">Resumo executivo</div>
-        <div class="destaque__txt">${escLinhas(f.resumo)}</div>
-      </div>` : ''}
+      ${graficos ? `<div class="graficos">${graficos}</div>` : ''}
     </div>`)];
 
-  // A cobertura do plano NÃO se repete aqui: ela já é a tira de fichas do
-  // painel. Repetir a mesma informação em duas páginas é o que fazia o
-  // relatório parecer longo sem dizer mais nada.
-
-  if ((f.entregas || []).length || (f.pendencias || []).length) {
-    blocos.push(elemento(`<div class="colunas" data-secao="fecho" style="margin-bottom:8mm">
-      <div class="coluna">${listaSimples('Principais entregas', f.entregas)}</div>
-      <div class="coluna">${listaSimples('Pendências', f.pendencias)}</div>
-    </div>`));
-  }
-
-  if ((f.proximosPassos || []).length || (f.atencao || []).length) {
-    blocos.push(elemento(`<div class="colunas" data-secao="fecho" style="margin-bottom:8mm">
-      <div class="coluna">${(f.proximosPassos || []).length ? `<div class="bloco">
-        <div class="bloco__tit">Próximos passos</div>
-        <ol class="passos">${f.proximosPassos.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>
-      </div>` : ''}</div>
-      <div class="coluna">${(f.atencao || []).length ? `<div class="bloco">
-        <div class="bloco__tit">Pontos de atenção</div>
-        <ol class="passos atencao">${f.atencao.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>
-      </div>` : ''}</div>
-    </div>`));
-  }
-
-  if (categorias.length) {
-    blocos.push(elemento(`<div class="bloco" data-secao="fecho">
-      <div class="bloco__tit">Ações por tipo</div>
-      ${barrasCategoria(categorias, { total: p.acoes.length })}
+  if (periodos.length) {
+    blocos.push(elemento(`<div data-secao="evolucao">
+      <table class="serie">
+        <thead><tr><th>Período</th>${comLeitura.map((d) => `<th>${esc(d.nome)}</th>`).join('')}</tr></thead>
+        <tbody>${periodos.map((linha) => `<tr${linha.referencia ? ' class="serie__ref"' : ''}>
+          <td>${esc(linha.rotulo)}${linha.referencia ? ' <span class="serie__marca">referência</span>' : ''}</td>
+          ${comLeitura.map((d) => `<td>${esc(valorFmt(linha.valores[d.id], d.unidade))}</td>`).join('')}
+        </tr>`).join('')}</tbody>
+      </table>
     </div>`));
   }
 
   return blocos;
-}
-
-function listaSimples(titulo, itens) {
-  if (!itens || !itens.length) return '';
-  return `<div class="bloco">
-    <div class="bloco__tit">${esc(titulo)}</div>
-    <ul class="lista">${itens.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-  </div>`;
 }
 
 /* ------------------------------------------------------------------ */

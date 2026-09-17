@@ -22,39 +22,36 @@ const LIMITE_TEXTO = 60_000;   // ~15k tokens; R2D é um plano de ciclo, não um
 const ESQUEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['produto', 'periodoRotulo', 'periodoInicio', 'periodoFim', 'contexto',
-    'objetivos', 'estrategias', 'desafios', 'acoesPlanejadas', 'metas', 'totalPlanejadas'],
+  required: ['produto', 'periodoRotulo', 'periodoInicio', 'periodoFim',
+    'objetivo', 'gap', 'acoesPrevistas'],
   properties: {
     produto: { type: 'string', description: 'Nome do produto/marca. "" se não constar.' },
     periodoRotulo: { type: 'string', description: 'Ex.: "Ciclo 7 · Setembro de 2026". "" se não constar.' },
     periodoInicio: { type: 'string', description: 'AAAA-MM-DD, ou "" se não der para determinar.' },
     periodoFim: { type: 'string', description: 'AAAA-MM-DD, ou "" se não der para determinar.' },
-    contexto: { type: 'string', description: 'Até 3 frases resumindo o cenário. "" se não constar.' },
-    objetivos: { type: 'array', items: { type: 'string' } },
-    estrategias: { type: 'array', items: { type: 'string' } },
-    desafios: { type: 'array', items: { type: 'string' }, description: 'Desafios, barreiras ou causa raiz.' },
-    acoesPlanejadas: { type: 'array', items: { type: 'string' } },
-    metas: { type: 'array', items: { type: 'string' }, description: 'Indicadores e metas numéricas citados.' },
-    totalPlanejadas: {
-      type: ['integer', 'null'],
-      description: 'Quantidade de ações previstas, se o documento disser. null caso contrário.',
+    objetivo: { type: 'string', description: 'O que o plano queria alcançar, em até 3 frases. "" se não constar.' },
+    gap: { type: 'string', description: 'O gap, desafio ou causa raiz que o plano atacava, em até 3 frases. "" se não constar.' },
+    acoesPrevistas: {
+      type: 'array', items: { type: 'string' },
+      description: 'As ações que o plano previa, uma frase curta cada. Lista vazia se não constar.',
     },
   },
 };
 
 const INSTRUCAO = `Você lê um R2D (plano de ação de ciclo) da indústria farmacêutica e
-organiza o conteúdo em campos, para servir de referência a um relatório de execução.
+extrai TRÊS coisas: o objetivo do plano, o gap identificado e as ações previstas.
 
-O R2D é o PLANEJAMENTO. Você não o reescreve, não o melhora e não o completa:
-apenas transcreve o que está lá, de forma organizada.
+O R2D já foi elaborado e aprovado. Você não o reescreve, não o melhora, não o
+completa e não o estrutura: apenas transcreve o que está lá, para servir de
+contexto num relatório de execução.
 
 Regras:
 - Use as palavras do documento. Pode encurtar e limpar a formatação; não pode reinterpretar.
 - Campo cuja informação não está no documento volta como "" ou lista vazia. Nunca deduza,
   nunca preencha por plausibilidade, nunca some informação que "costuma" estar num R2D.
-- Cada item de lista é uma frase curta e independente, sem marcador no início.
-- No máximo 12 itens por lista; se houver mais, mantenha os do documento em ordem e pare.
-- Datas em AAAA-MM-DD. Se o documento só disser o mês, use o primeiro e o último dia dele.`;
+- Cada ação prevista é uma frase curta e independente, sem marcador no início. No máximo 8.
+- Datas em AAAA-MM-DD. Se o documento só disser o mês, use o primeiro e o último dia dele.
+- Não invente números de indicador (market share, índice de evolução): eles não são pedidos aqui.`;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

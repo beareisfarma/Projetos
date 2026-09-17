@@ -1,5 +1,5 @@
 /* ==========================================================================
-   RELATÓRIO DE AÇÕES DO R2D — folha do documento.
+   RELATÓRIO DE EXECUÇÃO DO R2D — folha do documento.
 
    Vale tanto para a prévia na tela quanto para o PDF/PNG exportados: é a mesma
    marcação capturada pelo html2canvas. Duas regras que não podem ser quebradas:
@@ -44,7 +44,7 @@
   border-bottom:.35mm solid var(--navy);padding-bottom:3mm;
 }
 /* Nas páginas internas entra só a montanha: o logotipo completo não cabe na
-   faixa de 11 mm. O lockup por extenso abre o documento, no painel. */
+   faixa de 11 mm. O lockup por extenso abre o documento. */
 .pg__cab .marca{width:13mm;flex:none}
 .marca svg{display:block;width:100%;height:auto}
 .pg__cab-dir{text-align:right;padding-top:.5mm}
@@ -62,26 +62,24 @@
   border-top:.2mm solid var(--linha);padding-top:2.4mm;
   font-size:7pt;color:var(--tinta-3);letter-spacing:.04em;
 }
-.pg__rodape strong{font-weight:600;color:var(--tinta-2)}
 .pg__num{font-weight:700;color:var(--navy);font-size:7.5pt}
 
 /* ---------- títulos de seção ---------- */
 .tit-secao{margin-bottom:7mm}
 .tit-secao__rot{font-size:7pt;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--azul-dado)}
 .tit-secao__h{font-size:19pt;font-weight:600;letter-spacing:-.015em;line-height:1.12;margin-top:1.5mm;color:var(--navy-fundo)}
-.tit-secao__sub{font-size:10pt;color:var(--tinta-2);margin-top:1.8mm;max-width:135mm;line-height:1.45}
+.tit-secao__sub{font-size:9.5pt;color:var(--tinta-2);margin-top:1.8mm;max-width:140mm;line-height:1.45}
 
 /* ==========================================================================
-   PÁGINA 1 — PAINEL
+   PÁGINA 1 — abertura
 
-   Uma página só, para o gestor entender o ciclo em trinta segundos: título,
-   números, execução, evolução e o que o R2D previa. Não há capa: uma folha
-   quase vazia antes disso só adiava a informação.
+   A gerente lê na ordem em que pergunta: como o produto está, o que o plano
+   queria, e (nas páginas seguintes) o que foi feito.
    ========================================================================== */
-.pg--painel .pg__corpo{top:var(--m-topo)}
+.pg--abertura .pg__corpo{top:var(--m-topo)}
 
 .mast{display:flex;align-items:flex-start;padding-bottom:5mm;
-  border-bottom:.6mm solid var(--navy);margin-bottom:6mm}
+  border-bottom:.6mm solid var(--navy);margin-bottom:7mm}
 .mast .marca{width:30mm;flex:none;margin-right:9mm}
 .mast__meio{flex:1;min-width:0;padding-top:.5mm}
 .mast__rot{font-size:7.5pt;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--azul-dado)}
@@ -92,147 +90,75 @@
 .mast__dir{flex:none;padding-left:8mm;text-align:right;max-width:40mm}
 .mast__logo{max-width:36mm;max-height:16mm;display:block;margin-left:auto}
 
-/* faixa de números */
-.faixa{display:flex;margin-bottom:7mm}
-.faixa__item{flex:1;padding:0 5mm;border-left:.2mm solid var(--linha);min-width:0}
+/* faixa de indicadores + contagens */
+.faixa{display:flex;flex-wrap:wrap;margin-bottom:8mm}
+.faixa__item{flex:1 1 0;padding:0 5mm;border-left:.2mm solid var(--linha);min-width:32mm}
 .faixa__item:first-child{padding-left:0;border-left:0}
-.faixa__item:last-child{padding-right:0}
 .faixa__val{font-size:21pt;font-weight:600;letter-spacing:-.03em;line-height:1;color:var(--navy-fundo)}
-.faixa__val--fraco{color:var(--tinta-3)}
 .faixa__rot{font-size:6.6pt;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
   color:var(--tinta-2);margin-top:1.8mm;line-height:1.25;
-  /* dois rótulos quebram em duas linhas; sem altura fixa os deltas
-     desalinhavam entre si na mesma faixa */
+  /* rótulo de duas linhas empurrava só um dos deltas para baixo */
   min-height:6mm}
-.faixa__delta{font-size:7.5pt;font-weight:600;margin-top:1mm}
+.faixa__pe{font-size:7.2pt;color:var(--tinta-3);margin-top:.4mm}
+.faixa__delta{font-size:7.8pt;font-weight:600;margin-top:1.4mm}
 .faixa__delta--sobe{color:#1a7f5a}
 .faixa__delta--desce{color:#b3261e}
 .faixa__delta--igual{color:var(--tinta-3)}
+.faixa__ref{display:block;font-size:6.8pt;font-weight:400;color:var(--tinta-3);margin-top:.4mm}
 
-/* execução, em uma linha */
-.exec-l{display:flex;align-items:center;margin-bottom:7mm}
-.exec-l__rot{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--tinta-3);flex:none;width:34mm}
-.exec-l__trilho{flex:1;height:2.6mm;background:var(--linha);border-radius:1.3mm;overflow:hidden}
-.exec-l__cheio{height:100%;background:var(--navy);border-radius:1.3mm}
-.exec-l__txt{flex:none;padding-left:5mm;font-size:8.5pt;color:var(--tinta-2);white-space:nowrap}
-.exec-l__txt b{font-weight:600;color:var(--tinta);font-size:9.5pt}
-
-/* banda do plano: o que o R2D previa, em três colunas */
-.plano-b{background:var(--painel);padding:5mm 6mm;margin-top:1mm}
+/* o que o R2D previa */
+.plano-b{background:var(--painel);padding:5mm 6mm}
 .plano-b__cab{font-size:7pt;font-weight:700;letter-spacing:.17em;text-transform:uppercase;
   color:var(--navy);margin-bottom:4mm}
-.plano-b__cols{display:flex;margin:0 -4mm}
-.plano-b__col{flex:1;padding:0 4mm;min-width:0;border-left:.2mm solid var(--linha-forte)}
+.plano-b__cols{display:flex;margin:0 -5mm}
+.plano-b__col{flex:1;padding:0 5mm;min-width:0;border-left:.2mm solid var(--linha-forte)}
 .plano-b__col:first-child{border-left:0}
 .plano-b__tit{font-size:6.8pt;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
   color:var(--azul-dado);margin-bottom:2.2mm}
-.plano-b__lista{list-style:none;margin:0;padding:0;font-size:8.3pt;line-height:1.42;color:var(--tinta)}
-.plano-b__lista li{position:relative;padding:0 0 2.2mm 8mm}
-.plano-b__lista li:last-child{padding-bottom:0}
-.plano-b__sig{position:absolute;left:0;top:.2mm;font-size:6.4pt;font-weight:700;
-  color:var(--azul-dado);letter-spacing:.04em}
-.plano-b__mais{font-size:7pt;color:var(--tinta-3);margin-top:1.5mm}
-
-/* tira planejado → executado: cada item do plano com quantas ações recebeu.
-   É a leitura mais rápida do produto inteiro, então fica no painel. */
-.cobre{margin-top:7mm}
-.cobre__cab{display:flex;align-items:baseline;justify-content:space-between;
-  border-bottom:.2mm solid var(--linha-forte);padding-bottom:2mm;margin-bottom:3.4mm}
-.cobre__tit{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--navy)}
-.cobre__resumo{font-size:8pt;color:var(--tinta-2)}
-.cobre__resumo b{font-weight:600;color:var(--tinta)}
-.cobre__fichas{display:flex;flex-wrap:wrap;margin:0 -1mm}
-.cobre__f{margin:0 1mm 2mm;display:flex;align-items:center;
-  border:.2mm solid var(--azul-claro);background:var(--azul-claro);border-radius:1mm;padding:1.4mm 2.6mm}
-.cobre__f--zero{background:#fff;border-color:var(--linha)}
-.cobre__sig{font-size:6.8pt;font-weight:700;letter-spacing:.06em;color:var(--azul-dado)}
-.cobre__f--zero .cobre__sig{color:var(--tinta-3)}
-.cobre__n{font-size:8.5pt;font-weight:600;color:var(--navy-fundo);margin-left:2.2mm}
-.cobre__f--zero .cobre__n{color:var(--tinta-3)}
-
-/* ==========================================================================
-   Peças partilhadas
-   ========================================================================== */
-.colunas{display:flex;margin:0 -5mm}
-.coluna{flex:1;padding:0 5mm;min-width:0}
-.bloco{margin-bottom:8mm}
-.coluna .bloco:last-child{margin-bottom:0}
-.bloco__tit{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--navy);border-bottom:.2mm solid var(--linha-forte);padding-bottom:1.8mm;margin-bottom:3mm}
-.lista{list-style:none;margin:0;padding:0}
-.lista li{position:relative;padding:1.6mm 0 1.6mm 4mm;border-top:.2mm solid var(--linha);line-height:1.42}
-.lista li:first-child{border-top:0}
-.lista li::before{content:"";position:absolute;left:0;top:3.4mm;width:1.6mm;height:1.6mm;
+.plano-b__txt{font-size:9pt;line-height:1.45;color:var(--tinta)}
+.plano-b__prev{margin-top:5mm;padding-top:4mm;border-top:.2mm solid var(--linha-forte)}
+.plano-b__lista{list-style:none;margin:0;padding:0;font-size:8.6pt;line-height:1.42;
+  color:var(--tinta);columns:2;column-gap:10mm}
+.plano-b__lista li{position:relative;padding:0 0 2mm 4mm;break-inside:avoid}
+.plano-b__lista li::before{content:"";position:absolute;left:0;top:1.5mm;width:1.5mm;height:1.5mm;
   border-radius:50%;background:var(--linha-forte)}
+.plano-b__mais{font-size:7pt;color:var(--tinta-3);margin-top:1mm}
 
 .nota-fonte{
   margin-top:6mm;border-top:.2mm solid var(--linha);padding-top:2.6mm;
   font-size:7.2pt;color:var(--tinta-3);line-height:1.45;
 }
-
-/* ==========================================================================
-   Gráficos de evolução
-   ========================================================================== */
-.graficos{display:flex;margin:0 -3mm 7mm}
-.grafico{flex:1;padding:0 3mm;min-width:0}
-.grafico__tit{font-size:7pt;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--tinta-2);margin-bottom:2mm}
-.grafico svg{display:block;width:100%;height:auto}
-
-/* ==========================================================================
-   Barras de uma série (ações por tipo)
-   ========================================================================== */
-.barras{margin:0}
-.barra-l{margin-bottom:3.4mm}
-.barra-l:last-child{margin-bottom:0}
-.barra-l__topo{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.2mm}
-.barra-l__nome{font-size:8.5pt;color:var(--tinta)}
-.barra-l__n{font-size:8.5pt;font-weight:600;color:var(--tinta-2)}
-.barra-l__trilho{height:2mm;background:#eef3f8;border-radius:1mm;overflow:hidden}
-.barra-l__cheio{height:100%;background:var(--azul-dado);border-radius:1mm}
+/* a abertura e a primeira ação dividem a página: precisam de respiro entre si */
+[data-secao="abertura"]{margin-bottom:8mm}
 
 /* ==========================================================================
    AÇÕES REALIZADAS
 
-   Bloco compacto: sem calha lateral, o vínculo com o R2D reduzido às siglas
-   e as fotos em três colunas. Assim cabem três ações por página em vez de
-   duas — o relatório inteiro encurtou de sete páginas para quatro.
+   Bloco enxuto: data, o que foi feito, onde, o que aconteceu e as fotos.
+   Nada de categoria, vínculo com o plano ou próximo passo — isso era gestão
+   de plano, e o R2D já está aprovado.
    ========================================================================== */
 
 /* O espaçamento é ancorado no PRIMEIRO item, nunca no último: a paginação
    mede cada bloco na hora em que o anexa, e uma regra :last-child faria o
    bloco anterior CRESCER depois de já ter sido aprovado — a última foto da
    página vazava para fora do papel. Anexar no fim não muda o :first-child. */
-.acao{padding-top:4.2mm;margin-top:4.2mm;border-top:.2mm solid var(--linha)}
+.acao{padding-top:5mm;margin-top:5mm;border-top:.2mm solid var(--linha)}
 .acao:first-child{padding-top:0;margin-top:0;border-top:0}
 
-.acao__cab{display:flex;align-items:baseline;margin-bottom:1.8mm}
+.acao__cab{display:flex;align-items:baseline;margin-bottom:1.6mm}
 .acao__data{font-size:7.5pt;font-weight:700;letter-spacing:.09em;color:var(--azul-dado);
-  flex:none;margin-right:4mm;white-space:nowrap}
+  flex:none;margin-right:5mm;white-space:nowrap}
 .acao__tit{font-size:11.5pt;font-weight:600;color:var(--navy-fundo);flex:1;line-height:1.22;letter-spacing:-.01em}
-.acao__cat{font-size:6.8pt;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
-  color:var(--tinta-3);flex:none;padding-left:4mm;text-align:right;white-space:nowrap}
+.acao__local{font-size:8.5pt;color:var(--tinta-2);margin-bottom:2.2mm}
+.acao__local b{font-size:6.6pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tinta-3);margin-right:2mm}
+.acao__desc{font-size:9pt;line-height:1.45;color:var(--tinta)}
 
-.acao__meta{display:flex;flex-wrap:wrap;align-items:baseline;font-size:8pt;
-  color:var(--tinta-2);margin-bottom:2.2mm}
-.acao__meta > span{margin-right:5mm}
-.acao__meta b{font-size:6.6pt;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--tinta-3);margin-right:1.6mm}
-.sig{display:inline-block;font-size:6.6pt;font-weight:700;letter-spacing:.05em;
-  color:var(--azul-dado);background:var(--azul-claro);border-radius:.8mm;padding:.4mm 1.4mm;margin-right:1.2mm}
-
-.acao__desc{font-size:9pt;line-height:1.45;color:var(--tinta);margin-bottom:2.4mm}
-.acao__campos{display:flex;margin:0 -4mm 2.4mm}
-.acao__campo{flex:1;padding:0 4mm;min-width:0}
-.acao__campo-rot{font-size:6.6pt;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--tinta-3)}
-.acao__campo-val{font-size:8.6pt;line-height:1.42;color:var(--tinta);margin-top:.7mm}
-
-/* fotos: div com background-image, nunca <img> — ver o topo do arquivo */
-.evid{display:flex;flex-wrap:wrap;margin:1.4mm -1.2mm 0}
-/* Toda foto ocupa um terço da largura, tenha a ação uma ou seis. Deixar duas
-   fotos crescerem para metade da página fazia a evidência dominar o texto —
-   e o relatório é sobre o que foi feito, não sobre as fotos. */
+/* fotos: div com background-image, nunca <img> — ver o topo do arquivo.
+   Toda foto ocupa um terço da largura, tenha a ação uma ou seis: com duas
+   crescendo até metade da página a evidência dominava o texto. */
+.evid{display:flex;flex-wrap:wrap;margin:2.4mm -1.2mm 0}
 .evid__item{padding:0 1.2mm 2.4mm;width:33.333%}
 .evid__foto{
   width:100%;height:24mm;background-color:var(--painel);
@@ -242,22 +168,24 @@
 .evid__legenda{font-size:6.8pt;color:var(--tinta-3);margin-top:1mm;line-height:1.3}
 
 /* ==========================================================================
-   RESULTADOS E PRÓXIMOS PASSOS
+   EVOLUÇÃO DOS INDICADORES
    ========================================================================== */
-.destaque{background:var(--painel);border-top:.7mm solid var(--navy);padding:5mm 6mm;margin-bottom:8mm}
-.destaque__rot{font-size:7pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--navy)}
-.destaque__txt{font-size:10.5pt;line-height:1.5;color:var(--tinta);margin-top:2.5mm}
+.graficos{display:flex;flex-wrap:wrap;margin:0 -3mm}
+.grafico{flex:1 1 30%;padding:0 3mm 6mm;min-width:45mm}
+.grafico__tit{font-size:7pt;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tinta-2);margin-bottom:2mm}
+.grafico svg{display:block;width:100%;height:auto}
 
-.passos{list-style:none;margin:0;padding:0;counter-reset:passo}
-.passos li{position:relative;padding:2.6mm 0 2.6mm 9mm;border-top:.2mm solid var(--linha);line-height:1.42}
-.passos li:first-child{border-top:0}
-.passos li::before{
-  counter-increment:passo;content:counter(passo);position:absolute;left:0;top:2.9mm;
-  width:5.5mm;height:5.5mm;border-radius:50%;background:var(--azul-claro);color:var(--navy);
-  font-size:7pt;font-weight:700;text-align:center;line-height:5.5mm;
-}
-.atencao li::before{background:#fdf0df;color:#8a5200}
-
+.serie{width:100%;border-collapse:collapse;font-size:9pt;margin-top:2mm}
+.serie th{font-size:6.8pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-3);
+  text-align:right;padding:0 3mm 2mm;border-bottom:.35mm solid var(--linha-forte)}
+.serie th:first-child{text-align:left;padding-left:0}
+.serie td{padding:2.4mm 3mm;border-bottom:.2mm solid var(--linha);text-align:right;color:var(--tinta)}
+.serie td:first-child{text-align:left;padding-left:0;font-weight:600}
+.serie tr:last-child td{border-bottom:0}
+.serie__ref td{color:var(--tinta-2)}
+.serie__marca{font-size:6.4pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--azul-dado);background:var(--azul-claro);border-radius:.8mm;padding:.4mm 1.6mm;margin-left:1.6mm}
 
 /* ---------- prévia na tela ---------- */
 .previa__pag .pg{margin:0}
