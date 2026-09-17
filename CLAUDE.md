@@ -23,6 +23,14 @@ Arquivos prontos em `logo/` (na raiz deste repositório):
 Padrão de aplicação em rodapé (copiar dos apps existentes): SVG inline com
 `height: 1.7rem` num flex row, seguido de `<span>Created by Beatriz C Reis</span>`.
 
+## Como a Beatriz quer receber o trabalho
+
+**Todo trabalho visual volta com algo que ela possa ABRIR e usar, não só olhar.**
+Print e PDF mostram o resultado; não deixam simular o uso. Sempre que mexer em
+app, site ou tela, publicar e mandar a **URL** junto da resposta — de preferência
+antes de explicar o que foi feito. Ela pediu isso explicitamente em 17/09/2026,
+depois de receber duas rodadas só com imagem e PDF.
+
 ## Contexto geral
 
 - Apps "Cronômetro de Jogos" (4 modos: cronômetro, timer, HIIT, Tabata) e
@@ -321,6 +329,11 @@ Nasceu em 17/09/2026. Identidade **APSEN** (não é a marca pessoal da Beatriz).
     11 mm e passa por cima do filete.
   - Datas ISO montadas na mão; bordas Unicode nas regex (ver as seções acima,
     valem igual aqui).
+- **Projeto Vercel `r2d-relatorio`** (`prj_XO2aIpmlqDVUuci5eY99McldUbr9`), ligado
+  ao repo `beareisfarma/Projetos` com Root Directory `r2d-relatorio` e a
+  Vercel Authentication já desligada. Production branch é a `main`; enquanto o
+  app estiver só na branch de trabalho, o que vale é a URL de **preview** daquela
+  branch.
 - `npm test` roda 17 testes (leitor do R2D, gráficos, formatação). O fluxo de
   tela foi verificado ponta a ponta com Playwright: upload de PDF → 4 ações com
   6 fotos → 3 períodos de indicadores → prévia de 4 páginas → PDF de 1,27 MB em
