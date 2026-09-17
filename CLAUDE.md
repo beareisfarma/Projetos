@@ -260,81 +260,93 @@ Root Directory na Vercel é `lembretes`. Não misturar com o app estático.
 - Setup completo (chaves, Supabase, cron) em `lembretes/README.md`.
 - `npm test` em `lembretes/` roda 74 testes com PostgREST e serviço de push falsos.
 
-## App "Relatório de Ações do R2D" (`r2d-relatorio/`)
+## App "Relatório de Execução do R2D" (`r2d-relatorio/`)
 
-Ferramenta para representante da indústria farmacêutica documentar **o que fez
-para executar o R2D** e entregar ao gestor um relatório executivo em PDF/imagem.
-Nasceu em 17/09/2026. Identidade **APSEN** (não é a marca pessoal da Beatriz).
+**URL: https://r2d-relatorio.vercel.app** — projeto Vercel `r2d-relatorio`
+(`prj_XO2aIpmlqDVUuci5eY99McldUbr9`), ligado a `beareisfarma/Projetos`, Root
+Directory `r2d-relatorio`, deploy automático da `main`, Vercel Authentication
+desligada. Nasceu em 17/09/2026. Identidade **APSEN** (não é a marca pessoal
+da Beatriz).
 
-- **O princípio, e ele não pode ser diluído: o R2D é o PLANO e este app não o
-  cria, não o altera e não o substitui.** O PDF entra só como referência; o que
-  é gerado é um documento **complementar**, chamado "Relatório de Ações do R2D"
-  na capa, no cabeçalho de toda página e no nome do arquivo. Nunca chamar de
-  "novo R2D" nem deixar a tela sugerir isso.
-- **Sem cadastro, sem login, sem e-mail.** Abre e usa. A contrapartida é que
-  tudo mora no IndexedDB daquele navegador — por isso existem os botões
-  **Backup** e **Restaurar** (JSON com as fotos embutidas) no topo.
-- **A logo institucional é FIXA**: não há caminho no app para trocar, remover
-  ou subir outra. A pessoa só acrescenta a **logo do produto**, opcional e
-  discreta no alto da capa.
+- **O princípio, e ele não pode ser diluído: o R2D já existe e já foi aprovado
+  com a gerente dela. Este app não cria, não edita e não substitui o plano.**
+  O PDF entra só como referência, e o app lê TRÊS coisas dele: **objetivo**,
+  **gap** e **ações previstas**. Nada de tela de edição de plano, siglas
+  OBJ/EST/PLN, vínculo entre ação e item do plano, cobertura ou percentual de
+  execução — a v1 tinha tudo isso e a Beatriz recusou: *"você ainda não
+  compreendeu exatamente a proposta… é mais simples do que você está fazendo"*.
+  O que o app registra é a **execução**: ações e indicadores.
+- **A ação tem CINCO campos**, os que ela listou: data, ação realizada,
+  local/PDV/médico, informações ou resultados relevantes, e fotos. Não
+  reintroduzir categoria, objetivo da ação, próximo passo nem observações
+  separadas.
+- **Quatro etapas**: Identificação e R2D → Ações realizadas → Indicadores →
+  Relatório. Não existe etapa de fechamento com resumo executivo, entregas,
+  pendências e pontos de atenção — era máquina de consultoria, não foi pedida.
+- **Indicadores são o segundo eixo do produto.** Ela define quais acompanhar
+  (Market Share em `%` e Índice de Evolução como **número índice, sem `%`** vêm
+  prontos; outros podem ser acrescentados, cada um com sua unidade). Uma linha é
+  a **referência** (marco de início do plano) e as demais são os meses, editáveis
+  conforme fecham.
+  **REGRA DELA, EXPLÍCITA: o app não calcula, não estima e não completa
+  indicador nenhum.** Ela digita os valores reais; a ferramenta guarda, compara
+  com a referência e desenha. Por isso o extrator **descarta de propósito** a
+  seção de indicadores/metas do PDF — ler market share de dentro do R2D seria
+  inventar um número que vai para a gerência. Diferença entre dois valores que
+  ela digitou é comparação, não cálculo, e é permitida.
+- **O relatório tem TRÊS páginas num ciclo típico** e conta a história na ordem
+  em que a gerente pergunta (ela escolheu "números primeiro"): faixa de
+  indicadores (atual vs. referência) → objetivo e gap do R2D → ações
+  cronológicas com fotos → gráficos e tabela mês a mês. **Sem capa.** Tudo num
+  fluxo contínuo de paginação, sem quebra forçada em lugar nenhum.
 - **A marca em `js/marca.js` foi vetorizada do arquivo oficial** que a Beatriz
   enviou (PNG 1024 com alfa, traçado com potrace). Duas constantes: `SIMBOLO`
   (só a montanha — cabeçalho das páginas internas e ícones) e `MARCA` (montanha
-  + logotipo — painel e barra do app). Nada de `<text>` em SVG: o html2canvas
+  + logotipo — abertura e barra do app). Nada de `<text>` em SVG: o html2canvas
   serializa SVG como imagem e a webfont não carrega nesse caminho.
   **O `fill-rule` é `evenodd` e não pode sair**: a estrela e a gota são vazados
-  no mesmo path do contorno; com a regra padrão (nonzero) o miolo da estrela é
-  preenchido e ela vira um borrão azul saindo da montanha. Esse bug já aconteceu
-  — o extrator de path copiou só o `d` e deixou o `fill-rule` do potrace para trás.
+  no mesmo path do contorno; com nonzero o miolo da estrela é preenchido e ela
+  vira um borrão azul. Esse bug já aconteceu — o extrator de path copiou só o
+  `d` e deixou o `fill-rule` do potrace para trás.
   A cor sai da constante `COR` (`#004080`, navy do material impresso); o arquivo
-  oficial vem em `#0913b1`, e trocar `COR` é o único passo se for esse o valor certo.
-- Paleta amostrada do material: navy **#004080** (marca, títulos, estrutura) e
-  **#1163b0** só para marca de dado em gráfico (o navy reprova na banda de
-  luminosidade de cor de gráfico).
-- **O documento tem QUATRO páginas num ciclo típico, e isso é requisito.**
-  A primeira versão tinha sete e a Beatriz recusou: "ficou muito extenso".
-  Estrutura: **painel** (título no formato da referência, números, execução,
-  gráficos, o que o R2D previa, tira planejado → executado) → **ações** →
-  **resultados**. **Não existe capa** — folha quase vazia só adia a informação.
-  Ações e fechamento são paginados num **fluxo contínuo**, sem quebra forçada:
-  forçar rendia uma folha com uma ação e três quartos de papel em branco.
-  Não voltar a repetir a cobertura do plano em duas páginas, e não deixar foto
-  passar de um terço da largura — foram essas duas coisas que incharam a v1.
-- **Um gráfico por indicador, lado a lado.** Market share, índice de evolução e
-  atingimento de cota são todos "%" mas medem coisas diferentes: num gráfico só
-  precisariam de dois eixos. Série única ⇒ sem legenda; rótulo direto só no
-  primeiro e no último ponto; a tabela abaixo é a versão acessível. Menos de
-  dois períodos não desenha nada.
+  oficial vem em `#0913b1`. **Pergunta ainda em aberto com ela: qual das duas é
+  o valor de marca correto.**
+- Paleta: navy **#004080** (marca, títulos, estrutura) e **#1163b0** só para
+  marca de dado em gráfico (o navy reprova na banda de luminosidade).
+- **Um gráfico por indicador, lado a lado.** `%` e número índice não cabem no
+  mesmo eixo. Série única ⇒ sem legenda; rótulo direto só no primeiro e no
+  último ponto; o ponto de referência ganha um anel; a tabela abaixo é a versão
+  acessível. Menos de dois períodos não desenha nada.
+- **Sem cadastro, sem login, sem e-mail.** A contrapartida é que tudo mora no
+  IndexedDB daquele navegador — por isso existem **Backup** e **Restaurar**
+  (JSON com as fotos embutidas) no topo.
 - **A IA é opcional e fica fora do caminho crítico** (mesma decisão do app de
   lembretes). A leitura padrão do R2D é o `js/extrator.js`, local e
-  determinístico, que devolve vazio em vez de chutar. `api/interpretar.js` e
-  `api/resumir.js` usam `claude-opus-5` com JSON Schema e `fallbacks: "default"`;
-  sem `ANTHROPIC_API_KEY` respondem 501 e nada deixa de funcionar. **Cada chamada
+  determinístico, que devolve vazio em vez de chutar. `api/interpretar.js` usa
+  `claude-opus-5` com JSON Schema e `fallbacks: "default"`; sem
+  `ANTHROPIC_API_KEY` responde 501 e nada deixa de funcionar. **Cada chamada
   custa dinheiro** — este app não é de custo zero se a chave for cadastrada.
 - **Nada de CDN**: pdf.js, html2canvas, jsPDF e a fonte Source Sans 3 estão em
   `vendor/`/`fonts/` e o service worker guarda tudo. O app abre offline, que é o
   cenário real (corredor de farmácia, consultório).
 - Armadilhas já pagas, todas com o porquê no `README.md` e no código:
   - **Foto de evidência nunca é `<img>`** — o html2canvas ignora `object-fit` e
-    estica no PDF. Sempre `background-image` + `background-size:cover` num div.
+    estica no PDF. Sempre `background-image` + `background-size:cover` num div,
+    e **um terço da largura** por foto.
   - **Espaçamento entre ações ancorado no `:first-child`**, nunca no
-    `:last-child`: anexar o bloco seguinte fazia o anterior crescer 14 mm depois
-    de já medido, e a última foto vazava da página.
-  - **Toda tela é esvaziada na troca de etapa**, não só a que entra — as seis
-    convivem no mesmo documento e `#listas`/`#b-seguir` casavam com a etapa errada.
+    `:last-child`: anexar o bloco seguinte fazia o anterior crescer depois de já
+    medido, e a última foto vazava da página.
+  - **Toda tela é esvaziada na troca de etapa**, não só a que entra — elas
+    convivem no mesmo documento e o `querySelector` casava com a etapa errada.
   - **A exportação monta um palco próprio em tamanho natural**, fora da vista:
-    capturar a prévia (que é reduzida por transform) daria um PDF na escala da
-    janela.
-  - Cabeçalho de página interna leva **só o símbolo** — o logotipo não cabe nos
-    11 mm e passa por cima do filete.
-  - Datas ISO montadas na mão; bordas Unicode nas regex (ver as seções acima,
-    valem igual aqui).
-- **Projeto Vercel `r2d-relatorio`** (`prj_XO2aIpmlqDVUuci5eY99McldUbr9`), ligado
-  ao repo `beareisfarma/Projetos` com Root Directory `r2d-relatorio` e a
-  Vercel Authentication já desligada. Production branch é a `main`; enquanto o
-  app estiver só na branch de trabalho, o que vale é a URL de **preview** daquela
-  branch.
-- `npm test` roda 17 testes (leitor do R2D, gráficos, formatação). O fluxo de
-  tela foi verificado ponta a ponta com Playwright: upload de PDF → 4 ações com
-  6 fotos → 3 períodos de indicadores → prévia de 4 páginas → PDF de 1,27 MB em
-  2,0 s e 4 PNGs, sem erro de console, no desktop e no iPhone.
+    capturar a prévia (reduzida por transform) daria um PDF na escala da janela.
+  - Cabeçalho de página interna leva **só o símbolo**.
+  - **"Estratégia" só vira ação prevista quando o R2D não trouxe lista de
+    ações** — somar as duas infla a lista com o "como" quando se quer o "o quê".
+  - Datas ISO montadas na mão; bordas Unicode nas regex.
+- `estado.js` tem migração da v1 para a v2: o plano estruturado antigo vira
+  texto nos campos novos e as três colunas fixas de indicador viram definições.
+- `npm test` roda 21 testes (leitor do R2D, gráficos, formatação). Fluxo
+  verificado ponta a ponta com Playwright: upload de PDF → 5 ações com 6 fotos →
+  4 meses de indicadores → relatório de 3 páginas → PDF de 0,82 MB em 1,3 s, sem
+  erro de console, no desktop e no iPhone.

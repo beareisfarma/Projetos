@@ -1,195 +1,192 @@
-# Relatório de Ações do R2D
+# Relatório de Execução do R2D
 
-Ferramenta para o representante documentar **o que fez para executar o R2D** e
-entregar ao gestor um relatório executivo em PDF ou imagem.
+**https://r2d-relatorio.vercel.app**
+
+Ferramenta para o representante registrar o que fez para executar um R2D já
+aprovado, acompanhar os indicadores do produto mês a mês, e entregar à gerência
+um relatório em PDF ou imagem.
 
 ```
-R2D original (PDF)  →  ações realizadas  →  evidências  →  indicadores
-                    →  resultados  →  RELATÓRIO DE AÇÕES DO R2D
+R2D aprovado (referência)  →  ações realizadas + evidências  →  indicadores mês a mês
+                           →  RELATÓRIO DE EXECUÇÃO
 ```
 
 ## O princípio do produto
 
-**O R2D é o plano. Este sistema não cria, não altera e não substitui o R2D.**
+**O R2D já existe e já foi aprovado com a gerente. Este app não o cria, não o
+edita e não o substitui.**
 
-O PDF do R2D entra só como documento de referência: o app lê o texto para
-entender objetivos, estratégias e ações previstas, e usa isso para que cada
-ação registrada possa apontar para o item do plano que ela responde. O
-arquivo original nunca é escrito. O documento gerado é **complementar** — é
-chamado de *Relatório de Ações do R2D* na capa, no cabeçalho de todas as
-páginas e no nome do arquivo exportado. Em nenhum lugar ele se apresenta
-como um plano novo.
+O PDF entra só como referência: o app lê três coisas dele — o **objetivo**, o
+**gap** e as **ações previstas** — e as usa como contexto no topo do relatório.
+O arquivo original nunca é escrito. Não há tela de edição de plano, não há
+siglas, não há vínculo entre ação e item do plano, não há percentual de
+execução. Tudo isso é gerir um R2D, e não é para isso que a ferramenta existe.
 
 | | |
 |---|---|
-| **R2D** | o que foi planejado |
-| **Relatório de Ações** | o que foi feito para executar o plano |
+| **R2D** | o plano, já elaborado e aprovado |
+| **Relatório de Execução** | o que foi feito para colocar o plano em prática |
 
 ## Como usar
 
-Seis etapas, na barra do topo:
+Quatro etapas, na barra do topo:
 
-1. **Dados e R2D** — representante, produto, período, logo do produto
-   (opcional) e o R2D em PDF.
-2. **Plano do R2D** — a leitura do plano, para conferir e ajustar. Cada item
-   ganha uma sigla (OBJ1, EST2, PLN3) usada para amarrar as ações.
-3. **Ações realizadas** — `+ Registrar ação`, linha do tempo e filtros por
-   período, categoria e busca.
-4. **Indicadores** — market share, índice de evolução e atingimento de cota,
-   um período por linha.
-5. **Resultados** — resumo executivo, entregas, pendências, próximos passos
-   e pontos de atenção.
-6. **Relatório** — prévia página a página e exportação.
+1. **Identificação e R2D** — nome, produto, logo do produto, período e o PDF do
+   plano. Logo abaixo, os três campos de contexto lidos do R2D, para conferir.
+2. **Ações realizadas** — `+ Registrar ação`. Cinco campos: data, o que foi
+   feito, local/PDV/médico, informações ou resultados, e fotos. Linha do tempo
+   com filtro por período e busca.
+3. **Indicadores** — quais indicadores acompanhar e os valores mês a mês.
+4. **Relatório** — prévia página a página e exportação.
 
-Não há cadastro, login, e-mail ou senha. Abra e use.
+Não há cadastro, login, e-mail ou senha. Abre e usa.
+
+## Indicadores
+
+Duas coisas separadas: **quais** indicadores acompanhar e os **valores** de cada
+mês. Market Share e Índice de Evolução vêm prontos; qualquer outro pode ser
+acrescentado, cada um com a sua unidade (`%` para percentual, em branco para
+número índice).
+
+Uma linha é marcada como **referência** — o marco do início do plano. O
+relatório mostra a posição mais recente e quanto ela andou desde a referência.
+
+> **O app não calcula, não estima e não completa indicador nenhum.** Os números
+> são digitados a partir do relatório oficial da empresa. A ferramenta guarda,
+> compara com a referência e desenha. É por isso que o extrator **descarta de
+> propósito** a seção de indicadores do PDF do R2D: ler market share de dentro
+> do plano seria inventar um número que vai para a gerência.
+
+A tabela é editável mês a mês porque no começo do ciclo só existe a referência —
+os meses vão sendo preenchidos conforme fecham.
 
 ## O documento gerado
 
-**Quatro páginas para um ciclo típico**, não doze. O documento é curto de
-propósito: o gestor tem quinze minutos, não uma tarde.
+**Três páginas para um ciclo típico.** A ordem responde à pergunta da gerente na
+sequência em que ela a faz:
 
-| Página | Conteúdo |
+| | |
 |---|---|
-| 1 | **Painel**: título, números do período, execução, evolução dos indicadores, o que o R2D previa e a tira planejado → executado |
-| 2+ | Ações realizadas em ordem cronológica, com evidências |
-| última | Resultados e próximos passos |
+| Como o produto está? | faixa de indicadores: posição atual e quanto andou desde a referência |
+| O que o plano queria? | objetivo, gap e ações previstas, do R2D |
+| O que você fez? | ações em ordem cronológica, com fotos |
+| E os números, mês a mês? | gráficos de evolução e a tabela completa |
 
 **Não há capa.** Uma folha quase vazia antes do conteúdo só adia a informação
-que o gestor abriu o arquivo para ver — a página 1 já é o painel.
+que a gerente abriu o arquivo para ver.
 
-Ações e fechamento são paginados num **fluxo contínuo**, sem quebra forçada
-entre eles: o fechamento começa onde a última ação terminou, se couber.
-Forçar a quebra rendia uma folha com uma ação e três quartos de papel em branco.
-
-A paginação é **medida no DOM** — cada bloco é inserido, o `scrollHeight` é
-comparado com o `clientHeight` e, se passou, abre página nova. Por isso uma
-ação com três fotos nunca vaza do papel. Seções sem conteúdo simplesmente não
-existem: sem indicadores, não há gráficos.
+Tudo é paginado num **fluxo contínuo**, sem quebra forçada em lugar nenhum: as
+ações começam na própria página de abertura se couber, e os gráficos começam
+onde a última ação terminou. A paginação é **medida no DOM** — cada bloco é
+inserido, o `scrollHeight` é comparado com o `clientHeight` e, se passou, abre
+página nova. Por isso uma ação com três fotos nunca vaza do papel.
 
 ### Exportação
 
-- **Exportar PDF** — A4, uma página por folha, ~230 dpi. No celular abre a
-  folha de compartilhamento (vai direto ao WhatsApp); no computador baixa.
-- **Exportar imagens** — um PNG por página, para mandar por WhatsApp.
-- **Imprimir** — usa a impressão do navegador. Gera PDF vetorial, com texto
-  selecionável e arquivo menor, mas quem controla o resultado é o navegador.
+- **Exportar PDF** — A4, ~230 dpi. No celular abre a folha de compartilhamento
+  (vai direto ao WhatsApp); no computador baixa.
+- **Exportar imagens** — um PNG por página.
+- **Imprimir** — usa a impressão do navegador: PDF vetorial, texto selecionável,
+  arquivo menor, mas quem controla o resultado é o navegador.
 
-A captura **não** sai da prévia da tela: ela é reduzida para caber no monitor,
-e capturá-la daria um PDF na escala da janela. A exportação monta um palco
+A captura **não** sai da prévia da tela: ela é reduzida para caber no monitor, e
+capturá-la daria um PDF na escala da janela. A exportação monta um palco
 próprio, em tamanho natural, fora da vista.
 
 ## Identidade visual
 
 A **logo institucional é fixa**. Não existe caminho no app para trocá-la,
-remover ou enviar outra — a identidade da empresa é padronizada em todo
-relatório gerado. A pessoa só pode acrescentar a **logo do produto**, que é
-opcional e aparece discreta no alto da capa.
+removê-la ou enviar outra. A pessoa só acrescenta a **logo do produto**, que é
+opcional e aparece discreta no alto do relatório.
 
-O símbolo está em `js/marca.js`, em SVG (só paths). O logotipo "APSEN" e a
-assinatura saem como texto HTML, e isso é de propósito: o html2canvas
-serializa `<svg>` como imagem e nesse caminho as webfonts não carregam —
-`<text>` dentro de SVG sairia com a fonte errada no PDF.
+A marca está em `js/marca.js`, **vetorizada do arquivo oficial da empresa**
+(PNG 1024 com transparência, traçado com potrace). Duas constantes: `SIMBOLO`
+(só a montanha, para o cabeçalho das páginas internas e os ícones) e `MARCA`
+(montanha + logotipo, para a abertura e a barra do app). São só paths, sem
+`<text>`: o html2canvas serializa `<svg>` como imagem e nesse caminho as
+webfontes não carregam.
 
-> **O símbolo é uma reconstrução vetorial feita a partir do material de
-> referência, não o arquivo oficial da marca.** Ele é fiel o suficiente para
-> o tamanho em que aparece, mas se você tiver o SVG oficial da empresa,
-> troque a constante `SIMBOLO` em `js/marca.js` por ele (mesma proporção,
-> 148 × 74) e rode `npm run gen:icons`. Nada mais no app precisa mudar.
+O `fill-rule` é **evenodd** e não pode sair: a estrela e a gota são vazados no
+mesmo path do contorno, e com a regra padrão o miolo da estrela é preenchido —
+ela vira um borrão azul saindo da montanha.
 
-Paleta amostrada do material da empresa: navy `#004080` (marca, títulos,
-estrutura) e `#1163b0` para marca de dado nos gráficos — o navy é escuro
-demais para isso e reprova na banda de luminosidade de cor de gráfico.
+A cor vem da constante `COR` (`#004080`, navy amostrada do material impresso da
+empresa). O arquivo oficial que originou o traçado vem num azul mais vivo
+(`#0913b1`); se for esse o valor correto, troque `COR` e rode `npm run gen:icons`.
 
 ## Gráficos
 
-Um gráfico por indicador, lado a lado. Market share, índice de evolução e
-atingimento de cota são todos "%", mas medem coisas diferentes em escalas
-diferentes: juntar os três num gráfico só exigiria dois eixos, que é o erro
-clássico de leitura. Série única por gráfico dispensa legenda, e o rótulo
-direto fica só no primeiro e no último ponto — a série completa está na
-tabela logo abaixo, que também é a versão acessível dos dados.
-Com menos de dois períodos não existe evolução: o gráfico não é desenhado.
+Um gráfico por indicador, lado a lado. Market Share em `%` e Índice de Evolução
+em número índice não cabem no mesmo eixo, e dois eixos num gráfico só é o erro
+clássico de leitura. Série única dispensa legenda; o rótulo direto fica só no
+primeiro e no último ponto, e o ponto de referência ganha um anel. A tabela mês
+a mês logo abaixo é a série completa e a versão acessível dos dados. Com menos
+de dois períodos não existe evolução: o gráfico não é desenhado.
 
 ## Inteligência artificial — opcional
 
 **O app funciona inteiro sem IA.** A leitura padrão do R2D é o
-`js/extrator.js`: determinística, gratuita, offline, e que devolve vazio para
-o que não estiver no documento em vez de chutar.
+`js/extrator.js`: determinística, gratuita, offline, e que devolve vazio para o
+que não estiver no documento em vez de chutar.
 
-Duas funções opcionais entram por cima, quando a pessoa pede:
+`POST /api/interpretar` é o reforço opcional para R2D de formatação irregular:
+lê o PDF e devolve objetivo, gap e ações previstas. Usa `claude-opus-5` com
+saída em JSON Schema e fallback do lado do servidor (`fallbacks: "default"`).
+O prompt é fechado sobre o documento — a IA não inventa, não completa por
+plausibilidade e não toca em número de indicador.
 
-| Rota | O que faz |
-|---|---|
-| `POST /api/interpretar` | lê o R2D e organiza produto, período, objetivos, estratégias, desafios, ações previstas e metas |
-| `POST /api/resumir` | escreve resumo executivo, entregas, pendências, próximos passos e pontos de atenção a partir do que já foi registrado |
-
-Ambas usam `claude-opus-5` com saída em JSON Schema e **fallback do lado do
-servidor ativado** (`fallbacks: "default"`): se um classificador recusar, o
-pedido é atendido por outro modelo em vez de devolver erro. Os prompts são
-fechados sobre o material enviado — a IA não inventa, não completa por
-plausibilidade e não sugere boas práticas genéricas de vendas.
-
-Sem `ANTHROPIC_API_KEY` no ambiente, as rotas respondem 501 e a tela segue
-com a leitura local. Servido como site estático (sem as funções), o `fetch`
-toma 404 e o resultado é o mesmo. **Isso custa dinheiro por chamada** —
-alguns centavos por R2D lido. Se não quiser esse custo, é só não configurar
-a chave: nenhuma função do app deixa de existir.
+Sem `ANTHROPIC_API_KEY` no ambiente a rota responde 501 e a tela segue com a
+leitura local. **Cada chamada custa dinheiro** — alguns centavos por R2D lido.
+Se não quiser esse custo, é só não configurar a chave: nenhuma função do app
+deixa de existir.
 
 ## Onde ficam os dados
 
-Sem login, tudo mora **só no navegador deste aparelho** (IndexedDB: o
-projeto numa loja, os Blobs das fotos em outra). Trocar de celular, limpar os
-dados do site ou usar uma janela anônima começa do zero.
+Sem login, tudo mora **só no navegador daquele aparelho** (IndexedDB: o projeto
+numa loja, os Blobs das fotos em outra). Trocar de celular, limpar os dados do
+site ou usar uma janela anônima começa do zero.
 
-A saída honesta para isso é o **Backup** no topo: baixa um `.json` com o
-relatório inteiro, fotos incluídas, e **Restaurar** traz de volta em qualquer
-aparelho. Vale fazer backup antes de trocar de celular.
-
-Cada endereço é uma origem diferente para o navegador: um relatório montado
-em `a.vercel.app` não aparece em `b.vercel.app`.
+A saída para isso é o **Backup** no topo: baixa um `.json` com o relatório
+inteiro, fotos incluídas, e **Restaurar** traz de volta em qualquer aparelho.
 
 ## Rodando
 
 ```bash
 npm install
 npm run dev        # http://localhost:8080
-npm test           # 17 testes do leitor do R2D, dos gráficos e da formatação
-npm run gen:icons  # regera os PNGs a partir do símbolo em js/marca.js
+npm test           # 21 testes: leitor do R2D, gráficos e formatação
+npm run gen:icons  # regera os PNGs a partir da marca em js/marca.js
 ```
 
-Não há build: é HTML, CSS e ESM servidos como estão. As bibliotecas
-(`pdf.js`, `html2canvas`, `jsPDF`) e a fonte (Source Sans 3) estão em
-`vendor/` e `fonts/` — nada é buscado em CDN, e o service worker guarda tudo,
-então o app abre sem internet. Um representante monta o relatório no carro,
-no corredor da farmácia, no consultório.
+Não há build: é HTML, CSS e ESM servidos como estão. As bibliotecas (`pdf.js`,
+`html2canvas`, `jsPDF`) e a fonte (Source Sans 3) estão em `vendor/` e `fonts/`
+— nada é buscado em CDN, e o service worker guarda tudo, então o app abre sem
+internet. Um representante monta o relatório no carro, no corredor da farmácia,
+no consultório.
 
-### Publicando na Vercel
+### Publicação
 
-Root Directory = `r2d-relatorio`. O `vercel.json` já está aqui. As funções em
-`api/` só ganham vida se `ANTHROPIC_API_KEY` for cadastrada no painel — esse
-passo é manual, não há ferramenta para ele.
-
-Projeto novo na Vercel nasce com **Vercel Authentication ligada** e a URL
-pede login antes de abrir. Desligar em *Settings → Deployment Protection*,
-senão o PWA e o compartilhamento não funcionam.
+Projeto Vercel `r2d-relatorio`, Root Directory `r2d-relatorio`, deploy
+automático da `main`. As funções em `api/` só ganham vida se
+`ANTHROPIC_API_KEY` for cadastrada no painel — esse passo é manual.
 
 ## Estrutura
 
 ```
-index.html            casca; as seis telas vivem em <section data-tela>
+index.html            casca; as quatro telas vivem em <section data-tela>
 css/app.css           a ferramenta
 css/relatorio.css     o documento A4 (vale na tela e na exportação)
 js/marca.js           marca institucional vetorizada — fonte única
-js/estado.js          modelo do relatório e persistência
+js/estado.js          modelo do relatório, migração e persistência
 js/db.js              IndexedDB
 js/extrator.js        leitor local do R2D (padrão)
 js/pdf-leitor.js      extração de texto do PDF
-js/ia.js              cliente das rotas opcionais
+js/ia.js              cliente da rota opcional
 js/graficos.js        SVG escrito na mão, sem biblioteca
-js/relatorio.js       monta o painel, as ações e o fechamento; pagina medindo no DOM
+js/relatorio.js       monta o documento e pagina medindo no DOM
 js/exportar.js        PDF, PNG e impressão
 js/telas/*.js         uma por etapa
-api/*.js              funções serverless opcionais
+api/interpretar.js    função serverless opcional
 ```
 
 ### Armadilhas já pagas (não desfazer sem ler)
@@ -197,22 +194,26 @@ api/*.js              funções serverless opcionais
 - **Foto de evidência nunca é `<img>`.** O html2canvas ignora `object-fit` e
   estica a imagem no PDF. Toda foto entra como `background-image` +
   `background-size:cover` num `<div>`.
+- **Toda foto ocupa um terço da largura**, tenha a ação uma ou seis. Deixar duas
+  crescerem até metade da página fazia a evidência dominar o texto.
 - **O espaçamento entre ações é ancorado no `:first-child`, não no
-  `:last-child`.** Com `:last-child`, anexar o bloco seguinte fazia o
-  anterior crescer 14 mm *depois* de já ter sido medido e aprovado — a última
-  foto da página vazava para fora do papel.
-- **Toda tela é esvaziada na troca de etapa**, não só a que entra. As seis
-  convivem no mesmo documento, e uma tela inativa com conteúdo fazia
-  `#listas` e `#b-seguir` casarem com a etapa errada no `querySelector`.
-- **No cabeçalho das páginas internas entra só o símbolo.** O logotipo
-  completo não cabe na faixa de 11 mm e passa por cima do filete.
+  `:last-child`.** Com `:last-child`, anexar o bloco seguinte fazia o anterior
+  crescer *depois* de já ter sido medido e aprovado — a última foto da página
+  vazava para fora do papel.
+- **Toda tela é esvaziada na troca de etapa**, não só a que entra. Elas convivem
+  no mesmo documento, e uma tela inativa com conteúdo fazia o `querySelector`
+  casar com a etapa errada.
+- **No cabeçalho das páginas internas entra só o símbolo.** O logotipo completo
+  não cabe na faixa de 11 mm e passa por cima do filete.
 - **Datas ISO são montadas na mão** (`'2026-09-08'.split('-')`). O
   `new Date('2026-09-08')` é lido como UTC e, em São Paulo, cai no dia 7.
 - **Nas expressões em português, as bordas são Unicode**
-  (`(?<![\p{L}\p{N}])`). O `\b` do JavaScript é ASCII e falha depois de
-  ã, ç, ê — sem isso, "Reações adversas" viraria título da seção "ações".
+  (`(?<![\p{L}\p{N}])`). O `\b` do JavaScript é ASCII e falha depois de ã, ç, ê
+  — sem isso, "Reações adversas" viraria título da seção "ações".
+- **"Estratégia" só vira ação prevista quando o R2D não trouxe lista de ações.**
+  Num documento com as duas, somar as estratégias infla a lista com o "como"
+  quando a gerente quer ver o "o quê".
 - **Fotos são reduzidas a 1600 px na entrada.** Foto de celular chega com
-  4000 px e 5 MB; vinte evidências seriam 100 MB no IndexedDB e uma
-  exportação que trava o aparelho.
+  4000 px e 5 MB; vinte evidências seriam 100 MB no IndexedDB.
 - **Nada de `filter`, `mix-blend-mode` ou `background-clip:text` na folha do
   documento**: o html2canvas não desenha e a página sai diferente do que se vê.
