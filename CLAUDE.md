@@ -350,3 +350,65 @@ da Beatriz).
   verificado ponta a ponta com Playwright: upload de PDF → 5 ações com 6 fotos →
   4 meses de indicadores → relatório de 3 páginas → PDF de 0,82 MB em 1,3 s, sem
   erro de console, no desktop e no iPhone.
+
+## App "Quadra" — gestão de escolinha de vôlei (`quadra/`)
+
+**Primeiro projeto para CLIENTE**, não para a Beatriz. Nasceu em 18/09/2026: o
+dono de uma escolinha de vôlei pediu gestão financeira (mensalidades, inadimplência,
+entradas e saídas, notificar quem está devendo) **e** gestão de time (escalação por
+jogo, confirmação de presença no treino).
+
+- **A identidade é do produto, não da APSEN nem da marca pessoal dela.** Laranja
+  de quadra `#c2410c` (4,9:1 no branco) no claro, `#fb7a3c` no escuro — o navy do
+  Personal Assistant e o neon do Cronômetro não entram aqui. Ícone: bola de vôlei
+  sólida com três costuras. **As costuras não podem cruzar todas no mesmo ponto** —
+  a primeira versão virou um nó e deixou de parecer bola. O rodapé leva a logo BCR
+  e o crédito "Created by Beatriz C Reis", como nos apps dela.
+- **Dinheiro circula em CENTAVOS INTEIROS o app inteiro.** Float em mensalidade dá
+  diferença de centavo que ninguém acha depois, e o número vai para a conta de um
+  negócio de verdade.
+- **Dar baixa numa mensalidade lança a entrada no caixa sozinha**, e o id do
+  lançamento é DERIVADO do id da mensalidade (`mens_<id>`). É isso que impede o
+  caixa de contar a mesma receita duas vezes quando o botão é tocado de novo.
+  Desfazer a baixa remove a entrada junto — cobrança e caixa nunca se contradizem.
+  Não trocar isso por id aleatório.
+- **A geração das mensalidades do mês é idempotente**: atleta que já tem cobrança
+  naquela competência é pulado. O dono vai clicar duas vezes; é só uma questão de
+  quando. Atleta inativo e bolsista não geram cobrança, e valor zero também não —
+  não se inventa cobrança sem valor definido.
+- **Vencimento dia 31 em mês curto cai no último dia do mês** (`vencimentoEm`),
+  nunca escorrega para o mês seguinte — que é o que `new Date(ano, mes, 31)` faria.
+- **A cobrança sai pelo WhatsApp (`wa.me`), não por notificação push.** Push exigiria
+  que cada atleta instalasse o PWA, e numa escolinha com adolescentes isso não
+  acontece — cobrança que não chega não é cobrança. O preço, dito no README: é um
+  toque por atleta. Automatizar exige a API oficial do WhatsApp Business, que é paga.
+  **Não reintroduzir push para o atleta sem resolver a adoção primeiro.**
+- **O Pix copia e cola é gerado localmente** (`js/pix.js`), no padrão EMV-QRCPS do
+  Banco Central: campos `IDLLVALOR` fechados por **CRC-16/CCITT-FALSE** (polinômio
+  0x1021, inicial 0xFFFF, sem reflexão, sem xor final — outra variante de CRC-16 dá
+  número diferente e o banco recusa). O teste confere contra o vetor `123456789` →
+  `29B1`. **BR Code estático não avisa quando o dinheiro cai**: a baixa continua
+  manual, e confirmação automática exigiria API de banco/PSP, que é paga — é o
+  primeiro item que tira o projeto do custo zero.
+- **Cobrança de menor de idade vai para o RESPONSÁVEL**, por regra de código
+  (`destinatarioDaCobranca`), não por disciplina de quem usa. O app não pede CPF,
+  endereço nem foto — minimização proposital. A nota de LGPD no README (art. 14 e o
+  enunciado da ANPD) lista o que ainda cabe ao dono da escolinha resolver.
+- **"Confirmou" e "veio" são coisas diferentes** e o app separa as duas: confirmação
+  é antes (serve para planejar o treino), presença é a chamada na quadra. Por isso
+  `frequencia()` só conta treino em que a chamada foi realmente feita — misturar as
+  duas faria a frequência mentir.
+- **Os dados moram no IndexedDB do aparelho** (v1 sem servidor), com Backup e
+  Restaurar. **O aviso disso está na própria tela de Ajustes**, não em letra miúda:
+  é um negócio de verdade em cima de um armazenamento que o navegador pode limpar.
+- **Por que não tem servidor:** a conta Supabase dela já está no limite do plano
+  gratuito — **dois projetos ativos por organização** (`lembretes` e `Tô Aqui`).
+  Criar um terceiro devolve `BadRequestException ... 2 project limit`. O modelo de
+  dados já carrega `escolaId` em tudo, de propósito, para o servidor entrar depois
+  sem migração dolorosa. **Projeto de cliente deveria nascer na conta do cliente** —
+  isso ficou em aberto com a Beatriz.
+- **Projeto Vercel `quadra`** (`prj_FPnMOhqo96CS5c3fsmzqkb6oJCOd`), ligado a
+  `beareisfarma/Projetos`, Root Directory `quadra`, Vercel Authentication desligada.
+- `npm test` roda 47 testes (Pix, centavos, datas, idempotência, ponte
+  mensalidade→caixa, escalação, frequência, mensagens). O fluxo de tela foi
+  percorrido com Playwright nos dois temas, sem erro de console.
