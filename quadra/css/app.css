@@ -280,6 +280,16 @@ textarea { min-height: 72px; resize: vertical; }
 }
 #recado[hidden] { display: none; }
 
+/* ── Falha de gravação: fica na tela até o app ser recarregado ───────────── */
+#falha-gravacao {
+  position: sticky; top: 0; z-index: 90;
+  background: var(--perigo); color: #fff;
+  padding: .7rem 1rem calc(.7rem + env(safe-area-inset-top));
+  font-size: .84rem; line-height: 1.4;
+  display: flex; flex-wrap: wrap; align-items: center; gap: .5rem;
+}
+#falha-gravacao .btn { background: #fff; color: var(--perigo); border-color: #fff; }
+
 /* ── Tabela simples ──────────────────────────────────────────────────────── */
 table { width: 100%; border-collapse: collapse; font-size: .84rem; }
 th, td { text-align: left; padding: .45rem .3rem; border-bottom: 1px solid var(--borda); }

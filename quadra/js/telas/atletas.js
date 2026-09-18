@@ -11,7 +11,7 @@ import {
   ehMenor, destinatarioDaCobranca, atletasDoTime, modalidadeDe,
 } from '../modelo.js';
 import { mensagemDeCobranca, linkWhatsApp } from '../cobranca.js';
-import { reais, emCentavos, idade, hoje, telefoneBonito, dataBR } from '../formato.js';
+import { reais, emCentavos, idade, hoje, telefoneBonito, dataBR, plural } from '../formato.js';
 
 let filtro = 'todos';
 
@@ -31,7 +31,7 @@ function folhaDoAtleta(existente) {
   const miolo = abrirFolha(existente ? a.nome : 'Novo atleta', `
     ${situacao && situacao.pendentes ? `<div class="faixa">
       <strong>${reais(situacao.devido)}</strong> em aberto ·
-      ${situacao.pendentes} mensalidade(s)${situacao.diasDoMaisAntigo ? ` · ${situacao.diasDoMaisAntigo} dia(s) de atraso` : ''}
+      ${plural(situacao.pendentes, 'mensalidade')}${situacao.diasDoMaisAntigo ? ` · ${plural(situacao.diasDoMaisAntigo, 'dia')} de atraso` : ''}
       <button class="btn p zap" id="cobrar" style="margin-left:.4rem">Cobrar</button>
     </div>` : ''}
     ${freq && freq.taxa !== null ? `<p class="legenda">Frequência nos treinos:
@@ -137,7 +137,7 @@ function folhaDoAtleta(existente) {
 
   miolo.querySelector('#apagar')?.addEventListener('click', async () => {
     const dele = estado.mensalidades.filter((m) => m.atletaId === a.id);
-    if (!confirmar(`Apagar ${a.nome}?\n\n${dele.length} mensalidade(s) e o histórico de presença vão junto. Não dá para desfazer.`)) return;
+    if (!confirmar(`Apagar ${a.nome}?\n\n${plural(dele.length, 'mensalidade')} e o histórico de presença vão junto. Não dá para desfazer.`)) return;
     estado.atletas = estado.atletas.filter((x) => x.id !== a.id);
     estado.mensalidades = estado.mensalidades.filter((m) => m.atletaId !== a.id);
     estado.lancamentos = estado.lancamentos.filter((l) => !dele.some((m) => l.refId === m.id));

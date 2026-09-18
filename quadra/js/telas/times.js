@@ -7,7 +7,7 @@ import { estado, salvar } from '../estado.js';
 import { esc, abrirFolha, fecharFolha, recado, opcoes, confirmar } from '../ui.js';
 import { atualizar, ir } from '../rota.js';
 import { novoId, atletasDoTime, situacaoFinanceira, MODALIDADES, modalidadeDe } from '../modelo.js';
-import { reais, emCentavos } from '../formato.js';
+import { reais, emCentavos, plural } from '../formato.js';
 
 const DIAS = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'];
 
@@ -79,7 +79,7 @@ function folhaDoTime(existente) {
   miolo.querySelector('#apagar')?.addEventListener('click', async () => {
     const elenco = atletasDoTime(estado.atletas, t.id);
     if (elenco.length) {
-      recado(`${elenco.length} atleta(s) ainda estão neste time. Mova-os antes.`);
+      recado(`${plural(elenco.length, 'atleta')} ainda ${elenco.length === 1 ? 'está' : 'estão'} neste time. Mova antes.`);
       return;
     }
     if (!confirmar(`Apagar o time ${t.nome}?`)) return;
@@ -107,7 +107,7 @@ export function render(alvo) {
     return `<button class="item clicavel" data-time="${esc(t.id)}">
         <div class="corpo">
           <div class="nome">${esc(t.nome)} ${t.ativo === false ? '<span class="ficha">parado</span>' : ''}</div>
-          <div class="det">${esc(modalidadeDe(t).nome)} · ${elenco.length} atleta(s)${t.tecnico ? ` · ${esc(t.tecnico)}` : ''}${
+          <div class="det">${esc(modalidadeDe(t).nome)} · ${plural(elenco.length, 'atleta')}${t.tecnico ? ` · ${esc(t.tecnico)}` : ''}${
   (t.dias || []).length ? ` · ${esc(t.dias.join(', '))}${t.hora ? ` ${esc(t.hora)}` : ''}` : ''}</div>
           <div class="det">${devendo ? `<span style="color:var(--perigo)">${devendo} devendo</span>` : 'todos em dia'}</div>
         </div>

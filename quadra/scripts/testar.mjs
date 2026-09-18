@@ -11,6 +11,7 @@ import { copiaECola, crc16, crcConfere, ascii, txidLimpo, campo } from '../js/pi
 import {
   emCentavos, reais, vencimentoEm, diasEntre, idade, somarMeses,
   competenciaPorExtenso, telefoneInternacional, telefoneBonito, diaLocal,
+  plural, maiusculaInicial,
 } from '../js/formato.js';
 import {
   gerarMensalidades, situacaoFinanceira, pagarMensalidade, desfazerPagamento,
@@ -20,7 +21,7 @@ import {
   modalidadeDe, posicoesDe, MODALIDADES,
 } from '../js/modelo.js';
 import { mensagemDeCobranca, mensagemDeRecibo, mensagemDeConvocacao, linkWhatsApp } from '../js/cobranca.js';
-import { migrar, lerBackup, estadoVazio } from '../js/estado.js';
+import { migrar, lerBackup, estadoVazio, FalhaAoGravar } from '../js/estado.js';
 import { nomeCurto, pacoteDaEscalacao, pacoteDoTreino, enderecoDoLink } from '../js/partilha.js';
 import { caixaEmCsv, mensalidadesEmCsv, nomeDoCsv } from '../js/planilha.js';
 
@@ -133,6 +134,19 @@ test('telefone sai no formato do WhatsApp e volta bonito na tela', () => {
 
 test('competência por extenso', () => {
   assert.equal(competenciaPorExtenso('2026-03'), 'março de 2026');
+});
+
+test('plural escreve "1 dia" e "39 dias", nunca "39 dia(s)"', () => {
+  assert.equal(plural(1, 'dia'), '1 dia');
+  assert.equal(plural(0, 'dia'), '0 dias');
+  assert.equal(plural(39, 'dia'), '39 dias');
+  assert.equal(plural(1, 'mensalidade'), '1 mensalidade');
+  assert.equal(plural(2, 'mês', 'meses'), '2 meses');
+});
+
+test('só a primeira letra sobe — "Setembro De 2026" era o capitalize do CSS', () => {
+  assert.equal(maiusculaInicial(competenciaPorExtenso('2026-09')), 'Setembro de 2026');
+  assert.equal(maiusculaInicial(''), '');
 });
 
 /* ------------------------------------------------------------------ */
@@ -608,4 +622,13 @@ test('o CSV de mensalidades traz atleta, time e situação por extenso', () => {
 test('o nome do arquivo vira apelido sem acento', () => {
   assert.match(nomeDoCsv({ nome: 'RG Sports' }, 'caixa'), /^rg-sports-caixa-\d{4}-\d{2}-\d{2}\.csv$/);
   assert.match(nomeDoCsv({ nome: '' }, 'caixa'), /^escolinha-caixa-/);
+});
+
+test('FalhaAoGravar carrega a causa e é reconhecível pela tela', () => {
+  const original = new Error('QuotaExceededError');
+  const falha = new FalhaAoGravar(original);
+  assert.ok(falha instanceof FalhaAoGravar);
+  assert.ok(falha instanceof Error);
+  assert.equal(falha.causa, original);
+  assert.match(falha.message, /gravar/);
 });

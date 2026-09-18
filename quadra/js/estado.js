@@ -56,10 +56,41 @@ export async function carregar() {
   return estado;
 }
 
+/** Erro de gravação, separado para a tela reconhecer e avisar alto. */
+export class FalhaAoGravar extends Error {
+  constructor(causa) {
+    super('Não consegui gravar os dados neste aparelho.');
+    this.name = 'FalhaAoGravar';
+    this.causa = causa;
+  }
+}
+
+/**
+ * Quem é avisado quando a gravação falha.
+ *
+ * Isto é um aviso DIRETO, e não `unhandledrejection`, de propósito: bastaria um
+ * `try/catch` em qualquer tela para a rejeição parar de subir e o alerta sumir
+ * calado — exatamente o problema que ele existe para evitar. Aqui, falhou,
+ * avisa, e só depois lança.
+ */
+let avisarFalha = () => {};
+export const aoFalharGravacao = (fn) => { avisarFalha = fn; };
+
 export async function salvar() {
-  // Structured clone não aceita proxies nem funções; o estado é só dado puro,
-  // mas o JSON garante isso mesmo que alguém encoste um objeto estranho nele.
-  await gravar(JSON.parse(JSON.stringify(estado)));
+  try {
+    // Structured clone não aceita proxies nem funções; o estado é só dado puro,
+    // mas o JSON garante isso mesmo que alguém encoste um objeto estranho nele.
+    await gravar(JSON.parse(JSON.stringify(estado)));
+  } catch (erro) {
+    // O pior desfecho possível num app de dinheiro é a gravação falhar CALADA:
+    // a tela fecha, o número aparece certo em memória, e na próxima abertura
+    // sumiu. Disco cheio, aba privada e cota estourada fazem exatamente isso.
+    // Então a falha sobe, e quem chamou não tem como fingir que deu certo.
+    console.error('[quadra] falha ao gravar', erro);
+    const falha = new FalhaAoGravar(erro);
+    try { avisarFalha(falha); } catch { /* o aviso nunca derruba o app */ }
+    throw falha;
+  }
   return estado;
 }
 

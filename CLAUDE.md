@@ -434,6 +434,18 @@ gestão de time (escalação por jogo, confirmação de presença no treino).
   prende dado ele recusa, e com razão. Separador `;`, decimal com vírgula e **BOM
   `\uFEFF`** no começo — sem o BOM o Excel no Windows lê como latin-1 e "março"
   chega torto. Saída vai negativa: somar a coluna dá o saldo.
+- **Falha de gravação NUNCA passa calada.** `salvar()` avisa a tela por um
+  callback DIRETO (`aoFalharGravacao`) e só depois lança. Não usar
+  `unhandledrejection` como mecanismo principal: bastaria um `try/catch` em
+  qualquer tela para a rejeição parar de subir e o alerta sumir — que é
+  exatamente o problema que ele existe para evitar. Testado sabotando
+  `IDBObjectStore.prototype.put`. A faixa `#falha-gravacao` **fica na tela**
+  (não é `recado`, que some em 2,6 s), traz o botão de backup, e a folha de
+  edição **não fecha** — o app não finge que salvou. Num app de dinheiro,
+  gravação que falha em silêncio é o pior desfecho possível.
+- **Plurais escritos por extenso** (`plural()` em `formato.js`), nunca "39 dia(s)";
+  e o mês usa `maiusculaInicial()`, nunca `text-transform:capitalize` do CSS —
+  o capitalize subia toda palavra e "setembro de 2026" virava "Setembro De 2026".
 - **Os dados moram no IndexedDB do aparelho** (v1 sem servidor), com Backup e
   Restaurar. **O aviso disso está na própria tela de Ajustes**, não em letra miúda:
   é um negócio de verdade em cima de um armazenamento que o navegador pode limpar.
@@ -449,7 +461,7 @@ gestão de time (escalação por jogo, confirmação de presença no treino).
 - **Projeto Vercel `quadra`** (`prj_FPnMOhqo96CS5c3fsmzqkb6oJCOd`), ligado a
   `beareisfarma/Projetos`, Root Directory `quadra`, Vercel Authentication desligada.
 - **URL: https://quadra-jade.vercel.app**
-- `npm test` roda 63 testes (Pix, centavos, datas, idempotência, ponte
+- `npm test` roda 66 testes (Pix, centavos, datas, idempotência, ponte
   mensalidade→caixa, as duas modalidades, frequência, mensagens, o link do atleta e
   o CSV). O fluxo de tela
   foi percorrido com Playwright nos dois temas e nos dois esportes, sem erro de

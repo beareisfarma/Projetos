@@ -91,6 +91,21 @@ export const dataBR = (dia) => {
 /** '18/09' — para listas, onde o ano é ruído. */
 export const dataCurta = (dia) => dataBR(dia).slice(0, 5);
 
+/**
+ * Plural em português: `plural(1,'dia')` → "1 dia", `plural(39,'dia')` → "39 dias".
+ * Escrever "39 dia(s)" numa tela que o dono mostra para o pai de um atleta faz a
+ * ferramenta parecer inacabada — e o (s) não custava nada para resolver.
+ */
+export const plural = (n, singular, formaPlural = `${singular}s`) =>
+  `${n} ${Number(n) === 1 ? singular : formaPlural}`;
+
+/** Só a primeira letra em maiúscula. `text-transform:capitalize` do CSS sobe
+ *  TODA palavra, e "setembro de 2026" virava "Setembro De 2026". */
+export const maiusculaInicial = (texto) => {
+  const t = String(texto || '');
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 

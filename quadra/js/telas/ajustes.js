@@ -10,7 +10,7 @@ import { esc, recado, baixar, confirmar } from '../ui.js';
 import { atualizar, ir } from '../rota.js';
 import { escolinhaDeExemplo } from '../exemplo.js';
 import { caixaEmCsv, mensalidadesEmCsv, nomeDoCsv } from '../planilha.js';
-import { telefoneBonito } from '../formato.js';
+import { telefoneBonito, plural } from '../formato.js';
 
 export function render(alvo) {
   const e = estado.escola;
@@ -122,7 +122,7 @@ export function render(alvo) {
     if (!f) return;
     try {
       const dados = lerBackup(await f.text());
-      if (!confirmar(`Restaurar ${dados.atletas.length} atleta(s) de "${dados.escola.nome || 'sem nome'}"?\n\nTudo que está aqui agora é substituído.`)) return;
+      if (!confirmar(`Restaurar ${plural(dados.atletas.length, 'atleta')} de "${dados.escola.nome || 'sem nome'}"?\n\nTudo que está aqui agora é substituído.`)) return;
       substituir(dados);
       await salvar(); recado('Backup restaurado.'); ir('painel');
     } catch (erro) {

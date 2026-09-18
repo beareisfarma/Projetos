@@ -4,9 +4,9 @@
  * a quantidade de dados aqui é pequena e redesenhar tudo elimina a classe de bug
  * em que a lista e o total discordam.
  */
-import { carregar, estado } from './estado.js';
+import { carregar, estado, backupJson, nomeDoBackup, aoFalharGravacao, FalhaAoGravar } from './estado.js';
 import { pedirPersistencia } from './db.js';
-import { $, ligarFolha, fecharFolha, recado } from './ui.js';
+import { $, ligarFolha, fecharFolha, recado, baixar } from './ui.js';
 import { configurarRota } from './rota.js';
 
 import * as painel from './telas/painel.js';
@@ -44,6 +44,28 @@ function ir(tela, params = {}) {
   desenhar();
 }
 
+// ─── Falha de gravação ───────────────────────────────────────────────────────
+// Não é um recado que some em 2,6 segundos: enquanto o aparelho não conseguir
+// gravar, tudo que ele digitar existe só na memória desta aba. Fechar a aba
+// perde. Então a faixa fica, e traz o botão que salva o que ainda dá.
+
+function avisarFalhaDeGravacao() {
+  if ($('#falha-gravacao')) return;
+
+  const faixa = document.createElement('div');
+  faixa.id = 'falha-gravacao';
+  faixa.setAttribute('role', 'alert');
+  faixa.innerHTML = `
+    <strong>Não consegui salvar neste aparelho.</strong>
+    O que você fez agora está só na memória — fechar o app perde.
+    Baixe o backup e tente liberar espaço no celular.
+    <button class="btn p" id="falha-backup">Baixar backup agora</button>`;
+  document.body.prepend(faixa);
+  faixa.querySelector('#falha-backup').addEventListener('click', () => {
+    baixar(nomeDoBackup(), backupJson());
+  });
+}
+
 // ─── Tema ────────────────────────────────────────────────────────────────────
 // Guardado por aparelho, não por escolinha: é preferência de quem olha a tela.
 function aplicarTema(tema) {
@@ -75,6 +97,16 @@ async function iniciar() {
 
   document.querySelectorAll('.abas button').forEach((b) =>
     b.addEventListener('click', () => ir(b.dataset.tela)));
+
+  // Toda gravação passa por `salvar()`, e ela avisa aqui quando falha.
+  aoFalharGravacao(avisarFalhaDeGravacao);
+
+  // A falha SOBE de propósito, para nenhuma tela seguir como se tivesse salvo.
+  // Como a faixa já apareceu, só evitamos o relatório padrão do navegador — sem
+  // engolir nenhuma outra rejeição, que continua aparecendo no console.
+  window.addEventListener('unhandledrejection', (evento) => {
+    if (evento.reason instanceof FalhaAoGravar) evento.preventDefault();
+  });
 
   try {
     await carregar();

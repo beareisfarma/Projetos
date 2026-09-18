@@ -14,7 +14,7 @@ import { atualizar } from '../rota.js';
 import { novoId, atletasDoTime, conferirEscalacao, destinatarioDaCobranca, modalidadeDe } from '../modelo.js';
 import { mensagemDeConvocacao, linkWhatsApp } from '../cobranca.js';
 import { empacotar, pacoteDaEscalacao, enderecoDoLink } from '../partilha.js';
-import { hoje, dataBR, dataCurta, diaDaSemana } from '../formato.js';
+import { hoje, dataBR, dataCurta, diaDaSemana, plural } from '../formato.js';
 
 const timePor = (id) => estado.times.find((t) => t.id === id);
 const nomeDoTime = (id) => timePor(id)?.nome || 'time';
@@ -172,7 +172,7 @@ function folhaDaEscalacao(jogo) {
     const i = estado.jogos.findIndex((x) => x.id === jogo.id);
     estado.jogos[i] = { ...estado.jogos[i], escalados: escaladosAgora() };
     await salvar(); fecharFolha();
-    recado(`${escaladosAgora().length} atleta(s) relacionados.`);
+    recado(`${plural(escaladosAgora().length, 'atleta')} relacionado${escaladosAgora().length === 1 ? '' : 's'}.`);
     atualizar();
   });
 
@@ -226,7 +226,7 @@ function folhaDeConvocacao(jogo) {
             ${destino ? 'Enviar' : 'sem telefone'}</button>
         </div></div>`;
   }).join('')}
-    </div>`, { subtitulo: `${escalados.length} relacionado(s)` });
+    </div>`, { subtitulo: plural(escalados.length, 'relacionado') });
 
   miolo.querySelectorAll('[data-zap]').forEach((b) => b.addEventListener('click', () => {
     const atleta = estado.atletas.find((a) => a.id === b.dataset.zap);

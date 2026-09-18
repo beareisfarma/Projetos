@@ -18,7 +18,7 @@ import { mensagemDeCobranca, mensagemDeRecibo, linkWhatsApp } from '../cobranca.
 import { copiaECola } from '../pix.js';
 import {
   reais, reaisComSinal, emCentavos, competenciaAtual, competenciaPorExtenso,
-  somarMeses, hoje, dataBR, dataCurta, telefoneBonito,
+  somarMeses, hoje, dataBR, dataCurta, telefoneBonito, plural, maiusculaInicial,
 } from '../formato.js';
 
 let mes = competenciaAtual();
@@ -94,7 +94,7 @@ function folhaDaMensalidade(mensalidade) {
         <button class="btn perigo" id="desfazer">Desfazer baixa</button>
       </div>`
       : `
-      ${atrasada ? `<div class="faixa"><strong>Venceu em ${dataBR(mensalidade.vencimento)}</strong> — ${diasDeAtraso(mensalidade)} dia(s) de atraso.</div>` : ''}
+      ${atrasada ? `<div class="faixa"><strong>Venceu em ${dataBR(mensalidade.vencimento)}</strong> — ${plural(diasDeAtraso(mensalidade), 'dia')} de atraso.</div>` : ''}
       <label class="campo"><span>Valor recebido</span>
         <input id="valor" inputmode="decimal" value="${(mensalidade.valor / 100).toFixed(2).replace('.', ',')}"></label>
       <p class="dica">Mude se houve desconto ou pagamento parcial acertado.</p>
@@ -263,7 +263,7 @@ function abaMensalidades() {
           <div class="corpo">
             <div class="nome"><span class="bola ${paga ? 'dia' : atrasada ? 'atraso' : 'aberto'}"></span>${esc(nomeDoAtleta(m.atletaId))}</div>
             <div class="det">${paga ? `pago em ${dataCurta(m.pagoEm)} · ${esc(m.forma || '—')}`
-      : atrasada ? `venceu ${dataCurta(m.vencimento)} · ${diasDeAtraso(m)} dia(s)`
+      : atrasada ? `venceu ${dataCurta(m.vencimento)} · ${plural(diasDeAtraso(m), 'dia')}`
         : `vence ${dataCurta(m.vencimento)}`}</div>
           </div>
           <div class="direita">
@@ -294,8 +294,8 @@ function abaCobrar() {
           <div class="avatar">${esc(iniciais(atleta.nome))}</div>
           <div class="corpo">
             <div class="nome"><span class="bola ${situacao.status}"></span>${esc(atleta.nome)}</div>
-            <div class="det">${situacao.pendentes} mensalidade${situacao.pendentes > 1 ? 's' : ''}${
-  situacao.diasDoMaisAntigo ? ` · ${situacao.diasDoMaisAntigo} dia(s) de atraso` : ' · a vencer'}</div>
+            <div class="det">${plural(situacao.pendentes, 'mensalidade')}${
+  situacao.diasDoMaisAntigo ? ` · ${plural(situacao.diasDoMaisAntigo, 'dia')} de atraso` : ' · a vencer'}</div>
             <div class="det">${destino
     ? `${esc(destino.paraResponsavel ? `${destino.nome} (responsável)` : 'WhatsApp')} · ${esc(telefoneBonito(destino.telefone))}`
     : '<span style="color:var(--perigo)">sem telefone cadastrado</span>'}</div>
@@ -375,7 +375,7 @@ export function render(alvo, params = {}) {
 
     <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem">
       <button class="icone" id="mes-anterior" aria-label="Mês anterior">‹</button>
-      <strong style="flex:1;text-align:center;font-size:.95rem;text-transform:capitalize">${competenciaPorExtenso(mes)}</strong>
+      <strong style="flex:1;text-align:center;font-size:.95rem">${maiusculaInicial(competenciaPorExtenso(mes))}</strong>
       <button class="icone" id="mes-seguinte" aria-label="Próximo mês">›</button>
     </div>
 
@@ -421,7 +421,7 @@ export function render(alvo, params = {}) {
       <div class="acoes">
         <button class="btn zap" id="mandar"${msg.destino ? '' : ' disabled'}>Abrir no WhatsApp</button>
         <button class="btn" id="copiar-texto">Copiar texto</button>
-      </div>`, { subtitulo: `${reais(msg.total)} em ${msg.pendentes.length} mensalidade(s)` });
+      </div>`, { subtitulo: `${reais(msg.total)} em ${plural(msg.pendentes.length, 'mensalidade')}` });
 
     miolo.querySelector('#mandar')?.addEventListener('click', () => {
       window.open(linkWhatsApp(msg.destino.telefone, miolo.querySelector('#texto').value), '_blank');
