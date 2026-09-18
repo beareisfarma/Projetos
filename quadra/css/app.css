@@ -1,6 +1,12 @@
 /* Quadra — gestão para escolinhas de esporte.
    Sem CDN: a fonte é a do sistema, para o app abrir offline e instantâneo.
-   Dois temas. Toda cor é token; nada de hexadecimal solto no meio do CSS. */
+   Dois temas. Toda cor é token; nada de hexadecimal solto no meio do CSS.
+
+   A paleta é MONOCROMÁTICA porque a marca da RG Sports é preto e branco. Isso
+   não é economia de cor: num app de dinheiro, cor tem que significar alguma
+   coisa. Aqui verde é entrada, vermelho é atraso, âmbar é a vencer — e nada
+   mais disputa atenção com eles. Um laranja de marca no botão brigaria com o
+   vermelho do inadimplente, que é justamente o que ele precisa enxergar. */
 
 :root {
   color-scheme: light;
@@ -13,9 +19,9 @@
   --borda: #e3e3df;
   --borda2: #d0d0ca;
 
-  --accent: #c2410c;          /* laranja de quadra — 4,9:1 no branco */
-  --accent-forte: #9a3412;
-  --accent-fraco: #fdf0e9;
+  --accent: #16181d;          /* grafite da marca — 15,8:1 no branco */
+  --accent-forte: #000000;
+  --accent-fraco: #eeeeec;
   --sobre-accent: #ffffff;
 
   --ok: #15803d;   --ok-fraco: #eaf6ee;
@@ -40,10 +46,10 @@
   --borda: #2b2f37;
   --borda2: #3a3f49;
 
-  --accent: #fb7a3c;          /* no escuro o laranja escuro some; este dá 6,1:1 */
-  --accent-forte: #ff9257;
-  --accent-fraco: #2a1a12;
-  --sobre-accent: #1a0d06;
+  --accent: #f2f3f5;          /* no escuro a marca inverte: claro sobre escuro */
+  --accent-forte: #ffffff;
+  --accent-fraco: #262a31;
+  --sobre-accent: #16181d;
 
   --ok: #4ade80;   --ok-fraco: #12251a;
   --alerta: #fbbf24; --alerta-fraco: #2a2112;
@@ -64,7 +70,7 @@ html, body {
 body { padding-bottom: env(safe-area-inset-bottom); }
 
 button, input, select, textarea { font: inherit; color: inherit; }
-a { color: var(--accent); }
+a { color: var(--accent); text-underline-offset: 2px; }
 
 /* ── Cabeçalho ───────────────────────────────────────────────────────────── */
 .topo {
@@ -100,7 +106,9 @@ a { color: var(--accent); }
   display: flex; flex-direction: column; align-items: center; gap: .12rem;
   font-size: .62rem; font-weight: 600; letter-spacing: -.01em;
 }
-.abas button .g { font-size: 1.15rem; line-height: 1.1; }
+/* Ícone de traço, não emoji: emoji colorido brigaria com a marca monocromática
+   e o iOS desenha vários deles com largura diferente do resto. */
+.abas button .g { width: 22px; height: 22px; display: block; }
 .abas button[aria-current="true"] { color: var(--accent); }
 
 main { padding: 1rem 1rem 2rem; max-width: 900px; margin: 0 auto; }
@@ -133,8 +141,9 @@ h3 { font-size: .95rem; margin: 1.4rem 0 .55rem; letter-spacing: -.01em; }
 .bloco .val { font-family: var(--nums); font-size: 1.32rem; font-weight: 750;
   letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .bloco .pe { font-size: .73rem; color: var(--tinta2); }
-.bloco.destaque { border-color: var(--accent); background: var(--accent-fraco); }
-.bloco.destaque .val, .bloco.destaque .rot { color: var(--accent-forte); }
+/* O bloco em destaque é o de dinheiro vencido — vermelho, não cor de marca. */
+.bloco.destaque { border-color: var(--perigo); background: var(--perigo-fraco); }
+.bloco.destaque .val, .bloco.destaque .rot { color: var(--perigo); }
 .val.ok { color: var(--ok); } .val.perigo { color: var(--perigo); } .val.alerta { color: var(--alerta); }
 
 /* ── Listas ──────────────────────────────────────────────────────────────── */

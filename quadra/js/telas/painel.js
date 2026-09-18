@@ -28,15 +28,16 @@ function cartaoDoCompromisso(proximo) {
   const quando = dias === 0 ? 'hoje' : dias === 1 ? 'amanhã' : `em ${dias} dias`;
 
   if (tipo === 'jogo') {
-    const { titulares, avisos } = conferirEscalacao(item.escalados);
+    const time = estado.times.find((t) => t.id === item.timeId);
+    const { titulares, emQuadra, avisos } = conferirEscalacao(item.escalados, time);
     return `<button class="item clicavel" data-ir="jogos" data-id="${esc(item.id)}">
-      <div class="avatar">🏐</div>
+      <div class="avatar" aria-hidden="true">${esc(iniciais(nomeDoTime(item.timeId)))}</div>
       <div class="corpo">
         <div class="nome">${esc(nomeDoTime(item.timeId))} × ${esc(item.adversario || 'a definir')}</div>
         <div class="det">${esc(diaDaSemana(item.data))}, ${dataBR(item.data)}${item.hora ? ` às ${esc(item.hora)}` : ''} · ${esc(item.local || 'local a definir')}</div>
       </div>
       <div class="direita">
-        <div class="ficha ${avisos.length ? 'alerta' : 'ok'}">${titulares}/6 escalados</div>
+        <div class="ficha ${avisos.length ? 'alerta' : 'ok'}">${titulares}/${emQuadra} escalados</div>
         <div class="det" style="margin-top:.2rem">${quando}</div>
       </div></button>`;
   }
@@ -44,7 +45,7 @@ function cartaoDoCompromisso(proximo) {
   const confirmados = (item.presencas || []).filter((p) => p.status === 'confirmado').length;
   const elenco = atletasDoTime(estado.atletas, item.timeId).length;
   return `<button class="item clicavel" data-ir="treinos" data-id="${esc(item.id)}">
-    <div class="avatar">🎽</div>
+    <div class="avatar" aria-hidden="true">${esc(iniciais(nomeDoTime(item.timeId)))}</div>
     <div class="corpo">
       <div class="nome">Treino — ${esc(nomeDoTime(item.timeId))}</div>
       <div class="det">${esc(diaDaSemana(item.data))}, ${dataBR(item.data)}${item.hora ? ` às ${esc(item.hora)}` : ''}${item.foco ? ` · ${esc(item.foco)}` : ''}</div>

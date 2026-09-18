@@ -17,6 +17,7 @@ import {
   idDoLancamento, previsaoDoMes, resumoDoMes, saldoAcumulado, filaDeCobranca,
   conferirEscalacao, frequencia, valorDaMensalidade, destinatarioDaCobranca,
   ehMenor, estaAtrasada, resumoDePresenca, proximoCompromisso,
+  modalidadeDe, posicoesDe, MODALIDADES,
 } from '../js/modelo.js';
 import { mensagemDeCobranca, mensagemDeRecibo, mensagemDeConvocacao, linkWhatsApp } from '../js/cobranca.js';
 import { migrar, lerBackup, estadoVazio } from '../js/estado.js';
@@ -298,13 +299,55 @@ test('a fila de cobrança vem do mais atrasado para o menos', () => {
 /* Times, escalação e presença                                         */
 /* ------------------------------------------------------------------ */
 
-test('a escalação avisa quando não há seis em quadra, mas não barra', () => {
-  const cheia = Array.from({ length: 6 }, (_, i) => ({ atletaId: `a${i}`, papel: 'titular' }));
-  assert.equal(conferirEscalacao([...cheia, { atletaId: 'l', papel: 'líbero' }]).avisos.length, 0);
-  assert.match(conferirEscalacao(cheia.slice(0, 4)).avisos[0], /Faltam 2/);
-  assert.match(conferirEscalacao([...cheia, { atletaId: 'x', papel: 'titular' }]).avisos[0], /7 titulares/);
+const VOLEI = { modalidade: 'volei' };
+const HANDEBOL = { modalidade: 'handebol' };
+const linha = (n, papel = 'titular') => Array.from({ length: n }, (_, i) => ({ atletaId: `a${i}`, papel }));
+
+test('vôlei fecha com seis em quadra e um líbero', () => {
+  const cheia = linha(6);
+  assert.equal(conferirEscalacao([...cheia, { atletaId: 'l', papel: 'líbero' }], VOLEI).avisos.length, 0);
+  assert.match(conferirEscalacao([...linha(4), { atletaId: 'l', papel: 'líbero' }], VOLEI).avisos[0], /Faltam 2/);
+  assert.match(conferirEscalacao([...cheia, { atletaId: 'x', papel: 'titular' },
+    { atletaId: 'l', papel: 'líbero' }], VOLEI).avisos[0], /7 em quadra/);
+  assert.match(conferirEscalacao(cheia, VOLEI).avisos[0], /Sem líbero/);
   assert.match(conferirEscalacao([...cheia,
-    { atletaId: 'l1', papel: 'líbero' }, { atletaId: 'l2', papel: 'líbero' }]).avisos[0], /líbero/);
+    { atletaId: 'l1', papel: 'líbero' }, { atletaId: 'l2', papel: 'líbero' }], VOLEI).avisos[0], /líbero/);
+});
+
+test('handebol fecha com seis de linha e um goleiro — não com a regra do vôlei', () => {
+  const cheia = linha(6);
+  assert.equal(conferirEscalacao([...cheia, { atletaId: 'g', papel: 'goleiro' }], HANDEBOL).avisos.length, 0);
+  assert.match(conferirEscalacao(cheia, HANDEBOL).avisos[0], /Sem goleiro/);
+  // Um líbero num time de handebol não conta como goleiro.
+  assert.match(conferirEscalacao([...cheia, { atletaId: 'l', papel: 'líbero' }], HANDEBOL).avisos[0], /Sem goleiro/);
+});
+
+test('falta 1 no singular, faltam 2 no plural', () => {
+  assert.match(conferirEscalacao([...linha(5), { atletaId: 'l', papel: 'líbero' }], VOLEI).avisos[0], /^Falta 1 /);
+  assert.match(conferirEscalacao([...linha(4), { atletaId: 'l', papel: 'líbero' }], VOLEI).avisos[0], /^Faltam 2 /);
+});
+
+test('time sem modalidade é vôlei — backup da v1 continua abrindo certo', () => {
+  assert.equal(modalidadeDe(undefined), MODALIDADES.volei);
+  assert.equal(modalidadeDe({ nome: 'antigo' }), MODALIDADES.volei);
+  assert.equal(modalidadeDe({ modalidade: 'handebol' }), MODALIDADES.handebol);
+  assert.equal(conferirEscalacao([...linha(6), { atletaId: 'l', papel: 'líbero' }]).avisos.length, 0);
+});
+
+test('cada modalidade tem suas posições — handebol não tem Ponteiro', () => {
+  assert.ok(posicoesDe(VOLEI).includes('Ponteiro'));
+  assert.ok(posicoesDe(VOLEI).includes('Líbero'));
+  assert.ok(posicoesDe(HANDEBOL).includes('Pivô'));
+  assert.ok(posicoesDe(HANDEBOL).includes('Goleiro'));
+  assert.ok(!posicoesDe(HANDEBOL).includes('Ponteiro'));
+  assert.ok(!posicoesDe(VOLEI).includes('Goleiro'));
+});
+
+test('o placar tem rótulo e teto por modalidade: sets no vôlei, gols no handebol', () => {
+  assert.equal(MODALIDADES.volei.placar.rotulo, 'Sets');
+  assert.equal(MODALIDADES.volei.placar.maximo, 5);
+  assert.equal(MODALIDADES.handebol.placar.rotulo, 'Gols');
+  assert.ok(MODALIDADES.handebol.placar.maximo > 5);
 });
 
 test('a frequência ignora treino que só teve confirmação, não chamada', () => {
@@ -437,6 +480,16 @@ test('link do WhatsApp exige telefone — sem número devolve nulo', () => {
 /* ------------------------------------------------------------------ */
 /* Estado e backup                                                     */
 /* ------------------------------------------------------------------ */
+
+test('migrar da v1 dá modalidade de vôlei aos times antigos', () => {
+  const migrado = migrar({
+    escola: { nome: 'X' }, atletas: [],
+    times: [{ id: 't1', nome: 'antigo' }, { id: 't2', nome: 'hand', modalidade: 'handebol' }],
+  });
+  assert.equal(migrado.versao, 2);
+  assert.equal(migrado.times[0].modalidade, 'volei');
+  assert.equal(migrado.times[1].modalidade, 'handebol');   // o que já tinha não é sobrescrito
+});
 
 test('migrar preenche o que falta sem perder o que veio', () => {
   const migrado = migrar({ atletas: [{ id: 'a1' }], escola: { nome: 'X' } });

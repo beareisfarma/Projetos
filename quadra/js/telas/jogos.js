@@ -11,13 +11,12 @@
 import { estado, salvar } from '../estado.js';
 import { esc, iniciais, abrirFolha, fecharFolha, recado, opcoes, confirmar } from '../ui.js';
 import { atualizar } from '../rota.js';
-import { novoId, atletasDoTime, conferirEscalacao, destinatarioDaCobranca } from '../modelo.js';
+import { novoId, atletasDoTime, conferirEscalacao, destinatarioDaCobranca, modalidadeDe } from '../modelo.js';
 import { mensagemDeConvocacao, linkWhatsApp } from '../cobranca.js';
 import { hoje, dataBR, dataCurta, diaDaSemana } from '../formato.js';
 
-const PAPEIS = [['titular', 'Titular'], ['líbero', 'Líbero'], ['reserva', 'Reserva'], ['fora', 'Fora']];
-
-const nomeDoTime = (id) => estado.times.find((t) => t.id === id)?.nome || 'time';
+const timePor = (id) => estado.times.find((t) => t.id === id);
+const nomeDoTime = (id) => timePor(id)?.nome || 'time';
 
 function folhaDoJogo(existente) {
   const j = existente || {
@@ -26,6 +25,8 @@ function folhaDoJogo(existente) {
     competicao: '', escalados: [], placarNos: null, placarEles: null,
     status: 'agendado', observacoes: '',
   };
+
+  const { placar } = modalidadeDe(timePor(j.timeId));
 
   const miolo = abrirFolha(existente ? `${nomeDoTime(j.timeId)} × ${j.adversario || 'a definir'}` : 'Novo jogo', `
     <div class="dupla">
@@ -49,8 +50,10 @@ function folhaDoJogo(existente) {
         <select id="status">${opcoes([['agendado', 'Agendado'], ['encerrado', 'Encerrado'], ['cancelado', 'Cancelado']], j.status)}</select></label>
     </div>
     <div class="dupla" id="placar" ${j.status === 'encerrado' ? '' : 'hidden'}>
-      <label class="campo"><span>Sets nossos</span><input id="placarNos" type="number" min="0" max="5" value="${j.placarNos ?? ''}"></label>
-      <label class="campo"><span>Sets deles</span><input id="placarEles" type="number" min="0" max="5" value="${j.placarEles ?? ''}"></label>
+      <label class="campo"><span>${esc(placar.rotulo)} nossos</span>
+        <input id="placarNos" type="number" min="0" max="${placar.maximo}" value="${j.placarNos ?? ''}"></label>
+      <label class="campo"><span>${esc(placar.rotulo)} deles</span>
+        <input id="placarEles" type="number" min="0" max="${placar.maximo}" value="${j.placarEles ?? ''}"></label>
     </div>
     <label class="campo"><span>Observações</span><textarea id="observacoes">${esc(j.observacoes)}</textarea></label>
     <div class="acoes"><button class="btn cheio largo" id="gravar">Gravar</button></div>
@@ -95,6 +98,8 @@ function folhaDoJogo(existente) {
 }
 
 function folhaDaEscalacao(jogo) {
+  const time = timePor(jogo.timeId);
+  const { papeis, nome: nomeModalidade } = modalidadeDe(time);
   const elenco = atletasDoTime(estado.atletas, jogo.timeId).filter((a) => a.status === 'ativo');
   const papelDe = (id) => (jogo.escalados || []).find((e) => e.atletaId === id)?.papel || 'fora';
 
@@ -114,7 +119,7 @@ function folhaDaEscalacao(jogo) {
         </div>
       </div>
       <div class="quadra-papeis" data-atleta="${esc(a.id)}" style="margin:-.3rem 0 .2rem;justify-content:flex-end">
-        ${PAPEIS.map(([valor, rotulo]) => `<button type="button" data-papel="${valor}"
+        ${papeis.map(([valor, rotulo]) => `<button type="button" data-papel="${valor}"
           aria-pressed="${papelDe(a.id) === valor}">${rotulo}</button>`).join('')}
       </div>`).join('')}
     </div>
@@ -124,7 +129,7 @@ function folhaDaEscalacao(jogo) {
     <div class="acoes">
       <button class="btn zap largo" id="convocar">Convocar os escalados no WhatsApp</button>
     </div>`,
-  { subtitulo: `${diaDaSemana(jogo.data)}, ${dataBR(jogo.data)} × ${jogo.adversario || 'a definir'}` });
+  { subtitulo: `${nomeModalidade} · ${diaDaSemana(jogo.data)}, ${dataBR(jogo.data)} × ${jogo.adversario || 'a definir'}` });
 
   const escolhas = new Map(elenco.map((a) => [a.id, papelDe(a.id)]));
 
@@ -132,11 +137,11 @@ function folhaDaEscalacao(jogo) {
     const escalados = [...escolhas.entries()]
       .filter(([, papel]) => papel !== 'fora')
       .map(([atletaId, papel]) => ({ atletaId, papel }));
-    const { titulares, avisos } = conferirEscalacao(escalados);
+    const { titulares, emQuadra, avisos } = conferirEscalacao(escalados, time);
     miolo.querySelector('#aviso').innerHTML = avisos.length
       ? `<div class="faixa">${esc(avisos.join(' '))}</div>`
       : `<div class="faixa" style="background:var(--ok-fraco);color:var(--ok)">
-           Seis em quadra${titulares === 6 ? '' : ''} · escalação fechada.</div>`;
+           ${titulares} em quadra e o ${esc(modalidadeDe(time).especial.rotulo.toLowerCase())} · escalação fechada.</div>`;
     return escalados;
   };
   pintarAviso();
@@ -221,15 +226,16 @@ export function render(alvo, params = {}) {
     .sort((a, b) => (b.data + b.hora).localeCompare(a.data + a.hora));
 
   const cartao = (j) => {
-    const { titulares, reservas, avisos } = conferirEscalacao(j.escalados);
+    const time = timePor(j.timeId);
+    const { titulares, emQuadra, reservas, avisos } = conferirEscalacao(j.escalados, time);
     const resultado = j.status === 'encerrado' && j.placarNos !== null
       ? `<div class="ficha ${j.placarNos > j.placarEles ? 'ok' : 'perigo'}">${j.placarNos} × ${j.placarEles}</div>`
-      : `<div class="ficha ${avisos.length ? 'alerta' : 'ok'}">${titulares}/6${reservas ? ` +${reservas}` : ''}</div>`;
+      : `<div class="ficha ${avisos.length ? 'alerta' : 'ok'}">${titulares}/${emQuadra}${reservas ? ` +${reservas}` : ''}</div>`;
 
     return `<div class="item">
       <div class="corpo">
         <div class="nome" style="font-size:.93rem">${esc(nomeDoTime(j.timeId))} × ${esc(j.adversario || 'a definir')}</div>
-        <div class="det">${esc(diaDaSemana(j.data))}, ${dataCurta(j.data)}${j.hora ? ` às ${esc(j.hora)}` : ''}
+        <div class="det">${esc(modalidadeDe(time).nome)} · ${esc(diaDaSemana(j.data))}, ${dataCurta(j.data)}${j.hora ? ` às ${esc(j.hora)}` : ''}
           · ${j.mandante ? 'em casa' : 'fora'}${j.competicao ? ` · ${esc(j.competicao)}` : ''}</div>
         <div class="det">${esc(j.local || 'local a definir')}</div>
       </div>

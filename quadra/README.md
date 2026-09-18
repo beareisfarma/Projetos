@@ -1,8 +1,11 @@
-# Quadra — gestão de escolinha de vôlei
+# Quadra — gestão de escolinha de esportes
 
 App para o dono de uma escolinha cuidar das duas coisas que consomem o tempo
 dele: **o dinheiro** (mensalidades, inadimplência, caixa) e **os times**
 (escalação de jogo, chamada de treino).
+
+Feito para a **RG Sports**, que treina **vôlei e handebol** — e o app trata as
+duas modalidades com a regra de cada uma.
 
 Abre no navegador, instala na tela de início, **funciona offline** e não pede
 cadastro nem login.
@@ -27,8 +30,10 @@ cadastro nem login.
 - Recibo quando o pagamento entra.
 
 **Times**
-- Escalação por toque: titular, líbero, reserva, fora. Avisa quando não há seis
-  em quadra, mas não impede de salvar.
+- **Modalidade por time.** Vôlei fecha com seis em quadra mais o líbero; handebol
+  com seis de linha mais o goleiro. Posições, rótulos da escalação e placar
+  (sets × gols) saem da modalidade.
+- Escalação por toque. Avisa quando a escalação não fecha, mas não impede de salvar.
 - Convocação individual pelo WhatsApp, com local, hora e horário de chegada.
 - Chamada de treino separando **quem confirmou** (antes) de **quem veio** (depois).
 - Frequência por atleta, contando só treino em que a chamada foi feita.
@@ -36,6 +41,16 @@ cadastro nem login.
 ---
 
 ## Decisões, e por quê
+
+**A modalidade mora no time, não no app.** A primeira versão tinha a regra do
+vôlei cravada no código: num time de handebol ela diria "faltam 2 para fechar os
+seis", o que é errado — handebol são seis de linha mais o goleiro, e as posições
+são outras. Regra de esporte em constante (`MODALIDADES`), não em `if`.
+
+**Paleta monocromática.** A marca da RG Sports é preto e branco, e isso virou
+vantagem: num app de dinheiro, cor precisa significar alguma coisa. Verde é
+entrada, vermelho é atraso, âmbar é a vencer — nada mais disputa atenção. Um
+laranja de marca no botão brigaria com o vermelho do inadimplente.
 
 **Dinheiro em centavos inteiros, nunca float.** Um `0,01` de diferença numa
 mensalidade não aparece no teste e aparece na conversa com o cliente.
@@ -101,7 +116,7 @@ O que **ainda falta**, e é do dono da escolinha, não do app:
 
 ```bash
 npm install     # só o sharp, usado para gerar os ícones
-npm test        # 47 testes: Pix, dinheiro, datas, regras de cobrança e caixa
+npm test        # 53 testes: Pix, dinheiro, datas, cobrança, caixa e as duas modalidades
 npm run dev     # serve em http://localhost:8080
 npm run gen:icons
 ```
@@ -121,6 +136,17 @@ js/estado.js     estado + migração + backup
 js/db.js         IndexedDB
 js/telas/        painel, atletas, dinheiro, times, jogos, treinos, ajustes
 ```
+
+## Pendências com a Beatriz
+
+- **A logo.** O ícone é uma bola neutra na cor da marca, **provisória**. A logo da
+  RG Sports é um monograma preto, e traçar isso de um print de Instagram daria um
+  desenho errado com cara de certo. Precisa do arquivo oficial (SVG, ou PNG em
+  alta com fundo transparente) — mesmo caminho da marca da APSEN no `r2d-relatorio`.
+- **Os dados reais**: nome do responsável, WhatsApp, chave Pix e cidade do
+  recebedor. Tudo em Ajustes; sem a chave, a cobrança sai sem o copia e cola.
+- **Handebol foi inferido do perfil** ("Treinamentos de Vôlei e Handball").
+  Se houver outra modalidade, acrescentar é um objeto em `MODALIDADES`.
 
 ## O que ficou de fora da v1, de propósito
 

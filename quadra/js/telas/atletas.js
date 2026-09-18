@@ -7,8 +7,8 @@ import { estado, salvar } from '../estado.js';
 import { esc, iniciais, abrirFolha, fecharFolha, recado, opcoes, confirmar } from '../ui.js';
 import { atualizar, ir } from '../rota.js';
 import {
-  situacaoFinanceira, novoId, POSICOES, valorDaMensalidade, frequencia,
-  ehMenor, destinatarioDaCobranca, atletasDoTime,
+  situacaoFinanceira, novoId, posicoesDe, valorDaMensalidade, frequencia,
+  ehMenor, destinatarioDaCobranca, atletasDoTime, modalidadeDe,
 } from '../modelo.js';
 import { mensagemDeCobranca, linkWhatsApp } from '../cobranca.js';
 import { reais, emCentavos, idade, hoje, telefoneBonito, dataBR } from '../formato.js';
@@ -24,6 +24,7 @@ function folhaDoAtleta(existente) {
     mensalidade: null, isento: false, vencimentoDia: estado.escola.vencimentoPadrao || 10,
     status: 'ativo', entradaEm: hoje(), observacoes: '',
   };
+  const timeDoAtleta = estado.times.find((t) => t.id === a.timeIds?.[0]);
   const situacao = existente ? situacaoFinanceira(a.id, estado.mensalidades) : null;
   const freq = existente ? frequencia(a.id, estado.treinos) : null;
 
@@ -47,7 +48,7 @@ function folhaDoAtleta(existente) {
 
     <div class="dupla">
       <label class="campo"><span>Posição</span>
-        <select id="posicao">${opcoes([['', '—'], ...POSICOES], a.posicao)}</select></label>
+        <select id="posicao">${opcoes([['', '—'], ...posicoesDe(timeDoAtleta)], a.posicao)}</select></label>
       <label class="campo"><span>Camisa</span><input id="numero" inputmode="numeric" value="${esc(a.numero)}"></label>
     </div>
 
@@ -81,13 +82,27 @@ function folhaDoAtleta(existente) {
 
     <div class="acoes"><button class="btn cheio largo" id="gravar">Gravar</button></div>
     ${existente ? '<div class="acoes"><button class="btn perigo" id="apagar">Apagar atleta</button></div>' : ''}`,
-    { subtitulo: existente ? `${nomeDoTime(a.timeIds?.[0])}${a.nascimento ? ` · ${idade(a.nascimento)} anos` : ''}` : '' });
+    { subtitulo: existente
+      ? `${nomeDoTime(a.timeIds?.[0])}${timeDoAtleta ? ` · ${modalidadeDe(timeDoAtleta).nome}` : ''}${
+        a.nascimento ? ` · ${idade(a.nascimento)} anos` : ''}`
+      : '' });
 
   miolo.querySelector('#cobrar')?.addEventListener('click', () => {
     const msg = mensagemDeCobranca(a, estado.mensalidades, estado.escola, hoje());
     const link = msg?.destino && linkWhatsApp(msg.destino.telefone, msg.texto);
     if (!link) { recado('Sem telefone cadastrado.'); return; }
     window.open(link, '_blank');
+  });
+
+  // Trocar o time troca a modalidade, e handebol não tem "Ponteiro". Sem isto a
+  // posição continuaria mostrando a lista do esporte anterior.
+  const selTime = miolo.querySelector('#time');
+  const selPosicao = miolo.querySelector('#posicao');
+  selTime.addEventListener('change', () => {
+    const novoTime = estado.times.find((t) => t.id === selTime.value);
+    const atual = selPosicao.value;
+    const lista = posicoesDe(novoTime);
+    selPosicao.innerHTML = opcoes([['', '—'], ...lista], lista.includes(atual) ? atual : '');
   });
 
   miolo.querySelector('#gravar').addEventListener('click', async () => {

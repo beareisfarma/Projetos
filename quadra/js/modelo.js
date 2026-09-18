@@ -17,9 +17,41 @@
 
 import { hoje, competenciaDe, vencimentoEm, diasEntre, idade } from './formato.js';
 
-export const PAPEIS = ['titular', 'líbero', 'reserva'];
+/**
+ * As modalidades. A RG Sports treina vôlei E handebol, e as duas têm regra
+ * diferente de quem entra em quadra — 6 + líbero contra 6 de linha + goleiro.
+ * Cravar a regra do vôlei no código faria o app mentir para metade dos times.
+ *
+ * `emQuadra` conta só os jogadores de linha; o especial (líbero/goleiro) é
+ * contado à parte porque não é intercambiável com os outros.
+ */
+export const MODALIDADES = {
+  volei: {
+    nome: 'Vôlei',
+    emQuadra: 6,
+    posicoes: ['Levantador', 'Oposto', 'Ponteiro', 'Central', 'Líbero'],
+    especial: { chave: 'líbero', rotulo: 'Líbero', maximo: 1 },
+    papeis: [['titular', 'Titular'], ['líbero', 'Líbero'], ['reserva', 'Reserva'], ['fora', 'Fora']],
+    placar: { rotulo: 'Sets', maximo: 5 },
+  },
+  handebol: {
+    nome: 'Handebol',
+    emQuadra: 6,
+    posicoes: ['Goleiro', 'Ponta esquerda', 'Ponta direita',
+      'Armador esquerdo', 'Armador central', 'Armador direito', 'Pivô'],
+    especial: { chave: 'goleiro', rotulo: 'Goleiro', maximo: 1 },
+    papeis: [['titular', 'Linha'], ['goleiro', 'Goleiro'], ['reserva', 'Reserva'], ['fora', 'Fora']],
+    placar: { rotulo: 'Gols', maximo: 60 },
+  },
+};
 
-export const POSICOES = ['Levantador', 'Oposto', 'Ponteiro', 'Central', 'Líbero'];
+/** Time sem modalidade é vôlei — foi o que existia antes de o campo nascer. */
+export const modalidadeDe = (time) => MODALIDADES[time?.modalidade] || MODALIDADES.volei;
+
+export const posicoesDe = (time) => modalidadeDe(time).posicoes;
+
+/** Compatibilidade: as posições de vôlei, para quem ainda importa a lista antiga. */
+export const POSICOES = MODALIDADES.volei.posicoes;
 
 export const PRESENCAS = {
   confirmado: 'Confirmou',
@@ -218,23 +250,40 @@ export const atletasDoTime = (atletas, timeId) =>
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 
 /**
- * Confere uma escalação de vôlei: seis em quadra, um líbero.
+ * Confere uma escalação contra a regra da modalidade do time.
  * Devolve avisos em vez de barrar — amistoso com time incompleto existe, e o
  * app não é quem decide se o jogo acontece.
+ *
+ * @param {Array} escalados
+ * @param {object} [time] quando falta, vale a regra do vôlei (ver `modalidadeDe`)
  */
-export function conferirEscalacao(escalados = []) {
+export function conferirEscalacao(escalados = [], time) {
+  const modalidade = modalidadeDe(time);
+  const { emQuadra, especial } = modalidade;
+
   const titulares = escalados.filter((e) => e.papel === 'titular').length;
-  const liberos = escalados.filter((e) => e.papel === 'líbero').length;
+  const especiais = escalados.filter((e) => e.papel === especial.chave).length;
   const avisos = [];
 
-  if (titulares !== 6) {
-    avisos.push(titulares < 6
-      ? `Faltam ${6 - titulares} para fechar os seis em quadra.`
-      : `${titulares} titulares — em quadra entram seis.`);
+  if (titulares !== emQuadra) {
+    const faltam = emQuadra - titulares;
+    avisos.push(faltam > 0
+      ? `${faltam === 1 ? 'Falta 1' : `Faltam ${faltam}`} para fechar a escalação.`
+      : `${titulares} em quadra — entram ${emQuadra}.`);
   }
-  if (liberos > 1) avisos.push('Mais de um líbero escalado.');
+  if (!especiais) avisos.push(`Sem ${especial.rotulo.toLowerCase()} escalado.`);
+  else if (especiais > especial.maximo) avisos.push(`Mais de um ${especial.rotulo.toLowerCase()} escalado.`);
 
-  return { titulares, liberos, reservas: escalados.filter((e) => e.papel === 'reserva').length, avisos };
+  return {
+    titulares,
+    emQuadra,
+    especiais,
+    // `liberos` continua no retorno porque a tela antiga lia esse nome.
+    liberos: especiais,
+    reservas: escalados.filter((e) => e.papel === 'reserva').length,
+    modalidade,
+    avisos,
+  };
 }
 
 export function resumoDePresenca(treino, atletas) {

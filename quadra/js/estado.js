@@ -4,7 +4,7 @@
  */
 import { ler, gravar, limpar } from './db.js';
 
-export const VERSAO = 1;
+export const VERSAO = 2;
 
 export const estadoVazio = () => ({
   versao: VERSAO,
@@ -30,8 +30,9 @@ export let estado = estadoVazio();
 
 /**
  * Migra um estado gravado por uma versão anterior.
- * Fica aqui desde a v1, com uma migração que não faz nada, porque acrescentar
- * o ponto de migração depois — com dados de um cliente dentro — é pior.
+ *
+ * v1 → v2: o time ganhou `modalidade`. Tudo que existia antes era vôlei, que é
+ * o padrão — assim um backup antigo continua abrindo com a escalação certa.
  */
 export function migrar(dados) {
   const base = estadoVazio();
@@ -41,7 +42,7 @@ export function migrar(dados) {
     ...dados,
     versao: VERSAO,
     escola: { ...base.escola, ...(dados.escola || {}) },
-    times: dados.times || [],
+    times: (dados.times || []).map((t) => ({ modalidade: 'volei', ...t })),
     atletas: dados.atletas || [],
     mensalidades: dados.mensalidades || [],
     lancamentos: dados.lancamentos || [],

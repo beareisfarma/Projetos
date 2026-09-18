@@ -6,23 +6,30 @@
 import { estado, salvar } from '../estado.js';
 import { esc, abrirFolha, fecharFolha, recado, opcoes, confirmar } from '../ui.js';
 import { atualizar, ir } from '../rota.js';
-import { novoId, atletasDoTime, situacaoFinanceira } from '../modelo.js';
+import { novoId, atletasDoTime, situacaoFinanceira, MODALIDADES, modalidadeDe } from '../modelo.js';
 import { reais, emCentavos } from '../formato.js';
 
 const DIAS = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'];
 
 function folhaDoTime(existente) {
   const t = existente || {
-    id: novoId('tm_'), escolaId: 'escola', nome: '', categoria: '', mensalidade: 0,
-    dias: [], hora: '', local: '', tecnico: '', ativo: true,
+    id: novoId('tm_'), escolaId: 'escola', nome: '', categoria: '', modalidade: 'volei',
+    mensalidade: 0, dias: [], hora: '', local: '', tecnico: '', ativo: true,
   };
 
   const miolo = abrirFolha(existente ? t.nome : 'Novo time', `
     <label class="campo"><span>Nome do time</span>
       <input id="nome" value="${esc(t.nome)}" placeholder="Sub-15 Feminino"></label>
     <div class="dupla">
+      <label class="campo"><span>Modalidade</span>
+        <select id="modalidade">${opcoes(
+    Object.entries(MODALIDADES).map(([chave, m]) => [chave, m.nome]), t.modalidade || 'volei')}</select></label>
       <label class="campo"><span>Categoria</span>
         <input id="categoria" value="${esc(t.categoria)}" placeholder="Sub-15"></label>
+    </div>
+    <p class="dica">A modalidade define a regra da escalação e as posições —
+      vôlei fecha com seis mais o líbero, handebol com seis de linha mais o goleiro.</p>
+    <div class="dupla">
       <label class="campo"><span>Mensalidade</span>
         <input id="mensalidade" inputmode="decimal" value="${t.mensalidade ? (t.mensalidade / 100).toFixed(2).replace('.', ',') : ''}" placeholder="150,00"></label>
     </div>
@@ -55,6 +62,7 @@ function folhaDoTime(existente) {
 
     const novo = {
       ...t, nome,
+      modalidade: miolo.querySelector('#modalidade').value,
       categoria: miolo.querySelector('#categoria').value.trim(),
       mensalidade: emCentavos(miolo.querySelector('#mensalidade').value),
       dias: DIAS.filter((d) => dias.has(d)),
@@ -83,7 +91,8 @@ function folhaDoTime(existente) {
 export function render(alvo) {
   alvo.innerHTML = `
     <h2>Times</h2>
-    <p class="legenda">O valor da mensalidade sai daqui. O atleta só tem valor próprio quando há acerto diferente.</p>
+    <p class="legenda">Cada time tem sua modalidade e sua mensalidade. O atleta só tem valor
+      próprio quando há acerto diferente.</p>
 
     <div class="acoes" style="margin-bottom:.9rem">
       <button class="btn cheio" id="novo">+ Novo time</button>
@@ -98,7 +107,7 @@ export function render(alvo) {
     return `<button class="item clicavel" data-time="${esc(t.id)}">
         <div class="corpo">
           <div class="nome">${esc(t.nome)} ${t.ativo === false ? '<span class="ficha">parado</span>' : ''}</div>
-          <div class="det">${elenco.length} atleta(s)${t.tecnico ? ` · ${esc(t.tecnico)}` : ''}${
+          <div class="det">${esc(modalidadeDe(t).nome)} · ${elenco.length} atleta(s)${t.tecnico ? ` · ${esc(t.tecnico)}` : ''}${
   (t.dias || []).length ? ` · ${esc(t.dias.join(', '))}${t.hora ? ` ${esc(t.hora)}` : ''}` : ''}</div>
           <div class="det">${devendo ? `<span style="color:var(--perigo)">${devendo} devendo</span>` : 'todos em dia'}</div>
         </div>

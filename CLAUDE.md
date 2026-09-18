@@ -353,17 +353,33 @@ da Beatriz).
 
 ## App "Quadra" — gestão de escolinha de vôlei (`quadra/`)
 
-**Primeiro projeto para CLIENTE**, não para a Beatriz. Nasceu em 18/09/2026: o
-dono de uma escolinha de vôlei pediu gestão financeira (mensalidades, inadimplência,
-entradas e saídas, notificar quem está devendo) **e** gestão de time (escalação por
-jogo, confirmação de presença no treino).
+**Primeiro projeto para CLIENTE**, não para a Beatriz. Nasceu em 18/09/2026.
+O cliente é a **RG Sports** (@rgsports.ofc no Instagram): "Formação de Atletas —
+Treinamentos de Vôlei e Handball, Torneios + Competições". Pediu gestão financeira
+(mensalidades, inadimplência, entradas e saídas, notificar quem está devendo) **e**
+gestão de time (escalação por jogo, confirmação de presença no treino).
 
-- **A identidade é do produto, não da APSEN nem da marca pessoal dela.** Laranja
-  de quadra `#c2410c` (4,9:1 no branco) no claro, `#fb7a3c` no escuro — o navy do
-  Personal Assistant e o neon do Cronômetro não entram aqui. Ícone: bola de vôlei
-  sólida com três costuras. **As costuras não podem cruzar todas no mesmo ponto** —
-  a primeira versão virou um nó e deixou de parecer bola. O rodapé leva a logo BCR
-  e o crédito "Created by Beatriz C Reis", como nos apps dela.
+- **NÃO É SÓ VÔLEI — é vôlei E handebol.** A v1 saiu com a regra do vôlei cravada
+  no código e teria mentido para metade dos times dele: handebol são **seis de
+  linha mais o goleiro**, não seis mais o líbero, e as posições são outras
+  (Goleiro, Ponta, Armador, Pivô — nada de Ponteiro). A modalidade fica no TIME,
+  na constante `MODALIDADES` em `modelo.js`, e define escalação, posições e placar
+  (sets no vôlei, gols no handebol). **Nova modalidade é um objeto ali, nunca um
+  `if` na tela.** `modalidadeDe()` devolve vôlei quando o time não tem o campo —
+  é o que faz backup da v1 continuar abrindo certo (migração v1→v2 em `estado.js`).
+
+- **A paleta é MONOCROMÁTICA porque a marca da RG Sports é preto e branco**
+  (`--accent: #16181d` no claro, `#f2f3f5` no escuro). Não é falta de cor, é
+  decisão: num app de dinheiro a cor precisa significar algo — verde é entrada,
+  vermelho é atraso, âmbar é a vencer. O laranja que a v1 tinha brigava com o
+  vermelho do inadimplente. Por isso **o bloco "em atraso" usa `--perigo`, não a
+  cor da marca**. A barra de navegação usa **ícone de traço, nunca emoji**: emoji
+  colorido quebra a identidade e o iOS desenha cada um com uma largura.
+- **A logo no app é PROVISÓRIA** — uma bola neutra na cor da marca. A logo real da
+  RG Sports é um monograma preto, e **traçar isso de um print de Instagram daria um
+  desenho errado com cara de certo**. Falta o arquivo oficial (SVG, ou PNG alta com
+  alfa), como foi feito com a marca da APSEN no `r2d-relatorio`. O rodapé leva a
+  logo BCR e o crédito "Created by Beatriz C Reis", como nos apps dela.
 - **Dinheiro circula em CENTAVOS INTEIROS o app inteiro.** Float em mensalidade dá
   diferença de centavo que ninguém acha depois, e o número vai para a conta de um
   negócio de verdade.
@@ -409,6 +425,9 @@ jogo, confirmação de presença no treino).
   isso ficou em aberto com a Beatriz.
 - **Projeto Vercel `quadra`** (`prj_FPnMOhqo96CS5c3fsmzqkb6oJCOd`), ligado a
   `beareisfarma/Projetos`, Root Directory `quadra`, Vercel Authentication desligada.
-- `npm test` roda 47 testes (Pix, centavos, datas, idempotência, ponte
-  mensalidade→caixa, escalação, frequência, mensagens). O fluxo de tela foi
-  percorrido com Playwright nos dois temas, sem erro de console.
+- **URL: https://quadra-jade.vercel.app**
+- `npm test` roda 53 testes (Pix, centavos, datas, idempotência, ponte
+  mensalidade→caixa, as duas modalidades, frequência, mensagens). O fluxo de tela
+  foi percorrido com Playwright nos dois temas e nos dois esportes, sem erro de
+  console. **O sandbox desta sessão não alcança `*.vercel.app`** (proxy de saída
+  bloqueia), então a conferência é sempre contra o servidor local.
