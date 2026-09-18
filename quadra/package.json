@@ -1,0 +1,16 @@
+{
+  "name": "quadra",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Gestão de escolinha de vôlei: mensalidades, caixa, cobrança, escalação e chamada.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "npx --yes http-server -p 8080 -c-1 .",
+    "gen:icons": "node scripts/gerar-icones.mjs",
+    "test": "node scripts/testar.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.4"
+  }
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Quadra">
+  <!-- Bola sólida, não vazada: em 26px na aba do navegador um traço fino some.
+       As costuras seguem o desenho real da bola de vôlei — uma emenda vertical
+       à esquerda e duas faixas abrindo dela para a direita. Traços cruzando
+       todos no mesmo ponto viram um nó e a bola deixa de ser reconhecível. -->
+  <circle cx="50" cy="50" r="47" fill="#c2410c"/>
+  <g fill="none" stroke="#ffffff" stroke-width="7.5" stroke-linecap="round">
+    <path d="M42 4.5 C 27 30 25 64 35 95.5"/>
+    <path d="M28.5 40 C 52 31 76 33 96.5 43"/>
+    <path d="M27.5 69 C 50 73 72 82 88 95"/>
+  </g>
+</svg>

@@ -1,0 +1,302 @@
+/* Quadra — gestão para escolinhas de esporte.
+   Sem CDN: a fonte é a do sistema, para o app abrir offline e instantâneo.
+   Dois temas. Toda cor é token; nada de hexadecimal solto no meio do CSS. */
+
+:root {
+  color-scheme: light;
+  --fundo: #f4f4f2;
+  --papel: #ffffff;
+  --papel2: #fafaf8;
+  --tinta: #17191d;
+  --tinta2: #5b6068;
+  --tinta3: #8b9099;
+  --borda: #e3e3df;
+  --borda2: #d0d0ca;
+
+  --accent: #c2410c;          /* laranja de quadra — 4,9:1 no branco */
+  --accent-forte: #9a3412;
+  --accent-fraco: #fdf0e9;
+  --sobre-accent: #ffffff;
+
+  --ok: #15803d;   --ok-fraco: #eaf6ee;
+  --alerta: #b45309; --alerta-fraco: #fdf3e3;
+  --perigo: #b91c1c; --perigo-fraco: #fdeceb;
+
+  --raio: 12px;
+  --raio-p: 8px;
+  --sombra: 0 1px 2px rgba(16,18,22,.06), 0 4px 14px rgba(16,18,22,.05);
+  --fonte: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --nums: ui-rounded, "SF Pro Rounded", var(--fonte);
+}
+
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+  --fundo: #101216;
+  --papel: #1a1d23;
+  --papel2: #21252c;
+  --tinta: #f2f3f5;
+  --tinta2: #a8aeb8;
+  --tinta3: #767d88;
+  --borda: #2b2f37;
+  --borda2: #3a3f49;
+
+  --accent: #fb7a3c;          /* no escuro o laranja escuro some; este dá 6,1:1 */
+  --accent-forte: #ff9257;
+  --accent-fraco: #2a1a12;
+  --sobre-accent: #1a0d06;
+
+  --ok: #4ade80;   --ok-fraco: #12251a;
+  --alerta: #fbbf24; --alerta-fraco: #2a2112;
+  --perigo: #f87171; --perigo-fraco: #2c1516;
+  --sombra: 0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--fundo); color: var(--tinta);
+  font-family: var(--fonte);
+  font-size: 16px; line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+body { padding-bottom: env(safe-area-inset-bottom); }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+
+/* ── Cabeçalho ───────────────────────────────────────────────────────────── */
+.topo {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--papel); border-bottom: 1px solid var(--borda);
+  padding: calc(env(safe-area-inset-top) + .55rem) 1rem .55rem;
+  display: flex; align-items: center; gap: .7rem;
+}
+.topo h1 { font-size: 1.02rem; margin: 0; font-weight: 700; letter-spacing: -.01em; flex: 1; min-width: 0; }
+.topo .sub { display: block; font-size: .72rem; font-weight: 500; color: var(--tinta3); letter-spacing: 0; }
+.marca-icone { width: 30px; height: 30px; flex: none; border-radius: 8px; }
+
+/* Largura FIXA, não padding: no iOS o ☀ é desenhado como emoji (largo) e o ☽
+   como texto (estreito), e trocar de tema mexeria no layout do cabeçalho. */
+.icone {
+  width: 36px; height: 36px; flex: none;
+  display: grid; place-items: center;
+  background: var(--papel2); border: 1px solid var(--borda);
+  border-radius: 9px; cursor: pointer; font-size: .95rem;
+}
+.icone:active { background: var(--borda); }
+
+/* ── Navegação ───────────────────────────────────────────────────────────── */
+.abas {
+  position: sticky; bottom: 0; z-index: 30;
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  background: var(--papel); border-top: 1px solid var(--borda);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.abas button {
+  background: none; border: 0; cursor: pointer;
+  padding: .45rem .1rem .5rem; color: var(--tinta3);
+  display: flex; flex-direction: column; align-items: center; gap: .12rem;
+  font-size: .62rem; font-weight: 600; letter-spacing: -.01em;
+}
+.abas button .g { font-size: 1.15rem; line-height: 1.1; }
+.abas button[aria-current="true"] { color: var(--accent); }
+
+main { padding: 1rem 1rem 2rem; max-width: 900px; margin: 0 auto; }
+.tela[hidden] { display: none; }
+.tela { display: block; }
+
+h2 { font-size: 1.28rem; margin: 0 0 .2rem; letter-spacing: -.02em; }
+h3 { font-size: .95rem; margin: 1.4rem 0 .55rem; letter-spacing: -.01em; }
+.legenda { color: var(--tinta2); font-size: .85rem; margin: 0 0 1rem; }
+
+/* ── Cartões e painel ────────────────────────────────────────────────────── */
+.cartao {
+  background: var(--papel); border: 1px solid var(--borda);
+  border-radius: var(--raio); padding: .85rem; box-shadow: var(--sombra);
+}
+
+.painel { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; margin: .9rem 0; }
+.painel.tres { grid-template-columns: repeat(3, 1fr); }
+
+.bloco {
+  background: var(--papel); border: 1px solid var(--borda);
+  border-radius: var(--raio); padding: .75rem .8rem;
+  text-align: left; cursor: pointer; box-shadow: var(--sombra);
+  display: flex; flex-direction: column; gap: .12rem; min-height: 84px;
+  justify-content: center;
+}
+.bloco:active { transform: scale(.985); }
+.bloco .rot { font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--tinta3); }
+.bloco .val { font-family: var(--nums); font-size: 1.32rem; font-weight: 750;
+  letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.bloco .pe { font-size: .73rem; color: var(--tinta2); }
+.bloco.destaque { border-color: var(--accent); background: var(--accent-fraco); }
+.bloco.destaque .val, .bloco.destaque .rot { color: var(--accent-forte); }
+.val.ok { color: var(--ok); } .val.perigo { color: var(--perigo); } .val.alerta { color: var(--alerta); }
+
+/* ── Listas ──────────────────────────────────────────────────────────────── */
+.lista { display: flex; flex-direction: column; gap: .5rem; }
+.item {
+  background: var(--papel); border: 1px solid var(--borda);
+  border-radius: var(--raio); padding: .7rem .8rem;
+  display: flex; align-items: center; gap: .7rem;
+}
+.item.clicavel { cursor: pointer; width: 100%; text-align: left; }
+.item.clicavel:active { background: var(--papel2); }
+.item .corpo { flex: 1; min-width: 0; }
+.item .nome { font-weight: 650; letter-spacing: -.01em; display: flex; align-items: center; gap: .35rem; }
+.item .det { font-size: .78rem; color: var(--tinta2); }
+.item .direita { text-align: right; flex: none; }
+.item .valor { font-family: var(--nums); font-weight: 700; font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em; }
+
+.bola { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--tinta3); }
+.bola.dia { background: var(--ok); }
+.bola.aberto { background: var(--alerta); }
+.bola.atraso { background: var(--perigo); }
+
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; font-size: .78rem; font-weight: 750;
+  background: var(--accent-fraco); color: var(--accent-forte); letter-spacing: -.02em;
+}
+
+.ficha {
+  display: inline-block; font-size: .68rem; font-weight: 700; padding: .12rem .4rem;
+  border-radius: 999px; background: var(--papel2); color: var(--tinta2);
+  border: 1px solid var(--borda); letter-spacing: .01em; white-space: nowrap;
+}
+.ficha.ok { background: var(--ok-fraco); color: var(--ok); border-color: transparent; }
+.ficha.alerta { background: var(--alerta-fraco); color: var(--alerta); border-color: transparent; }
+.ficha.perigo { background: var(--perigo-fraco); color: var(--perigo); border-color: transparent; }
+.ficha.accent { background: var(--accent-fraco); color: var(--accent-forte); border-color: transparent; }
+
+.vazio {
+  text-align: center; color: var(--tinta3); padding: 2rem 1rem;
+  border: 1px dashed var(--borda2); border-radius: var(--raio); font-size: .88rem;
+}
+
+/* ── Botões ──────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  padding: .6rem .9rem; border-radius: var(--raio-p); border: 1px solid var(--borda2);
+  background: var(--papel); font-weight: 650; cursor: pointer; font-size: .88rem;
+  letter-spacing: -.01em;
+}
+.btn:active { transform: scale(.98); }
+.btn.cheio { background: var(--accent); color: var(--sobre-accent); border-color: var(--accent); }
+.btn.zap { background: var(--ok); color: #fff; border-color: var(--ok); }
+:root[data-tema="escuro"] .btn.zap { color: #06210f; }
+.btn.discreto { background: none; border-color: transparent; color: var(--tinta2); padding: .45rem .5rem; }
+.btn.perigo { color: var(--perigo); border-color: var(--perigo); background: none; }
+.btn.p { padding: .38rem .6rem; font-size: .8rem; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.largo { width: 100%; }
+.acoes { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .7rem; }
+
+/* ── Filtros em linha ────────────────────────────────────────────────────── */
+.filtros {
+  display: flex; gap: .4rem; overflow-x: auto; padding: .1rem 0 .55rem;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.filtros::-webkit-scrollbar { display: none; }
+.filtros button {
+  flex: none; padding: .35rem .7rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--borda2); background: var(--papel);
+  font-size: .8rem; font-weight: 600; white-space: nowrap; color: var(--tinta2);
+}
+.filtros button[aria-pressed="true"] {
+  background: var(--accent); color: var(--sobre-accent); border-color: var(--accent);
+}
+
+/* ── Formulário ──────────────────────────────────────────────────────────── */
+label.campo { display: block; margin-bottom: .7rem; }
+label.campo > span {
+  display: block; font-size: .74rem; font-weight: 700; color: var(--tinta2);
+  text-transform: uppercase; letter-spacing: .04em; margin-bottom: .25rem;
+}
+input, select, textarea {
+  width: 100%; padding: .6rem .65rem; border-radius: var(--raio-p);
+  border: 1px solid var(--borda2); background: var(--papel2);
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--accent); outline-offset: -1px; background: var(--papel);
+}
+textarea { min-height: 72px; resize: vertical; }
+.dupla { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.dica { font-size: .74rem; color: var(--tinta3); margin: -.45rem 0 .7rem; }
+
+/* ── Painel deslizante (edição) ──────────────────────────────────────────── */
+.folha[hidden] { display: none; }
+.folha {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(10,12,15,.45); display: flex; align-items: flex-end; justify-content: center;
+}
+.folha > div {
+  background: var(--papel); width: 100%; max-width: 560px;
+  border-radius: 18px 18px 0 0; padding: 1rem 1rem calc(1.2rem + env(safe-area-inset-bottom));
+  max-height: 92vh; overflow-y: auto;
+}
+.folha h3 { margin: 0 0 .1rem; font-size: 1.1rem; }
+.folha .cab { display: flex; align-items: flex-start; gap: .6rem; margin-bottom: .9rem; }
+.folha .cab div { flex: 1; }
+@media (min-width: 640px) {
+  .folha { align-items: center; }
+  .folha > div { border-radius: 18px; }
+}
+
+/* ── Barra de progresso ──────────────────────────────────────────────────── */
+.barra { height: 7px; border-radius: 99px; background: var(--borda); overflow: hidden; margin-top: .4rem; }
+.barra > i { display: block; height: 100%; background: var(--ok); border-radius: 99px; }
+
+/* ── Aviso / faixa ───────────────────────────────────────────────────────── */
+.faixa {
+  border-radius: var(--raio); padding: .65rem .8rem; font-size: .84rem;
+  background: var(--alerta-fraco); color: var(--alerta); margin-bottom: .8rem;
+  border: 1px solid transparent;
+}
+.faixa.info { background: var(--accent-fraco); color: var(--accent-forte); }
+.faixa strong { font-weight: 750; }
+
+/* ── Recado curto ────────────────────────────────────────────────────────── */
+#recado {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(4.6rem + env(safe-area-inset-bottom)); z-index: 80;
+  background: var(--tinta); color: var(--fundo);
+  padding: .55rem .9rem; border-radius: 999px; font-size: .84rem; font-weight: 600;
+  box-shadow: var(--sombra); max-width: 90vw; text-align: center;
+}
+#recado[hidden] { display: none; }
+
+/* ── Tabela simples ──────────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+th, td { text-align: left; padding: .45rem .3rem; border-bottom: 1px solid var(--borda); }
+th { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tinta3); }
+td.n, th.n { text-align: right; font-family: var(--nums); font-variant-numeric: tabular-nums; }
+
+/* ── Escalação ───────────────────────────────────────────────────────────── */
+.quadra-papeis { display: flex; gap: .25rem; }
+.quadra-papeis button {
+  padding: .3rem .5rem; border-radius: var(--raio-p); cursor: pointer;
+  border: 1px solid var(--borda2); background: var(--papel2);
+  font-size: .72rem; font-weight: 700; color: var(--tinta2);
+}
+.quadra-papeis button[aria-pressed="true"] { background: var(--accent); color: var(--sobre-accent); border-color: var(--accent); }
+.quadra-papeis button[data-papel="fora"][aria-pressed="true"] { background: var(--tinta3); border-color: var(--tinta3); color: var(--papel); }
+
+/* ── Rodapé ──────────────────────────────────────────────────────────────── */
+.rodape {
+  text-align: center; color: var(--tinta3); font-size: .74rem;
+  padding: 2rem 1rem 1rem; display: flex; flex-direction: column;
+  align-items: center; gap: .45rem;
+}
+.rodape .credito { display: flex; align-items: center; gap: .5rem; }
+.rodape svg { height: 1.7rem; width: auto; }
+
+@media (min-width: 720px) {
+  .painel { grid-template-columns: repeat(4, 1fr); }
+  .painel.tres { grid-template-columns: repeat(3, 1fr); }
+}
