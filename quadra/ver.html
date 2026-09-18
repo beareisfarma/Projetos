@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Escalação e treino</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="icons/icone-192.png" sizes="192x192">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topo">
+  <svg class="marca-icone" viewBox="0 0 100 100" aria-hidden="true" style="color:var(--accent)">
+    <circle cx="50" cy="50" r="47" fill="currentColor"/>
+    <g fill="none" stroke="var(--papel)" stroke-width="7.5" stroke-linecap="round">
+      <path d="M42 4.5 C 27 30 25 64 35 95.5"/>
+      <path d="M28.5 40 C 52 31 76 33 96.5 43"/>
+      <path d="M27.5 69 C 50 73 72 82 88 95"/>
+    </g>
+  </svg>
+  <h1 id="titulo">—<span class="sub" id="subtitulo"></span></h1>
+  <button class="icone" id="tema" aria-label="Trocar o tema">☽&#xFE0E;</button>
+</header>
+
+<main>
+  <div id="tela"></div>
+  <footer class="rodape">
+    <div id="aviso-privacidade">Esta página não guarda nada e não envia nada para lugar nenhum.</div>
+  </footer>
+</main>
+
+<div id="recado" hidden role="status" aria-live="polite"></div>
+
+<script type="module" src="js/ver.js"></script>
+</body>
+</html>

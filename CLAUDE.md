@@ -414,9 +414,32 @@ gestão de time (escalação por jogo, confirmação de presença no treino).
   é antes (serve para planejar o treino), presença é a chamada na quadra. Por isso
   `frequencia()` só conta treino em que a chamada foi realmente feita — misturar as
   duas faria a frequência mentir.
+- **O ATLETA ACESSA POR LINK, não por login.** O cliente pediu explicitamente que
+  os atletas vejam a escalação e confirmem treino. Sem servidor disponível, o
+  técnico gera um link e cola no grupo do time: os dados vão codificados no
+  **fragmento da URL** (`ver.html#...`), que **nenhum navegador envia ao servidor**.
+  A escalação vai do celular do técnico ao do atleta pelo WhatsApp sem tocar em
+  servidor — com menores de idade envolvidos, é o tratamento mais enxuto possível,
+  porque não existe base a vazar. Só vai **primeiro nome + inicial do sobrenome**
+  (`nomeCurto`). Links medem ~340–440 caracteres com `CompressionStream`.
+  **Armadilha já paga: trocar só o `#` NÃO recarrega o documento** — abrir o link
+  do treino com o da escalação aberto mostrava o jogo. O navegador interno do
+  WhatsApp reusa a aba, então isso acontece de verdade. `ver.js` escuta
+  `hashchange` e redesenha. **Nunca remover esse listener.**
+  Na chamada, sem `escola.telefone` cadastrado a resposta é **copiada**, nunca
+  mandada para um número adivinhado — abrir conversa com desconhecido é pior que
+  pedir para colar no grupo.
+- **Exportação em CSV (`js/planilha.js`) não é extra, é condição de adoção.** A dor
+  declarada do cliente é controlar entradas e saídas numa planilha à mão. App que
+  prende dado ele recusa, e com razão. Separador `;`, decimal com vírgula e **BOM
+  `\uFEFF`** no começo — sem o BOM o Excel no Windows lê como latin-1 e "março"
+  chega torto. Saída vai negativa: somar a coluna dá o saldo.
 - **Os dados moram no IndexedDB do aparelho** (v1 sem servidor), com Backup e
   Restaurar. **O aviso disso está na própria tela de Ajustes**, não em letra miúda:
   é um negócio de verdade em cima de um armazenamento que o navegador pode limpar.
+- **Concorrência conhecida:** ele avaliou o **Next Fit e achou caro demais** —
+  não recusou a categoria, recusou o preço. É a brecha que justifica o custom.
+  Ver também AppFUT (grátis), Sogni, Fensor, Gestão Fut no histórico da conversa.
 - **Por que não tem servidor:** a conta Supabase dela já está no limite do plano
   gratuito — **dois projetos ativos por organização** (`lembretes` e `Tô Aqui`).
   Criar um terceiro devolve `BadRequestException ... 2 project limit`. O modelo de
@@ -426,8 +449,9 @@ gestão de time (escalação por jogo, confirmação de presença no treino).
 - **Projeto Vercel `quadra`** (`prj_FPnMOhqo96CS5c3fsmzqkb6oJCOd`), ligado a
   `beareisfarma/Projetos`, Root Directory `quadra`, Vercel Authentication desligada.
 - **URL: https://quadra-jade.vercel.app**
-- `npm test` roda 53 testes (Pix, centavos, datas, idempotência, ponte
-  mensalidade→caixa, as duas modalidades, frequência, mensagens). O fluxo de tela
+- `npm test` roda 63 testes (Pix, centavos, datas, idempotência, ponte
+  mensalidade→caixa, as duas modalidades, frequência, mensagens, o link do atleta e
+  o CSV). O fluxo de tela
   foi percorrido com Playwright nos dois temas e nos dois esportes, sem erro de
   console. **O sandbox desta sessão não alcança `*.vercel.app`** (proxy de saída
   bloqueia), então a conferência é sempre contra o servidor local.

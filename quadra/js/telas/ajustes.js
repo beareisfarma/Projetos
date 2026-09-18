@@ -9,6 +9,7 @@ import { estado, salvar, substituir, backupJson, nomeDoBackup, lerBackup, apagar
 import { esc, recado, baixar, confirmar } from '../ui.js';
 import { atualizar, ir } from '../rota.js';
 import { escolinhaDeExemplo } from '../exemplo.js';
+import { caixaEmCsv, mensalidadesEmCsv, nomeDoCsv } from '../planilha.js';
 import { telefoneBonito } from '../formato.js';
 
 export function render(alvo) {
@@ -55,6 +56,18 @@ export function render(alvo) {
     </div>
     <input type="file" id="arquivo" accept="application/json,.json" hidden>
 
+    <h3>Levar para a planilha</h3>
+    <div class="cartao">
+      <div style="font-size:.85rem;color:var(--tinta2);margin-bottom:.7rem">
+        Abre direto no Excel e no Google Planilhas. Serve para mandar ao contador
+        — e para você não ficar preso a esta ferramenta.
+      </div>
+      <div class="acoes" style="margin:0">
+        <button class="btn" id="csv-caixa">Caixa em CSV</button>
+        <button class="btn" id="csv-mensalidades">Mensalidades em CSV</button>
+      </div>
+    </div>
+
     <h3>Começar</h3>
     <div class="cartao">
       <div style="font-size:.85rem;color:var(--tinta2);margin-bottom:.7rem">
@@ -87,6 +100,19 @@ export function render(alvo) {
   alvo.querySelector('#backup').addEventListener('click', () => {
     baixar(nomeDoBackup(), backupJson());
     recado('Backup baixado.');
+  });
+
+  alvo.querySelector('#csv-caixa').addEventListener('click', () => {
+    if (!estado.lancamentos.length) { recado('Nenhum lançamento para exportar.'); return; }
+    baixar(nomeDoCsv(estado.escola, 'caixa'), caixaEmCsv(estado.lancamentos), 'text/csv;charset=utf-8');
+    recado('Caixa exportado.');
+  });
+
+  alvo.querySelector('#csv-mensalidades').addEventListener('click', () => {
+    if (!estado.mensalidades.length) { recado('Nenhuma mensalidade para exportar.'); return; }
+    baixar(nomeDoCsv(estado.escola, 'mensalidades'),
+      mensalidadesEmCsv(estado.mensalidades, estado.atletas, estado.times), 'text/csv;charset=utf-8');
+    recado('Mensalidades exportadas.');
   });
 
   const arquivo = alvo.querySelector('#arquivo');

@@ -8,11 +8,12 @@
  * Estratégia: cache-first para o que é estático, com atualização em segundo
  * plano. Trocar a VERSAO derruba o cache antigo.
  */
-const VERSAO = 'quadra-v1';
+const VERSAO = 'quadra-v2';
 
 const ARQUIVOS = [
   './',
   './index.html',
+  './ver.html',
   './css/app.css',
   './manifest.webmanifest',
   './js/app.js',
@@ -24,6 +25,9 @@ const ARQUIVOS = [
   './js/cobranca.js',
   './js/exemplo.js',
   './js/rota.js',
+  './js/partilha.js',
+  './js/ver.js',
+  './js/planilha.js',
   './js/ui.js',
   './js/telas/painel.js',
   './js/telas/atletas.js',

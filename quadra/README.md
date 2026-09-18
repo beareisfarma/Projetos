@@ -29,6 +29,14 @@ cadastro nem login.
 - **Menor de idade: a mensagem vai para o responsável**, nunca para o atleta.
 - Recibo quando o pagamento entra.
 
+**O atleta**
+- **Link compartilhável, sem login e sem app instalado.** O técnico gera o link da
+  escalação ou da chamada e cola no grupo do time; o atleta abre no celular e vê
+  time, adversário, local, hora de chegada e quem está em quadra.
+- Na chamada, o atleta acha o próprio nome e toca em **Vou** / **Não vou** — abre
+  o WhatsApp com a resposta pronta para o técnico (ou copia, se a escolinha ainda
+  não cadastrou o número).
+
 **Times**
 - **Modalidade por time.** Vôlei fecha com seis em quadra mais o líbero; handebol
   com seis de linha mais o goleiro. Posições, rótulos da escalação e placar
@@ -76,6 +84,21 @@ não faz:** BR Code estático não avisa quando o dinheiro cai; a baixa continua
 manual. Confirmação automática exigiria integração com API de banco/PSP, que é
 paga.
 
+**Os dados do atleta viajam DENTRO do link, no fragmento da URL.** Fragmento
+(o que vem depois do `#`) não é enviado ao servidor por nenhum navegador: a
+escalação sai do celular do técnico, passa pelo WhatsApp e chega ao celular do
+atleta sem tocar em servidor nenhum. Num app que lida com menores de idade isso
+é o tratamento mais enxuto possível — não existe base de dados a vazar. Só vai
+primeiro nome + inicial do sobrenome, que é menos do que uma escalação colada no
+grupo. **O que isso não faz:** link é um retrato (mudou a escalação, reenvia) e a
+confirmação do atleta não grava sozinha — para ele escrever no sistema é preciso
+servidor.
+
+**Exportar em CSV, sempre.** O cliente controla o caixa numa planilha à mão hoje.
+Trocar planilha por app só funciona se o app devolver a planilha quando ele
+quiser — para o contador, para conferir, ou para ir embora. Ferramenta que prende
+dado é ferramenta que ele recusa, e com razão.
+
 **Sem CDN.** Nada carregado de fora: fonte do sistema, ícones do sistema, tudo no
 cache do service worker. O cenário real é ginásio e quadra de praia, onde o 4G cai.
 
@@ -116,7 +139,7 @@ O que **ainda falta**, e é do dono da escolinha, não do app:
 
 ```bash
 npm install     # só o sharp, usado para gerar os ícones
-npm test        # 53 testes: Pix, dinheiro, datas, cobrança, caixa e as duas modalidades
+npm test        # 63 testes: Pix, dinheiro, datas, cobrança, caixa, modalidades, link e CSV
 npm run dev     # serve em http://localhost:8080
 npm run gen:icons
 ```
@@ -132,6 +155,9 @@ js/pix.js        BR Code (EMV + CRC-16), puro e testado
 js/formato.js    centavos, datas locais, telefone
 js/modelo.js     as regras: mensalidade, caixa, escalação, presença
 js/cobranca.js   os textos que vão para o WhatsApp
+js/partilha.js   empacota escalação e chamada dentro da URL
+js/planilha.js   exportação em CSV (`;` e decimal com vírgula, para o Excel pt-BR)
+js/ver.js        a página que o ATLETA abre (ver.html), só leitura
 js/estado.js     estado + migração + backup
 js/db.js         IndexedDB
 js/telas/        painel, atletas, dinheiro, times, jogos, treinos, ajustes
@@ -150,9 +176,12 @@ js/telas/        painel, atletas, dinheiro, times, jogos, treinos, ajustes
 
 ## O que ficou de fora da v1, de propósito
 
-- **Login do atleta para confirmar presença sozinho.** Precisa de servidor, e a
+- **A confirmação do atleta gravar sozinha no sistema.** Precisa de servidor, e a
   conta gratuita de banco usada nos outros projetos já está no limite de dois
-  projetos ativos. Hoje o atleta confirma pelo grupo do WhatsApp e o dono marca.
+  projetos ativos. Hoje o atleta responde pelo link e o técnico marca na chamada —
+  um toque, contra o trabalho de perguntar um por um.
+- **Importar a planilha atual dele.** A exportação já existe; a importação exige
+  adivinhar o formato de uma planilha que eu nunca vi. Precisa do arquivo real.
 - **Baixa automática do Pix.** Exige API de banco. É o primeiro item que deixa o
   projeto de ser custo zero.
 - **Vários usuários / várias escolinhas.** O modelo de dados já carrega `escolaId`

@@ -21,6 +21,8 @@ import {
 } from '../js/modelo.js';
 import { mensagemDeCobranca, mensagemDeRecibo, mensagemDeConvocacao, linkWhatsApp } from '../js/cobranca.js';
 import { migrar, lerBackup, estadoVazio } from '../js/estado.js';
+import { nomeCurto, pacoteDaEscalacao, pacoteDoTreino, enderecoDoLink } from '../js/partilha.js';
+import { caixaEmCsv, mensalidadesEmCsv, nomeDoCsv } from '../js/planilha.js';
 
 /* ------------------------------------------------------------------ */
 /* Pix                                                                 */
@@ -505,4 +507,105 @@ test('restaurar recusa um JSON que não é backup deste app', () => {
   assert.throws(() => lerBackup('não é json'));
   const bom = lerBackup(JSON.stringify({ escola: { nome: 'X' }, atletas: [] }));
   assert.equal(bom.escola.nome, 'X');
+});
+
+/* ------------------------------------------------------------------ */
+/* Link do atleta                                                      */
+/* ------------------------------------------------------------------ */
+
+test('o nome vai encurtado no link — sobrenome só a inicial', () => {
+  assert.equal(nomeCurto('Ana Clara Ribeiro'), 'Ana Clara R.');
+  assert.equal(nomeCurto('Caio Ferreira'), 'Caio F.');
+  assert.equal(nomeCurto('Madonna'), 'Madonna');
+  assert.equal(nomeCurto(''), '');
+});
+
+test('o pacote da escalação leva só o necessário, e nome nenhum por inteiro', () => {
+  const atletas = [
+    { id: 'a1', nome: 'Ana Clara Ribeiro', numero: 7, posicao: 'Ponteiro' },
+    { id: 'a2', nome: 'Bruno Nunes Lima', numero: 1, posicao: 'Líbero' },
+  ];
+  const jogo = { data: '2026-09-22', hora: '10:00', chegada: '09:15', adversario: 'AABB',
+    local: 'Ginásio', mandante: false, competicao: 'Copa',
+    escalados: [{ atletaId: 'a1', papel: 'titular' }, { atletaId: 'a2', papel: 'líbero' }] };
+
+  const pacote = pacoteDaEscalacao(jogo, { nome: 'Sub-15' }, { nome: 'RG Sports', telefone: '21988887777' }, atletas);
+  const texto = JSON.stringify(pacote);
+
+  assert.equal(pacote.p.length, 2);
+  assert.deepEqual(pacote.p[0], ['Ana Clara R.', 7, 'titular', 'Ponteiro']);
+  assert.ok(!texto.includes('Ribeiro'));
+  assert.ok(!texto.includes('Lima'));
+  // Nada de dado sensível de cobrança viaja no link.
+  assert.ok(!texto.includes('mensalidade'));
+});
+
+test('escalado que não existe mais não quebra o pacote', () => {
+  const jogo = { data: '2026-09-22', escalados: [{ atletaId: 'sumiu', papel: 'titular' }] };
+  assert.deepEqual(pacoteDaEscalacao(jogo, {}, { nome: 'X' }, []).p, []);
+});
+
+test('o pacote do treino leva o elenco e o telefone de resposta', () => {
+  const pacote = pacoteDoTreino(
+    { data: '2026-09-20', hora: '18:00', local: 'Ginásio', foco: 'Passe' },
+    { nome: 'Sub-15' }, { nome: 'RG Sports', telefone: '21988887777' },
+    [{ id: 'a1', nome: 'Ana Clara Ribeiro', numero: 7 }]);
+  assert.equal(pacote.t, 'treino');
+  assert.equal(pacote.z, '21988887777');
+  assert.deepEqual(pacote.p, [['Ana Clara R.', 7]]);
+});
+
+test('o link aponta para ver.html, com a carga depois do # e não da ?', () => {
+  const url = enderecoDoLink('https://exemplo.app/index.html', 'zABC');
+  assert.equal(url, 'https://exemplo.app/ver.html#zABC');
+  // Depois do # o conteúdo nunca é enviado ao servidor — é o ponto da escolha.
+  assert.ok(!url.includes('?'));
+  assert.equal(enderecoDoLink('https://exemplo.app/', 'zABC'), 'https://exemplo.app/ver.html#zABC');
+});
+
+/* ------------------------------------------------------------------ */
+/* CSV                                                                 */
+/* ------------------------------------------------------------------ */
+
+const LANC = [
+  { data: '2026-09-08', tipo: 'saida', categoria: 'Aluguel de quadra',
+    descricao: 'Ginásio; setembro', valor: 60000, forma: 'Pix', origem: 'manual' },
+  { data: '2026-09-05', tipo: 'entrada', categoria: 'Mensalidade',
+    descricao: 'Mensalidade — Ana', valor: 15000, forma: 'Pix', origem: 'mensalidade' },
+];
+
+test('o CSV do caixa sai em ponto e vírgula, com BOM e decimal com vírgula', () => {
+  const csv = caixaEmCsv(LANC);
+  assert.ok(csv.startsWith('\uFEFF'));            // senão o Excel no Windows come o acento
+  assert.match(csv, /Data;Tipo;Categoria/);
+  assert.match(csv, /150,00/);
+  assert.ok(csv.includes('\r\n'));
+});
+
+test('a saída sai negativa — somar a coluna já dá o saldo', () => {
+  const linhas = caixaEmCsv(LANC).trim().split('\r\n');
+  assert.match(linhas[1], /^05\/09\/2026;Entrada/);   // ordenado por data
+  assert.ok(linhas[1].includes(';150,00;'));
+  assert.ok(linhas[2].includes(';-600,00;'));
+});
+
+test('ponto e vírgula dentro do texto não quebra a coluna', () => {
+  const csv = caixaEmCsv(LANC);
+  assert.ok(csv.includes('"Ginásio; setembro"'));
+  const comAspas = caixaEmCsv([{ ...LANC[0], descricao: 'Bola "oficial"' }]);
+  assert.ok(comAspas.includes('"Bola ""oficial"""'));
+});
+
+test('o CSV de mensalidades traz atleta, time e situação por extenso', () => {
+  const csv = mensalidadesEmCsv(
+    [{ atletaId: 'a1', competencia: '2026-09', valor: 15000, vencimento: '2026-09-10',
+      status: 'pendente', pagoEm: null, forma: '' }],
+    [{ id: 'a1', nome: 'Ana Clara Ribeiro', timeIds: ['t1'] }],
+    [{ id: 't1', nome: 'Sub-15' }]);
+  assert.match(csv, /setembro de 2026;Ana Clara Ribeiro;Sub-15;150,00;10\/09\/2026;Em aberto/);
+});
+
+test('o nome do arquivo vira apelido sem acento', () => {
+  assert.match(nomeDoCsv({ nome: 'RG Sports' }, 'caixa'), /^rg-sports-caixa-\d{4}-\d{2}-\d{2}\.csv$/);
+  assert.match(nomeDoCsv({ nome: '' }, 'caixa'), /^escolinha-caixa-/);
 });

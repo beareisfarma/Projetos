@@ -9,10 +9,11 @@
  * com time incompleto existe, e não é o software que decide se o jogo acontece.
  */
 import { estado, salvar } from '../estado.js';
-import { esc, iniciais, abrirFolha, fecharFolha, recado, opcoes, confirmar } from '../ui.js';
+import { esc, iniciais, abrirFolha, fecharFolha, recado, opcoes, confirmar, copiar } from '../ui.js';
 import { atualizar } from '../rota.js';
 import { novoId, atletasDoTime, conferirEscalacao, destinatarioDaCobranca, modalidadeDe } from '../modelo.js';
 import { mensagemDeConvocacao, linkWhatsApp } from '../cobranca.js';
+import { empacotar, pacoteDaEscalacao, enderecoDoLink } from '../partilha.js';
 import { hoje, dataBR, dataCurta, diaDaSemana } from '../formato.js';
 
 const timePor = (id) => estado.times.find((t) => t.id === id);
@@ -128,7 +129,13 @@ function folhaDaEscalacao(jogo) {
     </div>
     <div class="acoes">
       <button class="btn zap largo" id="convocar">Convocar os escalados no WhatsApp</button>
-    </div>`,
+    </div>
+    <div class="acoes">
+      <button class="btn largo" id="link">Copiar link da escalação para o grupo</button>
+    </div>
+    <p class="dica" style="margin-top:.5rem">O link abre uma página só de leitura com a
+      escalação, o local e a hora de chegada. Os dados viajam dentro do próprio link —
+      não ficam guardados em servidor nenhum.</p>`,
   { subtitulo: `${nomeModalidade} · ${diaDaSemana(jogo.data)}, ${dataBR(jogo.data)} × ${jogo.adversario || 'a definir'}` });
 
   const escolhas = new Map(elenco.map((a) => [a.id, papelDe(a.id)]));
@@ -167,6 +174,19 @@ function folhaDaEscalacao(jogo) {
     await salvar(); fecharFolha();
     recado(`${escaladosAgora().length} atleta(s) relacionados.`);
     atualizar();
+  });
+
+  miolo.querySelector('#link').addEventListener('click', async () => {
+    const i = estado.jogos.findIndex((x) => x.id === jogo.id);
+    estado.jogos[i] = { ...estado.jogos[i], escalados: escaladosAgora() };
+    await salvar();
+
+    const carga = await empacotar(
+      pacoteDaEscalacao(estado.jogos[i], time, estado.escola, estado.atletas));
+    const endereco = enderecoDoLink(location.href.split('#')[0], carga);
+    recado(await copiar(endereco)
+      ? 'Link copiado — cole no grupo do time.'
+      : 'Não consegui copiar o link.');
   });
 
   miolo.querySelector('#convocar').addEventListener('click', async () => {

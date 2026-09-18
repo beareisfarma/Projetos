@@ -18,6 +18,7 @@ import { esc, iniciais, abrirFolha, fecharFolha, recado, opcoes, confirmar, copi
 import { atualizar } from '../rota.js';
 import { novoId, atletasDoTime, resumoDePresenca, destinatarioDaCobranca } from '../modelo.js';
 import { mensagemDeTreino, linkWhatsApp } from '../cobranca.js';
+import { empacotar, pacoteDoTreino, enderecoDoLink } from '../partilha.js';
 import { hoje, dataBR, dataCurta, diaDaSemana } from '../formato.js';
 
 const ESTADOS = [
@@ -106,7 +107,13 @@ function folhaDaChamada(treino) {
       </div>`).join('')}
     </div>
     <div class="acoes"><button class="btn cheio largo" id="gravar">Gravar chamada</button></div>
-    <div class="acoes"><button class="btn zap largo" id="recado-grupo">Copiar recado para o grupo</button></div>`,
+    <div class="acoes">
+      <button class="btn zap largo" id="link">Copiar link de confirmação para o grupo</button>
+    </div>
+    <div class="acoes"><button class="btn largo" id="recado-grupo">Copiar só o recado</button></div>
+    <p class="dica" style="margin-top:.5rem">No link o atleta acha o próprio nome e toca em
+      "Vou" ou "Não vou" — abre o WhatsApp com a resposta pronta para você. Depois é só
+      marcar aqui.${estado.escola.telefone ? '' : ' <strong>Cadastre o WhatsApp da escolinha em Ajustes</strong> para os botões funcionarem.'}</p>`,
   { subtitulo: `${diaDaSemana(treino.data)}, ${dataBR(treino.data)}${treino.hora ? ` às ${treino.hora}` : ''}` });
 
   const marcas = new Map(elenco.map((a) => [a.id, statusDe(a.id)]));
@@ -154,6 +161,15 @@ function folhaDaChamada(treino) {
     const i = estado.treinos.findIndex((x) => x.id === treino.id);
     estado.treinos[i] = { ...estado.treinos[i], presencas };
     await salvar(); fecharFolha(); recado('Chamada gravada.'); atualizar();
+  });
+
+  miolo.querySelector('#link').addEventListener('click', async () => {
+    const carga = await empacotar(pacoteDoTreino(
+      treino, estado.times.find((t) => t.id === treino.timeId), estado.escola, elenco));
+    const endereco = enderecoDoLink(location.href.split('#')[0], carga);
+    recado(await copiar(endereco)
+      ? 'Link copiado — cole no grupo do time.'
+      : 'Não consegui copiar o link.');
   });
 
   // Um texto só, para colar no grupo do time. É assim que escolinha se comunica
