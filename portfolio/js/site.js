@@ -49,19 +49,23 @@
     nos = document.querySelectorAll('[data-i18n-rotulo]');
     for (i = 0; i < nos.length; i++) nos[i].setAttribute('aria-label', t(nos[i].getAttribute('data-i18n-rotulo')));
 
-    /* Fichas de tecnologia guardadas como "um|dois|três" viram <span class="tecla">.
-       Ficam no dicionário porque nem toda ficha é nome próprio: "Multiusuário"
-       e "Gráficos em SVG" precisam virar "Multi-user" e "SVG charts", enquanto
-       "pdf.js" e "IndexedDB" são os mesmos nos dois idiomas. */
-    nos = document.querySelectorAll('[data-i18n-pilha]');
+    /* Ficha técnica: "Tecnologia::por quê|Tecnologia::por quê" vira <dt>/<dd>.
+       O par fica junto no dicionário porque o "por quê" é o que interessa —
+       listar a tecnologia sozinha é currículo, explicar a escolha é engenharia.
+       Nome de tecnologia costuma ser igual nos dois idiomas; a justificativa
+       nunca é, e é por isso que a linha inteira mora aqui. */
+    nos = document.querySelectorAll('[data-i18n-ficha]');
     for (i = 0; i < nos.length; i++) {
-      var fichas = t(nos[i].getAttribute('data-i18n-pilha')).split('|');
+      var linhas = t(nos[i].getAttribute('data-i18n-ficha')).split('|');
       nos[i].innerHTML = '';
-      for (var k = 0; k < fichas.length; k++) {
-        var ficha = document.createElement('span');
-        ficha.className = 'tecla';
-        ficha.textContent = fichas[k];
-        nos[i].appendChild(ficha);
+      for (var k = 0; k < linhas.length; k++) {
+        var par = linhas[k].split('::');
+        var dt = document.createElement('dt');
+        dt.textContent = par[0];
+        var dd = document.createElement('dd');
+        dd.textContent = par.length > 1 ? par[1] : '';
+        nos[i].appendChild(dt);
+        nos[i].appendChild(dd);
       }
     }
 

@@ -136,15 +136,6 @@
       <div class="obra-rail">
         <div class="obra-indice" aria-hidden="true">01</div>
         <span class="selo selo-privado" data-i18n="selo.privado">No ar · conta privada</span>
-        <div class="obra-pilha" data-i18n-pilha="o1.pilha">
-          <span class="tecla">PWA</span>
-          <span class="tecla">Web Push · VAPID</span>
-          <span class="tecla">Supabase Postgres</span>
-          <span class="tecla">Deno Edge Functions</span>
-          <span class="tecla">pg_cron · pg_net</span>
-          <span class="tecla">bcrypt · pgcrypto</span>
-          <span class="tecla">Whisper</span>
-        </div>
       </div>
       <div class="obra-corpo">
         <h3 data-i18n="o1.nome">Personal Assistant</h3>
@@ -159,6 +150,72 @@
             <li data-i18n-html="o1.d3.html"><strong>A API roda numa Edge Function do Supabase, não na Vercel.</strong> Lá dentro a chave de serviço já existe no ambiente, então o projeto sobe sem ninguém cadastrar variável nenhuma. O agendamento é o <code>pg_cron</code> do próprio Postgres — sem serviço externo e sem plano pago.</li>
             <li data-i18n-html="o1.d4.html"><strong>Não existe cadastro público, e isso é de propósito.</strong> É um assistente pessoal que empurra notificação para a tela de bloqueio do meu próprio celular, não um SaaS: conta nova se cria por SQL. A tela de acesso ainda limita a cinco tentativas por origem, e <em>estar bloqueado vence a senha certa</em> — conferir a credencial antes deixaria o limite decorativo.</li>
           </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">O que foi usado, e por quê</span></p>
+          <dl data-i18n-ficha="o1.ficha">
+            <dt>PWA + Service Worker</dt><dd>instala na tela de início e abre sem rede</dd>
+            <dt>Supabase Postgres</dt><dd>base e fila de avisos no mesmo lugar, numa transação só</dd>
+            <dt>Deno Edge Function</dt><dd>a API; a service key já existe no ambiente, zero variável para cadastrar</dd>
+            <dt>pg_cron + pg_net</dt><dd>o relógio mora dentro do banco — sem serviço externo, sem plano pago</dd>
+            <dt>Web Push (VAPID)</dt><dd>vai direto ao aparelho, sem intermediário e sem custo</dd>
+            <dt>bcrypt via pgcrypto</dt><dd>senha nunca em claro; conferida dentro do Postgres</dd>
+            <dt>Whisper (Groq)</dt><dd>transcreve o áudio na camada gratuita</dd>
+            <dt>Claude API</dt><dd>opcional, e só quando o recado não traz data reconhecível</dd>
+          </dl>
+        </div>
+
+        <div class="obra-arq">
+          <p class="rotulo"><span data-i18n="obra.arquitetura">Arquitetura</span></p>
+          <figure class="obra-diag">
+            <svg class="dg" viewBox="0 0 380 626" role="img" data-i18n-rotulo="d1.legenda" aria-label="·" xmlns="http://www.w3.org/2000/svg">
+              <rect class="dg-cx" x="10" y="8" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="130" y="33" text-anchor="middle" data-i18n="d1.n1">Recado — texto ou áudio</text>
+              <line class="dg-seta" x1="130" y1="50" x2="130" y2="84"/>
+              <polygon class="dg-ponta" points="130,92 125,83 135,83"/>
+              <text class="dg-arot" x="140" y="74" data-i18n="d1.a1">áudio → Whisper</text>
+              <rect class="dg-cx dg-cx-forte" x="10" y="92" width="240" height="52" rx="7"/>
+              <text class="dg-rot" x="130" y="115" text-anchor="middle" data-i18n="d1.n2">Interpretador local</text>
+              <text class="dg-nota" x="130" y="131" text-anchor="middle" data-i18n="d1.n2b">determinístico · sem custo</text>
+              <line class="dg-seta dg-tracejada" x1="250" y1="118" x2="254" y2="118"/>
+              <polygon class="dg-ponta" points="262,118 253,113 253,123"/>
+              <rect class="dg-cx dg-tracejada" x="262" y="100" width="110" height="36" rx="7"/>
+              <text class="dg-rot" x="317" y="122" text-anchor="middle" data-i18n="d1.r1">Claude API</text>
+              <text class="dg-nota" x="317" y="150" text-anchor="middle" data-i18n="d1.r1b">só sem data</text>
+              <line class="dg-seta" x1="130" y1="144" x2="130" y2="178"/>
+              <polygon class="dg-ponta" points="130,186 125,177 135,177"/>
+              <text class="dg-arot" x="140" y="168" data-i18n="d1.a2">grava o lembrete</text>
+              <rect class="dg-cx" x="10" y="186" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="130" y="211" text-anchor="middle" data-i18n="d1.n3">Lembrete + escada de avisos</text>
+              <line class="dg-seta" x1="130" y1="228" x2="130" y2="262"/>
+              <polygon class="dg-ponta" points="130,270 125,261 135,261"/>
+              <text class="dg-arot" x="140" y="252" data-i18n="d1.a5">enfileira os avisos</text>
+              <rect class="dg-grupo" x="10" y="270" width="240" height="86" rx="9"/>
+              <text class="dg-grot" x="22" y="288" data-i18n="d1.g">Postgres</text>
+              <rect class="dg-cx" x="20" y="298" width="110" height="42" rx="7"/>
+              <text class="dg-rot" x="75" y="323" text-anchor="middle" data-i18n="d1.g1">fila de avisos</text>
+              <rect class="dg-cx" x="142" y="298" width="98" height="42" rx="7"/>
+              <text class="dg-rot" x="191" y="323" text-anchor="middle" data-i18n="d1.g2">pg_cron</text>
+              <line class="dg-seta" x1="130" y1="356" x2="130" y2="390"/>
+              <polygon class="dg-ponta" points="130,398 125,389 135,389"/>
+              <text class="dg-arot" x="140" y="380" data-i18n="d1.a3">a cada 1 minuto</text>
+              <rect class="dg-cx" x="10" y="398" width="240" height="52" rx="7"/>
+              <text class="dg-rot" x="130" y="421" text-anchor="middle" data-i18n="d1.n4">tick · Edge Function</text>
+              <text class="dg-nota" x="130" y="437" text-anchor="middle" data-i18n="d1.n4b">DELETE … RETURNING · SKIP LOCKED</text>
+              <line class="dg-seta" x1="130" y1="450" x2="130" y2="484"/>
+              <polygon class="dg-ponta" points="130,492 125,483 135,483"/>
+              <text class="dg-arot" x="140" y="474" data-i18n="d1.a4">sem intermediário</text>
+              <rect class="dg-cx" x="10" y="492" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="130" y="517" text-anchor="middle" data-i18n="d1.n5">Web Push · VAPID</text>
+              <line class="dg-seta" x1="130" y1="534" x2="130" y2="568"/>
+              <polygon class="dg-ponta" points="130,576 125,567 135,567"/>
+              <text class="dg-arot" x="140" y="558" data-i18n="d1.a6">com o app fechado</text>
+              <rect class="dg-cx" x="10" y="576" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="130" y="601" text-anchor="middle" data-i18n="d1.n6">Tela de bloqueio</text>
+            </svg>
+            <figcaption data-i18n="d1.legenda">O caminho de um recado até a notificação na tela de bloqueio. A leitura da data é determinística; a IA é um desvio opcional.</figcaption>
+          </figure>
         </div>
 
         <div class="obra-numeros">
@@ -178,15 +235,6 @@
       <div class="obra-rail">
         <div class="obra-indice" aria-hidden="true">02</div>
         <span class="selo selo-vivo" data-i18n="selo.vivo">No ar</span>
-        <div class="obra-pilha" data-i18n-pilha="o2.pilha">
-          <span class="tecla">PWA offline-first</span>
-          <span class="tecla">pdf.js</span>
-          <span class="tecla">IndexedDB</span>
-          <span class="tecla">html2canvas</span>
-          <span class="tecla">jsPDF</span>
-          <span class="tecla">Gráficos em SVG</span>
-          <span class="tecla">Service Worker</span>
-        </div>
       </div>
       <div class="obra-corpo">
         <h3 data-i18n="o2.nome">Relatório de Execução do R2D</h3>
@@ -200,6 +248,56 @@
             <li data-i18n-html="o2.d2.html"><strong>Nada de CDN.</strong> pdf.js, html2canvas, jsPDF e a fonte são vendorizados e guardados pelo service worker. O cenário real é corredor de farmácia e sala de espera de consultório: o app tem que abrir sem sinal, ou não serve para nada.</li>
             <li data-i18n-html="o2.d3.html"><strong>Sem cadastro, sem login, sem servidor.</strong> Tudo vive no IndexedDB do navegador. A contrapartida foi assumida de frente, não escondida: backup e restauração em JSON com as fotos embutidas, no topo da tela.</li>
           </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">O que foi usado, e por quê</span></p>
+          <dl data-i18n-ficha="o2.ficha">
+            <dt>PWA offline-first</dt><dd>corredor de farmácia e sala de espera são o cenário real</dd>
+            <dt>pdf.js</dt><dd>lê o plano aprovado no próprio navegador; nenhum arquivo sobe para lugar nenhum</dd>
+            <dt>IndexedDB</dt><dd>tudo mora no aparelho — sem cadastro, sem login, sem servidor</dd>
+            <dt>Gráficos SVG escritos à mão</dt><dd>um gráfico por indicador; porcentagem e número índice não dividem eixo</dd>
+            <dt>html2canvas + jsPDF</dt><dd>fecha o relatório em PDF dentro do navegador</dd>
+            <dt>Service Worker</dt><dd>guarda as bibliotecas e a fonte; nada vem de CDN</dd>
+            <dt>Backup em JSON</dt><dd>a contrapartida de não ter servidor, assumida de frente, com as fotos embutidas</dd>
+          </dl>
+        </div>
+
+        <div class="obra-arq">
+          <p class="rotulo"><span data-i18n="obra.arquitetura">Arquitetura</span></p>
+          <figure class="obra-diag">
+            <svg class="dg" viewBox="0 0 380 322" role="img" data-i18n-rotulo="d2.legenda" aria-label="·" xmlns="http://www.w3.org/2000/svg">
+              <rect class="dg-cx" x="10" y="8" width="200" height="42" rx="7"/>
+              <text class="dg-rot" x="110" y="33" text-anchor="middle" data-i18n="d2.n1">PDF do plano aprovado</text>
+              <line class="dg-seta" x1="110" y1="50" x2="110" y2="84"/>
+              <polygon class="dg-ponta" points="110,92 105,83 115,83"/>
+              <text class="dg-arot" x="120" y="74" data-i18n="d2.a1">pdf.js</text>
+              <rect class="dg-cx" x="10" y="92" width="200" height="42" rx="7"/>
+              <text class="dg-rot" x="110" y="117" text-anchor="middle" data-i18n="d2.n2">extrator</text>
+              <line class="dg-seta dg-tracejada" x1="210" y1="113" x2="214" y2="113"/>
+              <polygon class="dg-ponta" points="222,113 213,108 213,118"/>
+              <rect class="dg-cx dg-cx-descarte dg-tracejada" x="222" y="95" width="150" height="36" rx="7"/>
+              <text class="dg-rot dg-rot-peq" x="297" y="117" text-anchor="middle" data-i18n="d2.r1">indicadores do PDF</text>
+              <text class="dg-nota dg-descarte" x="297" y="146" text-anchor="middle" data-i18n="d2.r1b">descartado</text>
+              <text class="dg-nota dg-descarte" x="297" y="159" text-anchor="middle" data-i18n="d2.r1c">de propósito</text>
+              <line class="dg-seta" x1="110" y1="134" x2="110" y2="178"/>
+              <polygon class="dg-ponta" points="110,186 105,177 115,177"/>
+              <text class="dg-arot" x="120" y="163" data-i18n="d2.a2">objetivo · gap · ações</text>
+              <rect class="dg-cx" x="10" y="186" width="200" height="42" rx="7"/>
+              <text class="dg-rot" x="110" y="211" text-anchor="middle" data-i18n="d2.n3">IndexedDB · no navegador</text>
+              <line class="dg-seta" x1="222" y1="207" x2="218" y2="207"/>
+              <polygon class="dg-ponta" points="210,207 219,202 219,212"/>
+              <text class="dg-arot" x="216" y="199" text-anchor="middle" data-i18n="d2.a4">nunca lidos do PDF</text>
+              <rect class="dg-cx" x="222" y="189" width="150" height="36" rx="7"/>
+              <text class="dg-rot dg-rot-peq" x="297" y="211" text-anchor="middle" data-i18n="d2.r2">números digitados</text>
+              <line class="dg-seta" x1="110" y1="228" x2="110" y2="262"/>
+              <polygon class="dg-ponta" points="110,270 105,261 115,261"/>
+              <text class="dg-arot" x="120" y="252" data-i18n="d2.a3">html2canvas + jsPDF</text>
+              <rect class="dg-cx" x="10" y="270" width="200" height="42" rx="7"/>
+              <text class="dg-rot" x="110" y="295" text-anchor="middle" data-i18n="d2.n4">Relatório · 3 páginas</text>
+            </svg>
+            <figcaption data-i18n="d2.legenda">O plano entra só como referência. A seção de indicadores é descartada de propósito: os números vêm digitados, não lidos.</figcaption>
+          </figure>
         </div>
 
         <div class="obra-numeros">
@@ -219,11 +317,6 @@
       <div class="obra-rail">
         <div class="obra-indice" aria-hidden="true">03</div>
         <span class="selo selo-vivo" data-i18n="selo.vivo">No ar</span>
-        <div class="obra-pilha" data-i18n-pilha="o3.pilha">
-          <span class="tecla">PWA</span>
-          <span class="tecla">Service Worker</span>
-          <span class="tecla">Sem framework</span>
-        </div>
       </div>
       <div class="obra-corpo">
         <h3 data-i18n="o3.nome">Marque Seu Jogo</h3>
@@ -235,6 +328,17 @@
           <ul>
             <li data-i18n-html="o3.d1.html"><strong>PWA de verdade, não site que finge ser app.</strong> Service worker próprio, instalação na tela de início e funcionamento integral sem rede — que é o estado normal da maioria dos ginásios.</li>
           </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">O que foi usado, e por quê</span></p>
+          <dl data-i18n-ficha="o3.ficha">
+            <dt>PWA + Service Worker</dt><dd>instala e roda sem rede, que é o estado normal de um ginásio</dd>
+            <dt>Screen Wake Lock</dt><dd>a tela não apaga no meio de um set</dd>
+            <dt>Web Audio + vibração</dt><dd>apita e vibra no fim do intervalo, com o celular no bolso</dd>
+            <dt>localStorage</dt><dd>guarda o placar e o tema entre aberturas</dd>
+            <dt>HTML, CSS e JS sem framework</dt><dd>um cronômetro não precisa de árvore de dependência</dd>
+          </dl>
         </div>
 
         <div class="obra-numeros">
@@ -253,12 +357,6 @@
       <div class="obra-rail">
         <div class="obra-indice" aria-hidden="true">04</div>
         <span class="selo selo-entregue" data-i18n="selo.entregue">Entregue</span>
-        <div class="obra-pilha" data-i18n-pilha="o4.pilha">
-          <span class="tecla">Web app</span>
-          <span class="tecla">Multiusuário</span>
-          <span class="tecla">Mapa</span>
-          <span class="tecla">Agenda de ciclos</span>
-        </div>
       </div>
       <div class="obra-corpo">
         <h3 data-i18n="o4.nome">Rep.Rota</h3>
@@ -270,6 +368,17 @@
           <ul>
             <li data-i18n-html="o4.d1.html"><strong>Construído a partir da rotina, não de um briefing.</strong> A categorização por potencial e a agenda de ciclos existem porque é assim que o trabalho se organiza na prática — não porque ficavam bem numa tela.</li>
           </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">O que foi usado, e por quê</span></p>
+          <dl data-i18n-ficha="o4.ficha">
+            <dt>Carteira categorizada por potencial</dt><dd>é assim que a visita se decide na prática</dd>
+            <dt>Roteiro de visitas com mapa</dt><dd>a perda não é preguiça, é quilômetro mal gasto</dd>
+            <dt>Agenda de ciclos</dt><dd>o trabalho do representante é cíclico, não linear</dd>
+            <dt>Multiusuário</dt><dd>a equipe inteira na mesma base, cada um com a sua carteira</dd>
+            <dt>Acesso por navegador</dt><dd>funciona no celular no carro e no computador em casa</dd>
+          </dl>
         </div>
 
         <figure class="obra-fig par">
@@ -285,11 +394,6 @@
       <div class="obra-rail">
         <div class="obra-indice" aria-hidden="true">05</div>
         <span class="selo selo-entregue" data-i18n="selo.entregue">Entregue</span>
-        <div class="obra-pilha" data-i18n-pilha="o5.pilha">
-          <span class="tecla">Dashboard</span>
-          <span class="tecla">Multiusuário</span>
-          <span class="tecla">Alertas</span>
-        </div>
       </div>
       <div class="obra-corpo">
         <h3 data-i18n="o5.nome">Finances Control</h3>
@@ -301,6 +405,17 @@
           <ul>
             <li data-i18n-html="o5.d1.html"><strong>Diagnóstico, não extrato.</strong> Listar gasto qualquer planilha faz. O valor está em apontar a categoria que estourou e o quanto ainda falta para a meta — a leitura, não o dado.</li>
           </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">O que foi usado, e por quê</span></p>
+          <dl data-i18n-ficha="o5.ficha">
+            <dt>Painel visual do mês</dt><dd>o orçamento inteiro numa tela só</dd>
+            <dt>Diagnóstico por categoria</dt><dd>aponta onde estourou, em vez de listar gasto</dd>
+            <dt>Alerta de gasto crítico</dt><dd>avisa antes do fim do mês, quando ainda dá para corrigir</dd>
+            <dt>Meta de poupança</dt><dd>mostra quanto falta, não só quanto já foi</dd>
+            <dt>Multiusuário</dt><dd>a casa inteira enxergando o mesmo número</dd>
+          </dl>
         </div>
 
         <figure class="obra-fig retrato">
@@ -315,11 +430,6 @@
       <div class="obra-rail">
         <div class="obra-indice" aria-hidden="true">06</div>
         <span class="selo selo-entregue" data-i18n="selo.entregue">Entregue</span>
-        <div class="obra-pilha" data-i18n-pilha="o6.pilha">
-          <span class="tecla">IA conversacional</span>
-          <span class="tecla">WhatsApp</span>
-          <span class="tecla">Agendamento</span>
-        </div>
       </div>
       <div class="obra-corpo">
         <h3 data-i18n="o6.nome">Assistente no WhatsApp</h3>
@@ -331,6 +441,49 @@
           <ul>
             <li data-i18n-html="o6.d1.html"><strong>Qualificar é o produto; responder é o efeito colateral.</strong> Um bot que só responde economiza digitação. Um bot que qualifica decide o que merece o tempo de uma pessoa — e é aí que o custo cai de verdade.</li>
           </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">O que foi usado, e por quê</span></p>
+          <dl data-i18n-ficha="o6.ficha">
+            <dt>Atendimento 24 h no WhatsApp</dt><dd>a pessoa escreve quando pode, não quando você atende</dd>
+            <dt>IA conversacional</dt><dd>entende a pergunta em vez de oferecer um menu</dd>
+            <dt>Qualificação automática</dt><dd>decide o que merece o tempo de uma pessoa</dd>
+            <dt>Agendamento direto</dt><dd>fecha a consulta na conversa, sem transferir para ninguém</dd>
+            <dt>WhatsApp nativo</dt><dd>o cliente não instala nada</dd>
+          </dl>
+        </div>
+
+        <div class="obra-arq">
+          <p class="rotulo"><span data-i18n="obra.arquitetura">Arquitetura</span></p>
+          <figure class="obra-diag">
+            <svg class="dg" viewBox="0 0 380 418" role="img" data-i18n-rotulo="d3.legenda" aria-label="·" xmlns="http://www.w3.org/2000/svg">
+              <rect class="dg-cx" x="70" y="8" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="190" y="33" text-anchor="middle" data-i18n="d3.n1">Mensagem do cliente</text>
+              <line class="dg-seta" x1="190" y1="50" x2="190" y2="84"/>
+              <polygon class="dg-ponta" points="190,92 185,83 195,83"/>
+              <text class="dg-arot" x="200" y="74" data-i18n="d3.a2">a qualquer hora</text>
+              <rect class="dg-cx" x="70" y="92" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="190" y="117" text-anchor="middle" data-i18n="d3.n2">Assistente · IA</text>
+              <line class="dg-seta" x1="190" y1="134" x2="190" y2="168"/>
+              <polygon class="dg-ponta" points="190,176 185,167 195,167"/>
+              <text class="dg-arot" x="200" y="158" data-i18n="d3.a3">resolve sozinho</text>
+              <rect class="dg-grupo" x="70" y="176" width="240" height="140" rx="9"/>
+              <text class="dg-grot" x="82" y="194" data-i18n="d3.g">24 h · sem pessoa envolvida</text>
+              <rect class="dg-cx" x="82" y="204" width="216" height="32" rx="7"/>
+              <text class="dg-rot" x="190" y="224" text-anchor="middle" data-i18n="d3.g1">responde dúvida</text>
+              <rect class="dg-cx" x="82" y="240" width="216" height="32" rx="7"/>
+              <text class="dg-rot" x="190" y="260" text-anchor="middle" data-i18n="d3.g2">coleta informação</text>
+              <rect class="dg-cx" x="82" y="276" width="216" height="32" rx="7"/>
+              <text class="dg-rot" x="190" y="296" text-anchor="middle" data-i18n="d3.g3">agenda consulta</text>
+              <line class="dg-seta" x1="190" y1="316" x2="190" y2="358"/>
+              <polygon class="dg-ponta" points="190,366 185,357 195,357"/>
+              <text class="dg-arot" x="200" y="344" data-i18n="d3.a1">só o contato qualificado</text>
+              <rect class="dg-cx dg-cx-forte" x="70" y="366" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="190" y="391" text-anchor="middle" data-i18n="d3.n3">Pessoa</text>
+            </svg>
+            <figcaption data-i18n="d3.legenda">Responder é o efeito colateral. O produto é decidir o que merece chegar numa pessoa.</figcaption>
+          </figure>
         </div>
 
         <figure class="obra-fig alto">
@@ -345,11 +498,6 @@
       <div class="obra-rail">
         <div class="obra-indice" aria-hidden="true">07</div>
         <span class="selo selo-nda" data-i18n="selo.nda">Sob NDA</span>
-        <div class="obra-pilha" data-i18n-pilha="o7.pilha">
-          <span class="tecla">Web</span>
-          <span class="tecla">Decisão clínica</span>
-          <span class="tecla">Confidencial</span>
-        </div>
       </div>
       <div class="obra-corpo">
         <h3 data-i18n="o7.nome">Ferramenta clínica · Pharma</h3>
@@ -361,6 +509,16 @@
           <ul>
             <li data-i18n-html="o7.d1.html"><strong>O gargalo nunca foi informação — era o momento.</strong> O conteúdo já existia em bula e material técnico. O que faltava era ele chegar no segundo da decisão, sem exigir leitura. Por isso a ferramenta é uma entrada e uma resposta, não uma biblioteca.</li>
           </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">O que foi usado, e por quê</span></p>
+          <dl data-i18n-ficha="o7.ficha">
+            <dt>Uma entrada, uma resposta</dt><dd>a decisão clínica acontece em segundos, não em leitura</dd>
+            <dt>Apoio no ponto da orientação</dt><dd>a informação chega no instante em que a dúvida aparece</dd>
+            <dt>Web, sem instalação</dt><dd>o profissional abre no aparelho que já tem na mão</dd>
+            <dt>Escopo e arquitetura sob NDA</dt><dd>detalhes disponíveis mediante assinatura</dd>
+          </dl>
         </div>
       </div>
     </article>
