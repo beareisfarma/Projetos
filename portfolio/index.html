@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Beatriz C. Reis — Gestão de projetos, IA aplicada e desenvolvimento full-stack</title>
+<meta name="description" content="Trabalho dentro da operação comercial da indústria farmacêutica e construo o software que ela precisa. Sete produtos entregues, três no ar. PWAs offline, Web Push, Supabase e arquitetura de custo zero.">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Beatriz C. Reis">
+
+<!-- O português mora em "/", o inglês em "/en". Dois endereços de verdade,
+     para o buscador poder indexar e servir cada idioma ao público certo. -->
+<link rel="canonical" href="https://beatrizreis.vercel.app/">
+<link rel="alternate" hreflang="pt-BR" href="https://beatrizreis.vercel.app/">
+<link rel="alternate" hreflang="en"    href="https://beatrizreis.vercel.app/en">
+<link rel="alternate" hreflang="x-default" href="https://beatrizreis.vercel.app/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Beatriz C. Reis">
+<meta property="og:url" content="https://beatrizreis.vercel.app/">
+<meta property="og:title" content="Beatriz C. Reis — Gestão de projetos, IA aplicada e desenvolvimento full-stack">
+<meta property="og:description" content="Trabalho dentro da operação comercial da indústria farmacêutica e construo o software que ela precisa. Sete produtos entregues, três no ar.">
+<meta property="og:image" content="https://beatrizreis.vercel.app/img/beatriz-reis.jpg">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Beatriz C. Reis — Gestão de projetos, IA aplicada e desenvolvimento full-stack">
+<meta name="twitter:description" content="Trabalho dentro da operação comercial da indústria farmacêutica e construo o software que ela precisa.">
+<meta name="twitter:image" content="https://beatrizreis.vercel.app/img/beatriz-reis.jpg">
+
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#faf8f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)">
+
+<!-- As fontes são servidas por este mesmo domínio (ver css/fontes.css).
+     Nada sai daqui para terceiros — nem uma requisição. -->
+<link rel="preload" href="fonts/inter-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/playfair-display-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/fontes.css">
+<link rel="stylesheet" href="css/site.css">
+
+<script>
+/* Roda antes de qualquer pintura, por dois motivos:
+   1. aplicar o tema guardado, senão o claro pisca antes do escuro;
+   2. em /en, segurar o corpo por um instante enquanto o texto é trocado,
+      senão o visitante de fora vê um lampejo de português.
+   O setTimeout é a rede de segurança: se o site.js não carregar,
+   a página aparece mesmo assim em vez de ficar em branco. */
+(function () {
+  var d = document.documentElement;
+  /* Só com esta classe o CSS esconde as seções para revelá-las na rolagem.
+     Sem JavaScript, elas continuam visíveis em vez de sumirem para sempre. */
+  d.className += ' js';
+  try {
+    var tema = localStorage.getItem('bcr-tema');
+    if (tema === 'light' || tema === 'dark') d.setAttribute('data-theme', tema);
+  } catch (e) { /* aba privativa: segue no tema do sistema */ }
+  if (location.pathname.replace(/\/+$/, '') === '/en') {
+    d.className += ' i18n-pendente';
+    setTimeout(function () { d.classList.remove('i18n-pendente'); }, 1500);
+  }
+})();
+</script>
+</head>
+<body>
+
+<a class="pular" href="#conteudo" data-i18n="nav.pular">Pular para o conteúdo</a>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav">
+  <div class="nav-in">
+    <a class="marca" href="/">Beatriz C<span class="ponto">.</span> Reis</a>
+
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#trabalho" data-i18n="nav.trabalho">Trabalho</a></li>
+        <li><a href="#metodo"   data-i18n="nav.metodo">Método</a></li>
+        <li><a href="#perfil"   data-i18n="nav.perfil">Perfil</a></li>
+        <li><a href="#contato"  data-i18n="nav.contato">Contato</a></li>
+      </ul>
+    </nav>
+
+    <div class="controles">
+      <div class="idioma" role="group" aria-label="Idioma" data-i18n-rotulo="nav.idioma">
+        <a href="/"   data-idioma="pt" hreflang="pt-BR" aria-current="true">PT</a>
+        <a href="/en" data-idioma="en" hreflang="en">EN</a>
+      </div>
+      <button class="tema" id="btnTema" type="button"
+              aria-label="Alternar tema claro e escuro" data-i18n-rotulo="nav.tema">☾</button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+<div class="shell">
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <p class="hero-topo"><span class="ponto-vivo" aria-hidden="true"></span><span data-i18n="hero.hoje">Hoje: operação comercial · indústria farmacêutica</span></p>
+
+    <h1 data-i18n="hero.nome">Beatriz C. Reis</h1>
+
+    <p class="hero-papeis">
+      <span data-i18n="hero.papel1">Gestão de projetos</span>
+      <span data-i18n="hero.papel2">IA aplicada</span>
+      <span data-i18n="hero.papel3">Desenvolvimento full-stack</span>
+      <span data-i18n="hero.papel4">Indústria farmacêutica</span>
+    </p>
+
+    <p class="hero-lead" data-i18n-html="hero.lead1.html">Eu não estudo o problema de fora. <strong>Trabalho dentro da operação comercial da indústria farmacêutica</strong> — e construo o software que aquela operação precisa. Cada produto desta página nasceu de uma dor que eu mesma tinha que resolver no fim do expediente.</p>
+    <p class="hero-lead" data-i18n-html="hero.lead2.html">Sete produtos entregues, <strong>três deles no ar e abertos para você testar agora</strong>. Todos escritos à mão, todos rodando a custo zero, todos com o núcleo determinístico e a IA fora do caminho crítico — porque produto que só funciona quando a chave de API responde não é produto.</p>
+
+    <div class="hero-acoes">
+      <a class="btn btn-forte" href="#trabalho">
+        <span data-i18n="hero.btn1">Ver o trabalho</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+      </a>
+      <a class="btn btn-leve" href="#contato">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+        <span data-i18n="hero.btn2">Falar comigo</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===================== TRABALHO ===================== -->
+  <section class="secao" id="trabalho">
+    <div class="secao-cab revelar">
+      <p class="rotulo"><span data-i18n="trab.rotulo">01 — Trabalho selecionado</span></p>
+      <h2 data-i18n="trab.titulo">Sete problemas. Sete sistemas.</h2>
+      <p class="prosa" data-i18n="trab.lead">Cada entrada traz o problema, a decisão técnica que mais pesou e o que dá para conferir. Os links levam ao produto rodando — não a um vídeo de demonstração.</p>
+    </div>
+
+    <!-- 01 · Personal Assistant -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">01</div>
+        <span class="selo selo-vivo" data-i18n="selo.vivo">No ar</span>
+        <div class="obra-pilha">
+          <span class="tecla">PWA</span>
+          <span class="tecla">Web Push · VAPID</span>
+          <span class="tecla">Supabase Postgres</span>
+          <span class="tecla">Deno Edge Functions</span>
+          <span class="tecla">pg_cron · pg_net</span>
+          <span class="tecla">bcrypt · pgcrypto</span>
+          <span class="tecla">Whisper</span>
+        </div>
+      </div>
+      <div class="obra-corpo">
+        <h3>Personal Assistant</h3>
+        <p class="obra-tese" data-i18n="o1.tese">Prazo que só existe na cabeça é prazo perdido.</p>
+        <p data-i18n="o1.desc">Assistente pessoal de prazos. Você manda um recado por texto ou por áudio — «consulta com a Ana sexta às 14h» — e o sistema lê a data, agenda a escada de avisos que você escolheu (2 dias, 1 dia, 1 hora, 15 minutos) e notifica na tela de bloqueio do celular, com o app fechado.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisões que importaram</span></p>
+          <ul>
+            <li data-i18n-html="o1.d1.html"><strong>A IA não está no caminho crítico.</strong> Quem lê a data é um interpretador de português escrito à mão, determinístico e gratuito, que cobre «sexta às 14h», «dia 20», «amanhã de manhã» e «em duas semanas». A Claude API só entra quando o recado não tem data reconhecível, e uma variável de ambiente desliga a IA por completo. Sem chave nenhuma, o app funciona inteiro.</li>
+            <li data-i18n-html="o1.d2.html"><strong>A retirada do aviso da fila é atômica no banco.</strong> <code>DELETE … RETURNING</code> com <code>FOR UPDATE SKIP LOCKED</code> — é isso que impede dois ticks de notificarem o mesmo prazo. Ler-e-depois-apagar seria mais simples e duplicaria notificação.</li>
+            <li data-i18n-html="o1.d3.html"><strong>A API roda numa Edge Function do Supabase, não na Vercel.</strong> Lá dentro a chave de serviço já existe no ambiente, então o projeto sobe sem ninguém cadastrar variável nenhuma. O agendamento é o <code>pg_cron</code> do próprio Postgres — sem serviço externo e sem plano pago.</li>
+          </ul>
+        </div>
+
+        <div class="obra-numeros">
+          <div><div class="numero-val">74</div><div class="numero-rot" data-i18n="o1.n1">testes automatizados</div></div>
+          <div><div class="numero-val">R$ 0</div><div class="numero-rot" data-i18n="o1.n2">custo mensal de infraestrutura</div></div>
+          <div><div class="numero-val">1 min</div><div class="numero-rot" data-i18n="o1.n3">intervalo do tick no pg_cron</div></div>
+        </div>
+
+        <a class="obra-link" href="https://assistentepessoal.vercel.app" target="_blank" rel="noopener">
+          <span data-i18n="obra.abrir">Abrir o produto</span> <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- 02 · R2D -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">02</div>
+        <span class="selo selo-vivo" data-i18n="selo.vivo">No ar</span>
+        <div class="obra-pilha">
+          <span class="tecla">PWA offline-first</span>
+          <span class="tecla">pdf.js</span>
+          <span class="tecla">IndexedDB</span>
+          <span class="tecla">html2canvas</span>
+          <span class="tecla">jsPDF</span>
+          <span class="tecla">Gráficos em SVG</span>
+          <span class="tecla">Service Worker</span>
+        </div>
+      </div>
+      <div class="obra-corpo">
+        <h3>Relatório de Execução do R2D</h3>
+        <p class="obra-tese" data-i18n="o2.tese">O plano já foi aprovado. O que falta é provar a execução.</p>
+        <p data-i18n="o2.desc">Ferramenta de campo para a força de representantes da indústria farmacêutica. Lê o PDF do plano aprovado apenas como referência, registra as ações realizadas (data, ação, PDV ou médico, resultado, fotos) e os indicadores mês a mês, e fecha um relatório de três páginas em PDF para a gerência — números primeiro, depois objetivo e gap, depois as ações em ordem cronológica.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisões que importaram</span></p>
+          <ul>
+            <li data-i18n-html="o2.d1.html"><strong>O extrator descarta de propósito a seção de indicadores do PDF.</strong> Ler market share de dentro do plano seria inventar um número que vai subir para a gerência. A ferramenta guarda, compara e desenha — não calcula, não estima e não completa indicador nenhum. Diferença entre dois valores digitados é comparação; o resto seria chute com cara de dado.</li>
+            <li data-i18n-html="o2.d2.html"><strong>Nada de CDN.</strong> pdf.js, html2canvas, jsPDF e a fonte são vendorizados e guardados pelo service worker. O cenário real é corredor de farmácia e sala de espera de consultório: o app tem que abrir sem sinal, ou não serve para nada.</li>
+            <li data-i18n-html="o2.d3.html"><strong>Sem cadastro, sem login, sem servidor.</strong> Tudo vive no IndexedDB do navegador. A contrapartida foi assumida de frente, não escondida: backup e restauração em JSON com as fotos embutidas, no topo da tela.</li>
+          </ul>
+        </div>
+
+        <div class="obra-numeros">
+          <div><div class="numero-val">21</div><div class="numero-rot" data-i18n="o2.n1">testes automatizados</div></div>
+          <div><div class="numero-val">3</div><div class="numero-rot" data-i18n="o2.n2">páginas no relatório final</div></div>
+          <div><div class="numero-val">1,3 s</div><div class="numero-rot" data-i18n="o2.n3">para gerar um PDF de 0,82 MB</div></div>
+        </div>
+
+        <a class="obra-link" href="https://r2d-relatorio.vercel.app" target="_blank" rel="noopener">
+          <span data-i18n="obra.abrir">Abrir o produto</span> <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- 03 · Marque Seu Jogo -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">03</div>
+        <span class="selo selo-vivo" data-i18n="selo.vivo">No ar</span>
+        <div class="obra-pilha">
+          <span class="tecla">PWA</span>
+          <span class="tecla">Service Worker</span>
+          <span class="tecla">Sem framework</span>
+        </div>
+      </div>
+      <div class="obra-corpo">
+        <h3>Marque Seu Jogo</h3>
+        <p class="obra-tese" data-i18n="o3.tese">Quatro cronômetros diferentes num bolso só.</p>
+        <p data-i18n="o3.desc">Cronômetro e placar para quem joga. Quatro modos — cronômetro, timer, HIIT e Tabata — mais um placar de vôlei separado. Instalável na tela de início, funciona sem rede, e põe os números numa fonte inclinada que se lê da beira da quadra.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisões que importaram</span></p>
+          <ul>
+            <li data-i18n-html="o3.d1.html"><strong>PWA de verdade, não site que finge ser app.</strong> Service worker próprio, instalação na tela de início e funcionamento integral sem rede — que é o estado normal da maioria dos ginásios.</li>
+          </ul>
+        </div>
+
+        <div class="obra-numeros">
+          <div><div class="numero-val">4</div><div class="numero-rot" data-i18n="o3.n1">modos de contagem</div></div>
+          <div><div class="numero-val">2</div><div class="numero-rot" data-i18n="o3.n2">apps no mesmo endereço</div></div>
+        </div>
+
+        <a class="obra-link" href="https://marqueseujogo.vercel.app" target="_blank" rel="noopener">
+          <span data-i18n="obra.abrir">Abrir o produto</span> <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- 04 · Rep.Rota -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">04</div>
+        <span class="selo selo-entregue" data-i18n="selo.entregue">Entregue</span>
+        <div class="obra-pilha">
+          <span class="tecla">Web app</span>
+          <span class="tecla">Multiusuário</span>
+          <span class="tecla">Mapa</span>
+          <span class="tecla">Agenda de ciclos</span>
+        </div>
+      </div>
+      <div class="obra-corpo">
+        <h3>Rep.Rota</h3>
+        <p class="obra-tese" data-i18n="o4.tese">O representante não perde venda por preguiça. Perde por roteiro ruim.</p>
+        <p data-i18n="o4.desc">Sistema de gestão de carteira para representantes comerciais, consultores de vendas e consultores médicos: clientes categorizados por potencial, roteiro de visitas, agenda de ciclos e mapa, num painel só, acessível de qualquer aparelho.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisões que importaram</span></p>
+          <ul>
+            <li data-i18n-html="o4.d1.html"><strong>Construído a partir da rotina, não de um briefing.</strong> A categorização por potencial e a agenda de ciclos existem porque é assim que o trabalho se organiza na prática — não porque ficavam bem numa tela.</li>
+          </ul>
+        </div>
+
+        <figure class="obra-fig par">
+          <img src="img/rep-rota-painel.jpg" width="700" height="439" loading="lazy" decoding="async" alt="Painel de carteira do Rep.Rota" data-i18n-alt="o4.fig">
+          <img src="img/rep-rota-login.jpg" width="700" height="886" loading="lazy" decoding="async" alt="Tela de acesso do Rep.Rota" data-i18n-alt="o4.fig">
+          <figcaption data-i18n="o4.fig">Painel de carteira e tela de acesso.</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 05 · Finances Control -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">05</div>
+        <span class="selo selo-entregue" data-i18n="selo.entregue">Entregue</span>
+        <div class="obra-pilha">
+          <span class="tecla">Dashboard</span>
+          <span class="tecla">Multiusuário</span>
+          <span class="tecla">Alertas</span>
+        </div>
+      </div>
+      <div class="obra-corpo">
+        <h3>Finances Control</h3>
+        <p class="obra-tese" data-i18n="o5.tese">Não falta disciplina. Falta enxergar para onde o dinheiro vai.</p>
+        <p data-i18n="o5.desc">Aplicativo de organização financeira com painel visual e diagnóstico por categoria: mostra em tempo real onde o dinheiro está indo, sinaliza gasto crítico, acompanha meta de poupança e exibe o orçamento do mês.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisões que importaram</span></p>
+          <ul>
+            <li data-i18n-html="o5.d1.html"><strong>Diagnóstico, não extrato.</strong> Listar gasto qualquer planilha faz. O valor está em apontar a categoria que estourou e o quanto ainda falta para a meta — a leitura, não o dado.</li>
+          </ul>
+        </div>
+
+        <figure class="obra-fig retrato">
+          <img src="img/finances-control-dashboard.jpg" width="700" height="830" loading="lazy" decoding="async" alt="Painel do Finances Control" data-i18n-alt="o5.fig">
+          <figcaption data-i18n="o5.fig">Painel com diagnóstico por categoria e meta de poupança.</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 06 · Assistente no WhatsApp -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">06</div>
+        <span class="selo selo-entregue" data-i18n="selo.entregue">Entregue</span>
+        <div class="obra-pilha">
+          <span class="tecla">IA conversacional</span>
+          <span class="tecla">WhatsApp</span>
+          <span class="tecla">Agendamento</span>
+        </div>
+      </div>
+      <div class="obra-corpo">
+        <h3>Assistente no WhatsApp</h3>
+        <p class="obra-tese" data-i18n="o6.tese">80% do atendimento é previsível. Nenhuma parte dele precisava de você.</p>
+        <p data-i18n="o6.desc">Assistente conversacional no WhatsApp que atende, tira dúvida, coleta informação e agenda consulta 24 horas por dia, sem intervenção humana. Chega até uma pessoa apenas o contato já qualificado.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisões que importaram</span></p>
+          <ul>
+            <li data-i18n-html="o6.d1.html"><strong>Qualificar é o produto; responder é o efeito colateral.</strong> Um bot que só responde economiza digitação. Um bot que qualifica decide o que merece o tempo de uma pessoa — e é aí que o custo cai de verdade.</li>
+          </ul>
+        </div>
+
+        <figure class="obra-fig alto">
+          <img src="img/bot-assistente-virtual-whatsapp.jpg" width="992" height="2000" loading="lazy" decoding="async" alt="Conversa do assistente no WhatsApp" data-i18n-alt="o6.fig">
+          <figcaption data-i18n="o6.fig">Conversa real do assistente no WhatsApp.</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 07 · NDA -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">07</div>
+        <span class="selo selo-nda" data-i18n="selo.nda">Sob NDA</span>
+        <div class="obra-pilha">
+          <span class="tecla">Web</span>
+          <span class="tecla">Decisão clínica</span>
+          <span class="tecla">Confidencial</span>
+        </div>
+      </div>
+      <div class="obra-corpo">
+        <h3>Ferramenta clínica · Pharma</h3>
+        <p class="obra-tese" data-i18n="o7.tese">A venda trava no segundo em que o profissional hesita.</p>
+        <p data-i18n="o7.desc">Solução web desenvolvida para uma grande empresa farmacêutica. Apoia o profissional de saúde na decisão clínica no momento exato da orientação ao paciente. Escopo, arquitetura e resultado disponíveis mediante assinatura de NDA.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisões que importaram</span></p>
+          <ul>
+            <li data-i18n-html="o7.d1.html"><strong>O gargalo nunca foi informação — era o momento.</strong> O conteúdo já existia em bula e material técnico. O que faltava era ele chegar no segundo da decisão, sem exigir leitura. Por isso a ferramenta é uma entrada e uma resposta, não uma biblioteca.</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ===================== MÉTODO ===================== -->
+  <section class="secao" id="metodo">
+    <div class="secao-cab revelar">
+      <p class="rotulo"><span data-i18n="met.rotulo">02 — Método</span></p>
+      <h2 data-i18n="met.titulo">Quatro regras que eu não quebro.</h2>
+      <p class="prosa" data-i18n="met.lead">Não são preferências de estilo. Cada uma delas custou caro para ser aprendida em algum projeto desta página.</p>
+    </div>
+
+    <div class="metodo revelar">
+      <div class="principio">
+        <div class="principio-n">01</div>
+        <h3 data-i18n="met.p1.t">Custo zero é requisito, não detalhe.</h3>
+        <p data-i18n="met.p1.d">O que eu construo roda em camada gratuita de ponta a ponta. Não por elegância: um projeto que precisa de fatura para continuar existindo morre no primeiro mês em que ninguém olhar para ele.</p>
+      </div>
+      <div class="principio">
+        <div class="principio-n">02</div>
+        <h3 data-i18n="met.p2.t">A IA fica fora do caminho crítico.</h3>
+        <p data-i18n="met.p2.d">O núcleo é determinístico e testável. A IA entra como reforço, é opcional e pode ser desligada por variável de ambiente. Se a chave sumir, o produto continua inteiro.</p>
+      </div>
+      <div class="principio">
+        <div class="principio-n">03</div>
+        <h3 data-i18n="met.p3.t">Offline é o cenário, não a exceção.</h3>
+        <p data-i18n="met.p3.d">Corredor de farmácia, sala de espera, beira de quadra. Se o app só funciona com sinal bom, ele não funciona onde vai ser usado.</p>
+      </div>
+      <div class="principio">
+        <div class="principio-n">04</div>
+        <h3 data-i18n="met.p4.t">Eu entrego o problema resolvido, não o pedido atendido.</h3>
+        <p data-i18n="met.p4.d">O pedido é o sintoma que a pessoa conseguiu nomear. Meu trabalho é entender a operação fundo o suficiente para ver o que está atrás dele — e, às vezes, dizer que o que foi pedido não resolve.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PERFIL ===================== -->
+  <section class="secao" id="perfil">
+    <div class="secao-cab revelar">
+      <p class="rotulo"><span data-i18n="perf.rotulo">03 — Perfil</span></p>
+    </div>
+
+    <div class="perfil revelar">
+      <div class="perfil-foto">
+        <img src="img/beatriz-reis.jpg" width="552" height="800" loading="lazy" decoding="async" alt="Retrato de Beatriz C. Reis" data-i18n-alt="perf.foto">
+      </div>
+      <div>
+        <h2 style="font-size:clamp(1.5rem,3.4vw,2.2rem);margin-bottom:1.2rem" data-i18n="perf.titulo">Quem escreve o código e quem usa o produto são a mesma pessoa.</h2>
+        <p class="prosa" data-i18n="perf.p1">Sou pós-graduada em Marketing e Comunicação e trabalho na indústria farmacêutica, na operação comercial de campo. Não sou uma desenvolvedora que aprendeu sobre pharma: sou alguém de dentro da operação que passou a construir o software dela. É por isso que a ferramenta de relatório sabe que foto de evidência precisa caber três por linha, e que o assistente de prazos entende «sexta às 14h» sem pedir calendário.</p>
+        <p class="prosa" data-i18n="perf.p2">Gerencio projeto e gerencio IA — as duas coisas no mesmo lugar, onde a maior parte das empresas ainda tem uma pessoa para cada. Escrevo o código, decido a arquitetura, meço o contraste da paleta e respondo pelo resultado.</p>
+
+        <div class="credenciais">
+          <span class="credencial" data-i18n="perf.c1">Pós-graduação · Marketing e Comunicação</span>
+          <span class="credencial" data-i18n="perf.c2">IA Manager</span>
+          <span class="credencial" data-i18n="perf.c3">Project Manager</span>
+          <span class="credencial" data-i18n="perf.c4">Indústria farmacêutica</span>
+          <span class="credencial" data-i18n="perf.c5">Desenvolvimento full-stack</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="capacidades revelar" style="margin-top:3rem">
+      <div class="cap">
+        <h3 data-i18n="cap.g1">Produto e operação</h3>
+        <ul data-i18n-lista="cap.g1i">
+          <li>Descoberta a partir da rotina</li>
+          <li>Definição de escopo</li>
+          <li>Gestão de projeto</li>
+          <li>Gestão de IA aplicada</li>
+          <li>Operação comercial farmacêutica</li>
+          <li>Relação com PDV e prescritor</li>
+        </ul>
+      </div>
+      <div class="cap">
+        <h3 data-i18n="cap.g2">Construção</h3>
+        <ul data-i18n-lista="cap.g2i">
+          <li>HTML, CSS e JavaScript sem framework</li>
+          <li>PWA e service workers</li>
+          <li>Node e funções serverless</li>
+          <li>Postgres e PostgREST (Supabase)</li>
+          <li>Deno Edge Functions</li>
+          <li>Web Push com VAPID</li>
+          <li>Testes automatizados</li>
+        </ul>
+      </div>
+      <div class="cap">
+        <h3 data-i18n="cap.g3">Decisões que eu assumo</h3>
+        <ul data-i18n-lista="cap.g3i">
+          <li>Arquitetura de custo zero</li>
+          <li>Acessibilidade e contraste medido</li>
+          <li>Offline-first</li>
+          <li>Autenticação e limite de tentativa</li>
+          <li>Onde a IA entra e onde não entra</li>
+          <li>Identidade visual e tipografia</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CONTATO ===================== -->
+  <section class="secao" id="contato">
+    <div class="contato-cx revelar">
+      <p class="rotulo"><span data-i18n="cont.rotulo">04 — Contato</span></p>
+      <h2 data-i18n-html="cont.titulo.html">Se alguma coisa aqui <em>resolve</em> um problema seu, me escreve.</h2>
+      <p class="prosa" data-i18n="cont.lead">Respondo em português e em inglês. Para conversa de trabalho, o e-mail e o LinkedIn são o caminho mais direto.</p>
+
+      <div class="canais">
+        <a class="canal" data-canal="email" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+          <span>
+            <span class="canal-rot" data-i18n="cont.email">E-mail</span><br>
+            <span class="canal-val"></span>
+          </span>
+          <span class="canal-seta" aria-hidden="true">→</span>
+        </a>
+        <a class="canal" data-canal="linkedin" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5M3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.76-2.05C20.4 8.65 22 10.9 22 14.4V21h-4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.53-2.3 3.1V21H9z"/></svg>
+          <span>
+            <span class="canal-rot" data-i18n="cont.linkedin">LinkedIn</span><br>
+            <span class="canal-val"></span>
+          </span>
+          <span class="canal-seta" aria-hidden="true">→</span>
+        </a>
+        <a class="canal" data-canal="github" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5"/></svg>
+          <span>
+            <span class="canal-rot" data-i18n="cont.github">GitHub</span><br>
+            <span class="canal-val"></span>
+          </span>
+          <span class="canal-seta" aria-hidden="true">→</span>
+        </a>
+        <a class="canal" data-canal="whatsapp" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.44-.53.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.03 1.02-1.03 2.48s1.06 2.87 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.7.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.42.25-.69.25-1.28.18-1.41-.08-.13-.28-.2-.57-.35M12.05 21.8h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.89 9.89-9.89 2.64 0 5.12 1.04 6.99 2.9a9.83 9.83 0 0 1 2.89 7c0 5.44-4.44 9.88-9.88 9.88m8.41-18.3A11.8 11.8 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.9c0 2.09.54 4.14 1.58 5.94L.06 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45c6.55 0 11.89-5.34 11.89-11.9 0-3.17-1.24-6.16-3.48-8.4"/></svg>
+          <span>
+            <span class="canal-rot" data-i18n="cont.whatsapp">WhatsApp</span><br>
+            <span class="canal-val"></span>
+          </span>
+          <span class="canal-seta" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<!-- ===================== RODAPÉ ===================== -->
+<footer>
+  <div class="rodape-in">
+    <div class="credito">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 62" role="img" aria-label="BCR — Beatriz C Reis">
+        <g fill="currentColor" stroke="none">
+          <path transform="translate(29.07 46) scale(0.03600 -0.036)" d="M39 708Q62 707 98.5 706Q135 705 171 705Q219 705 262.5 706Q306 707 324 707Q436 707 491.5 663Q547 619 547 550Q547 515 530.5 480.5Q514 446 477 418.5Q440 391 379 375L379 373Q463 364 511 337Q559 310 579 272.5Q599 235 599 194Q599 135 569 91.5Q539 48 482.5 24Q426 0 347 0Q325 0 280.5 1.5Q236 3 173 3Q135 3 98.5 2.5Q62 2 39 0L39 20Q73 22 90 28Q107 34 112.5 52Q118 70 118 106L118 602Q118 639 112.5 656.5Q107 674 89.5 680.5Q72 687 39 688ZM303 688Q260 688 246.5 671Q233 654 233 602L233 106Q233 71 239 53Q245 35 260.5 29Q276 23 306 23Q396 23 436.5 68.5Q477 114 477 198Q477 275 436.5 317Q396 359 303 359L206 359Q206 359 206 367.5Q206 376 206 376L292 376Q347 376 377 398.5Q407 421 418 458.5Q429 496 429 539Q429 613 400 650.5Q371 688 303 688Z"/>
+          <path transform="translate(62.08 46) scale(0.03600 -0.036)" d="M380 722Q446 722 488.5 702.5Q531 683 564 657Q584 642 594.5 653.5Q605 665 609 708L632 708Q630 670 629 616.5Q628 563 628 474L605 474Q598 518 591.5 546Q585 574 574.5 594Q564 614 546 633Q517 669 475 685Q433 701 386 701Q335 701 296 675.5Q257 650 230.5 603Q204 556 190 492Q176 428 176 352Q176 274 191 210.5Q206 147 234.5 101.5Q263 56 303.5 31.5Q344 7 394 7Q435 7 479 23.5Q523 40 549 74Q577 104 587.5 141.5Q598 179 605 244L628 244Q628 152 629 95.5Q630 39 632 0L609 0Q605 43 595.5 54Q586 65 564 51Q527 25 485.5 5.5Q444 -14 379 -14Q280 -14 206 29Q132 72 91 153Q50 234 50 348Q50 460 92.5 544Q135 628 209 675Q283 722 380 722Z"/>
+          <path transform="translate(97.06 46) scale(0.03600 -0.036)" d="M39 708Q62 707 98.5 706Q135 705 171 705Q219 705 262.5 706Q306 707 324 707Q409 707 465.5 685Q522 663 549.5 623.5Q577 584 577 533Q577 502 564.5 467.5Q552 433 521 403.5Q490 374 437 355Q384 336 302 336L206 336L206 356L292 356Q359 356 394.5 378.5Q430 401 442.5 438.5Q455 476 455 522Q455 601 421 644.5Q387 688 303 688Q260 688 246.5 671Q233 654 233 602L233 106Q233 70 239 52Q245 34 262 28Q279 22 312 20L312 0Q288 2 251.5 2.5Q215 3 177 3Q135 3 98.5 2.5Q62 2 39 0L39 20Q73 22 90 28Q107 34 112.5 52Q118 70 118 106L118 602Q118 639 112.5 656.5Q107 674 89.5 680.5Q72 687 39 688ZM208 353Q259 351 290 348.5Q321 346 342 344Q363 342 381 339Q456 329 490.5 299Q525 269 538 207L563 105Q572 62 582.5 44Q593 26 614 26Q630 27 640.5 35.5Q651 44 663 59L677 48Q654 17 629 1.5Q604 -14 562 -14Q519 -14 488.5 8.5Q458 31 445 94L425 194Q416 237 405 268.5Q394 300 374.5 318Q355 336 318 336L210 336Z"/>
+        </g>
+        <g stroke="currentColor" stroke-width="1.4">
+          <line x1="10" y1="8" x2="62" y2="8"/>
+          <line x1="88" y1="8" x2="140" y2="8"/>
+          <line x1="10" y1="56" x2="140" y2="56"/>
+        </g>
+        <path d="M75 4 l4 4 -4 4 -4 -4 z" fill="#d7ff1a" stroke="currentColor" stroke-width="1"/>
+      </svg>
+      <span>Created by Beatriz C Reis</span>
+    </div>
+    <p class="colofao" data-i18n="rod.colofao">Feito à mão: HTML, CSS e JavaScript, sem framework e sem etapa de build. Duas fontes, nenhuma outra dependência externa. Paleta com contraste medido contra a WCAG AA. © 2026</p>
+  </div>
+</footer>
+
+<script src="js/conteudo.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

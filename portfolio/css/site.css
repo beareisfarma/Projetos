@@ -1,0 +1,600 @@
+/* =========================================================
+   Beatriz C. Reis — portfólio
+   HTML, CSS e JS escritos à mão. Sem framework, sem build.
+
+   PALETA
+   Todos os pares de cor abaixo foram medidos contra o fundo
+   em que são usados, não estimados no olho. Razões WCAG:
+
+     claro  ink     #16140f sobre #faf8f4 ....... 17.6:1
+            ink-soft#3a352c sobre #faf8f4 ....... 11.5:1
+            muted   #6b6459 sobre #faf8f4 ........ 5.5:1
+            rust    #b4563a sobre #faf8f4 ........ 4.6:1  (AA)
+            teal    #2f6b6b sobre #faf8f4 ........ 5.8:1
+            branco  #ffffff sobre #b4563a ........ 4.9:1  (AA)
+
+     escuro ink     #f0ece4 sobre #16140f ....... 15.9:1
+            muted   #9a9284 sobre #16140f ........ 6.1:1
+            rust    #d98a6a sobre #16140f ........ 7.0:1
+            teal    #6fb3b3 sobre #16140f ........ 7.8:1
+
+   O neon #d7ff1a aparece UMA vez: no losango da logo pessoal
+   BCR no rodapé. É marca, não tema — não espalhar.
+   ========================================================= */
+
+/* ---------- TOKENS ---------- */
+:root {
+  --paper:      #faf8f4;
+  --paper-2:    #f2eee6;
+  --paper-3:    #e8e2d6;
+  --ink:        #16140f;
+  --ink-soft:   #3a352c;
+  --muted:      #6b6459;
+  --rule:       rgba(22, 20, 15, .12);
+  --rule-soft:  rgba(22, 20, 15, .07);
+  --rust:       #b4563a;
+  --rust-wash:  rgba(180, 86, 58, .09);
+  --teal:       #2f6b6b;
+  --teal-wash:  rgba(47, 107, 107, .09);
+  --on-accent:  #ffffff;
+  --shadow:     rgba(22, 20, 15, .10);
+
+  --display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --shell:   1120px;
+  --prose:   68ch;
+  --gutter:  clamp(1.25rem, 5vw, 4rem);
+}
+
+/* Escuro por preferência do sistema, a menos que o claro seja escolhido à mão */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:     #16140f;
+    --paper-2:   #1e1b15;
+    --paper-3:   #27231b;
+    --ink:       #f0ece4;
+    --ink-soft:  #cbc5b8;
+    --muted:     #9a9284;
+    --rule:      rgba(240, 236, 228, .14);
+    --rule-soft: rgba(240, 236, 228, .08);
+    --rust:      #d98a6a;
+    --rust-wash: rgba(217, 138, 106, .12);
+    --teal:      #6fb3b3;
+    --teal-wash: rgba(111, 179, 179, .12);
+    --on-accent: #16140f;
+    --shadow:    rgba(0, 0, 0, .45);
+  }
+}
+
+/* Escuro escolhido à mão */
+:root[data-theme="dark"] {
+  --paper:     #16140f;
+  --paper-2:   #1e1b15;
+  --paper-3:   #27231b;
+  --ink:       #f0ece4;
+  --ink-soft:  #cbc5b8;
+  --muted:     #9a9284;
+  --rule:      rgba(240, 236, 228, .14);
+  --rule-soft: rgba(240, 236, 228, .08);
+  --rust:      #d98a6a;
+  --rust-wash: rgba(217, 138, 106, .12);
+  --teal:      #6fb3b3;
+  --teal-wash: rgba(111, 179, 179, .12);
+  --on-accent: #16140f;
+  --shadow:    rgba(0, 0, 0, .45);
+}
+
+/* ---------- BASE ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Enquanto o inglês é aplicado, o corpo fica escondido por um instante.
+   Sem isso o visitante de fora vê um lampejo de português antes da troca.
+   A classe é removida pelo site.js assim que a tradução termina — e também
+   por um timer de segurança, para a página nunca ficar em branco se o JS falhar. */
+html.i18n-pendente body { opacity: 0; }
+body { transition: opacity .18s ease; }
+
+a { color: inherit; }
+img { max-width: 100%; display: block; }
+
+::selection { background: var(--rust); color: var(--on-accent); }
+
+:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.shell {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+
+.pular {
+  position: absolute; left: -9999px;
+  background: var(--ink); color: var(--paper);
+  padding: .7rem 1.2rem; border-radius: 6px; z-index: 999;
+  font-size: .85rem; font-weight: 600; text-decoration: none;
+}
+.pular:focus { left: 1rem; top: 1rem; }
+
+/* ---------- TIPOGRAFIA ---------- */
+h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.08; letter-spacing: -.015em; }
+
+.rotulo {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex; align-items: center; gap: .7rem;
+}
+.rotulo::after {
+  content: ''; flex: 1; height: 1px;
+  background: var(--rule);
+}
+
+.prosa { max-width: var(--prose); color: var(--ink-soft); }
+.prosa + .prosa { margin-top: 1rem; }
+
+code {
+  font-family: var(--mono);
+  font-size: .86em;
+  padding: .1em .38em;
+  border-radius: 4px;
+  background: var(--paper-3);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* ---------- NAV ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color .25s, background .25s;
+}
+.nav.rolou { border-bottom-color: var(--rule); }
+.nav-in {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: .85rem var(--gutter);
+  display: flex; align-items: center; gap: 1.5rem;
+}
+.marca {
+  font-family: var(--display);
+  font-size: 1.02rem; font-weight: 600; letter-spacing: -.01em;
+  text-decoration: none; white-space: nowrap;
+  margin-right: auto;
+}
+.marca .ponto { color: var(--rust); }
+
+.nav-links { display: flex; gap: 1.6rem; list-style: none; }
+.nav-links a {
+  font-size: .82rem; font-weight: 400;
+  color: var(--muted); text-decoration: none;
+  transition: color .18s;
+}
+.nav-links a:hover { color: var(--ink); }
+
+/* Controles: idioma + tema. Largura FIXA nos botões de tema —
+   com padding o glifo decide a largura e o bloco pula ao trocar. */
+.controles { display: flex; align-items: center; gap: .5rem; }
+
+.idioma {
+  display: flex; align-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 100px;
+  padding: 2px;
+  background: var(--paper-2);
+}
+/* Dois LINKS, não dois botões: o seletor funciona sem JavaScript e
+   dá ao buscador um caminho para achar a versão em inglês. */
+.idioma a {
+  font-family: var(--mono);
+  font-size: .68rem; font-weight: 600; letter-spacing: .08em;
+  padding: .28rem .62rem;
+  border-radius: 100px;
+  color: var(--muted); text-decoration: none;
+  transition: background .2s, color .2s;
+}
+.idioma a:hover { color: var(--ink); }
+.idioma a[aria-current="true"] {
+  background: var(--ink); color: var(--paper);
+}
+
+.tema {
+  width: 34px; height: 34px;
+  flex: 0 0 34px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rule); border-radius: 100px;
+  background: var(--paper-2); color: var(--ink);
+  font-size: .9rem; line-height: 1;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.tema:hover { border-color: var(--rust); }
+
+@media (max-width: 860px) {
+  .nav-links { display: none; }
+}
+
+/* ---------- HERO ---------- */
+.hero { padding: clamp(4rem, 12vh, 8rem) 0 clamp(3rem, 7vh, 5rem); }
+.hero-topo {
+  font-family: var(--mono);
+  font-size: .74rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--rust);
+  /* flex-start, não center: no celular esta linha quebra em duas e com
+     align-items:center a bolinha ia parar no meio do bloco, entre as
+     linhas, em vez de acompanhar a primeira. */
+  display: inline-flex; align-items: flex-start; gap: .55rem;
+  margin-bottom: 1.6rem;
+}
+.ponto-vivo {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex: 0 0 auto; margin-top: .45em;
+  background: var(--rust);
+  animation: pulsar 2.4s ease-in-out infinite;
+}
+@keyframes pulsar { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
+
+.hero h1 {
+  font-size: clamp(2.6rem, 7.5vw, 5.2rem);
+  margin-bottom: 1.2rem;
+}
+.hero h1 em { font-style: italic; color: var(--rust); }
+
+.hero-papeis {
+  font-family: var(--mono);
+  font-size: clamp(.74rem, 1.6vw, .84rem);
+  letter-spacing: .04em;
+  color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: .4rem .9rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--rule);
+}
+.hero-papeis span::after { content: ' ·'; color: var(--rule); }
+.hero-papeis span:last-child::after { content: ''; }
+
+.hero-lead {
+  font-size: clamp(1.02rem, 2vw, 1.18rem);
+  line-height: 1.7;
+  max-width: var(--prose);
+  color: var(--ink-soft);
+}
+.hero-lead strong { color: var(--ink); font-weight: 600; }
+.hero-lead + .hero-lead { margin-top: 1.1rem; }
+
+.hero-acoes {
+  display: flex; flex-wrap: wrap; gap: .7rem;
+  margin-top: 2.4rem;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: .55rem;
+  font-size: .88rem; font-weight: 600;
+  padding: .72rem 1.4rem;
+  border-radius: 100px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform .2s, background .2s, border-color .2s, color .2s;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn-forte { background: var(--rust); color: var(--on-accent); }
+.btn-forte:hover { background: color-mix(in srgb, var(--rust) 86%, var(--ink)); }
+.btn-leve { border-color: var(--rule); color: var(--ink-soft); }
+.btn-leve:hover { border-color: var(--rust); color: var(--ink); }
+.btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+/* ---------- SEÇÃO ---------- */
+.secao { padding: clamp(3.5rem, 9vh, 6rem) 0; border-top: 1px solid var(--rule); }
+.secao-cab { margin-bottom: 3rem; }
+.secao-cab h2 {
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  margin: 1rem 0 .9rem;
+}
+.secao-cab .prosa { font-size: .98rem; }
+
+/* ---------- TRABALHO ---------- */
+.obra {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  padding: 2.8rem 0;
+  border-top: 1px solid var(--rule-soft);
+}
+.obra:first-of-type { border-top: none; padding-top: 0; }
+
+.obra-rail { display: flex; flex-direction: column; gap: 1.2rem; }
+.obra-indice {
+  font-family: var(--display);
+  font-size: 2.6rem; line-height: 1;
+  color: var(--rule);
+  font-weight: 600;
+}
+.selo {
+  align-self: flex-start;
+  font-family: var(--mono);
+  font-size: .64rem; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: .26rem .7rem; border-radius: 100px;
+  border: 1px solid;
+}
+.selo-vivo    { color: var(--teal); border-color: var(--teal); background: var(--teal-wash); }
+.selo-entregue{ color: var(--muted); border-color: var(--rule); background: var(--paper-2); }
+.selo-nda     { color: var(--rust); border-color: var(--rust); background: var(--rust-wash); }
+
+.obra-pilha { display: flex; flex-wrap: wrap; gap: .35rem; }
+.tecla {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--muted);
+  padding: .2rem .55rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper-2);
+  white-space: nowrap;
+}
+
+.obra-corpo h3 {
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  margin-bottom: .2rem;
+}
+/* O peso 600 aqui não é enfeite: das itálicas da Playfair, só a 600 é
+   servida. Deixar no peso padrão faria o navegador inclinar a romana
+   por conta própria — falsa itálica, que numa serifada de alto
+   contraste como essa se nota na hora. */
+.obra-tese {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.02rem;
+  color: var(--rust);
+  margin-bottom: 1rem;
+}
+.obra-corpo > p { color: var(--ink-soft); max-width: var(--prose); }
+
+.obra-decisoes {
+  margin-top: 1.5rem;
+  border-left: 2px solid var(--rust);
+  padding-left: 1.2rem;
+}
+.obra-decisoes .rotulo { margin-bottom: .7rem; }
+.obra-decisoes .rotulo::after { display: none; }
+.obra-decisoes ul { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+.obra-decisoes li {
+  font-size: .9rem; line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: var(--prose);
+}
+.obra-decisoes li strong { color: var(--ink); font-weight: 600; }
+
+.obra-numeros {
+  display: flex; flex-wrap: wrap; gap: 1.8rem;
+  margin-top: 1.5rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule-soft);
+}
+.numero-val {
+  font-family: var(--display);
+  font-size: 1.6rem; font-weight: 600; line-height: 1;
+  color: var(--ink);
+}
+.numero-rot {
+  font-family: var(--mono);
+  font-size: .66rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); margin-top: .3rem;
+}
+
+.obra-link {
+  display: inline-flex; align-items: center; gap: .45rem;
+  margin-top: 1.5rem;
+  font-family: var(--mono);
+  font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+  color: var(--rust); text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s, gap .2s;
+}
+.obra-link:hover { border-bottom-color: var(--rust); gap: .75rem; }
+
+.obra-fig { margin-top: 1.8rem; }
+/* O height:auto não é opcional: os <img> trazem width/height reais no
+   HTML (que reservam o espaço e evitam o pulo do layout), e sem ele o
+   navegador obedece a altura do atributo e achata a imagem. */
+.obra-fig img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: 0 14px 40px var(--shadow);
+}
+.obra-fig.par {
+  display: grid; grid-template-columns: 1.5fr 1fr; gap: .9rem; align-items: start;
+}
+.obra-fig figcaption {
+  font-family: var(--mono);
+  font-size: .68rem; color: var(--muted);
+  margin-top: .6rem; grid-column: 1 / -1;
+}
+/* Print de tela cheia e print de celular pedem larguras diferentes: com um
+   limite só, ou a captura larga fica minúscula ou a estreita vira uma
+   coluna de 1.400px engolindo a página. As larguras abaixo saem da
+   proporção real de cada arquivo, para as duas darem ~500px de altura.
+
+   O limite vai no FIGURE, nunca em `width:auto` na imagem: com
+   loading="lazy" o navegador ainda não conhece o tamanho natural do
+   arquivo e a imagem colapsa para zero antes de carregar. */
+.obra-fig.retrato { max-width: 420px; }   /* proporção ~0,84 → ~500px de altura */
+.obra-fig.alto    { max-width: 260px; }   /* proporção ~0,50 → ~520px de altura */
+
+@media (max-width: 760px) {
+  .obra { grid-template-columns: 1fr; gap: 1.2rem; }
+  .obra-rail { flex-direction: row; align-items: center; flex-wrap: wrap; gap: .7rem; }
+  .obra-indice { font-size: 1.6rem; }
+  .obra-pilha { width: 100%; }
+  .obra-fig.par { grid-template-columns: 1fr; }
+}
+
+/* ---------- MÉTODO ---------- */
+.metodo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.principio { background: var(--paper); padding: 2rem 1.8rem; }
+.principio-n {
+  font-family: var(--mono);
+  font-size: .7rem; letter-spacing: .14em;
+  color: var(--rust); margin-bottom: .9rem;
+}
+.principio h3 { font-size: 1.22rem; margin-bottom: .6rem; }
+.principio p { font-size: .9rem; color: var(--ink-soft); line-height: 1.65; }
+@media (max-width: 720px) { .metodo { grid-template-columns: 1fr; } }
+
+/* ---------- PERFIL ---------- */
+.perfil { display: grid; grid-template-columns: 180px 1fr; gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start; }
+.perfil-foto {
+  width: 160px; height: 160px;
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--rule);
+  box-shadow: 0 14px 40px var(--shadow);
+}
+.perfil-foto img { width: 100%; height: 100%; object-fit: cover; }
+.credenciais { display: flex; flex-wrap: wrap; gap: .45rem; margin: 1.4rem 0; }
+.credencial {
+  font-family: var(--mono);
+  font-size: .7rem; letter-spacing: .04em;
+  color: var(--ink-soft);
+  padding: .3rem .75rem;
+  border: 1px solid var(--rule); border-radius: 100px;
+  background: var(--paper-2);
+}
+@media (max-width: 720px) { .perfil { grid-template-columns: 1fr; } }
+
+/* ---------- CAPACIDADES ---------- */
+.capacidades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem 2.5rem; }
+.cap h3 {
+  font-family: var(--mono);
+  font-size: .72rem; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--rust);
+  padding-bottom: .6rem; margin-bottom: .9rem;
+  border-bottom: 1px solid var(--rule);
+}
+.cap ul { list-style: none; display: flex; flex-direction: column; gap: .35rem; }
+.cap li { font-size: .88rem; color: var(--ink-soft); }
+@media (max-width: 860px) { .capacidades { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .capacidades { grid-template-columns: 1fr; } }
+
+/* ---------- CONTATO ---------- */
+#contato { border-top: 1px solid var(--rule); }
+.contato-cx { max-width: var(--prose); }
+.contato-cx h2 { font-size: clamp(2rem, 5.5vw, 3.4rem); margin: 1rem 0 1rem; }
+.contato-cx h2 em { font-style: italic; color: var(--rust); }
+.canais { display: flex; flex-direction: column; gap: 0; margin-top: 2.2rem; }
+.canal {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.1rem .2rem;
+  border-top: 1px solid var(--rule);
+  text-decoration: none;
+  transition: padding-left .25s, background .25s;
+}
+.canal:last-child { border-bottom: 1px solid var(--rule); }
+.canal:hover { padding-left: .8rem; background: var(--paper-2); }
+.canal svg { width: 18px; height: 18px; color: var(--rust); flex: 0 0 auto; }
+.canal-rot {
+  font-family: var(--mono);
+  font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted);
+}
+.canal-val { font-size: .95rem; font-weight: 600; color: var(--ink); }
+.canal-seta { margin-left: auto; color: var(--muted); font-size: 1rem; }
+
+/* ---------- RODAPÉ ---------- */
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 2.5rem 0 3rem;
+  background: var(--paper-2);
+}
+.rodape-in {
+  max-width: var(--shell); margin: 0 auto; padding-inline: var(--gutter);
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 1.2rem;
+}
+/* Padrão dos outros apps: SVG inline com height 1.7rem, num flex row,
+   seguido do crédito. A logo herda a cor do texto (currentColor). */
+.credito { display: flex; align-items: center; gap: .8rem; color: var(--ink-soft); }
+.credito svg { height: 1.7rem; width: auto; }
+.credito span { font-size: .82rem; }
+.colofao {
+  font-family: var(--mono);
+  font-size: .7rem; line-height: 1.7; color: var(--muted);
+  max-width: 34ch; text-align: right;
+}
+@media (max-width: 640px) {
+  .rodape-in { flex-direction: column; align-items: flex-start; }
+  .colofao { text-align: left; }
+}
+
+/* ---------- REVELAR ----------
+   O estado inicial invisível só vale quando há JavaScript para
+   devolver a visibilidade (a classe .js é posta no <head>).
+
+   Sem essa trava o site inteiro abaixo do hero some para quem
+   está sem JavaScript — e, pior, some também na impressão, que é
+   exatamente o que um recrutador faz para guardar um portfólio
+   em PDF. Página em branco no lugar do trabalho. */
+html.js .revelar {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+html.js .revelar.vista { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html.js .revelar { opacity: 1; transform: none; }
+}
+@media print {
+  html.js .revelar { opacity: 1 !important; transform: none !important; }
+}
+
+/* ---------- IMPRESSÃO ----------
+   Recrutador salva em PDF. Vale a pena o PDF sair legível. */
+@media print {
+  :root {
+    --paper: #fff; --paper-2: #fff; --paper-3: #f2f2f2;
+    --ink: #000; --ink-soft: #222; --muted: #555;
+    --rule: #bbb; --rule-soft: #ddd;
+    --rust: #8a3f28; --teal: #1f4d4d; --shadow: transparent;
+  }
+  .nav, .hero-acoes, .canal-seta { display: none; }
+  .obra, .principio { break-inside: avoid; }
+  .obra-fig img { box-shadow: none; }
+  a[href^="http"]::after { content: ' (' attr(href) ')'; font-size: .72em; color: #555; word-break: break-all; }
+}
