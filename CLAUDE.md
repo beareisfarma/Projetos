@@ -350,3 +350,68 @@ da Beatriz).
   verificado ponta a ponta com Playwright: upload de PDF → 5 ações com 6 fotos →
   4 meses de indicadores → relatório de 3 páginas → PDF de 0,82 MB em 1,3 s, sem
   erro de console, no desktop e no iPhone.
+
+## Portfólio pessoal (`portfolio/`)
+
+**URL provisória: https://beatrizcreis.vercel.app** — projeto Vercel
+`beatriz-portfolio` (`prj_yqSMJnYLNahY4eGMUMDxObNr4oVC`), ligado a
+`beareisfarma/Projetos`, Root Directory `portfolio`, Vercel Authentication
+desligada. Nasceu em 21/09/2026, do zero, com o gabeonchain.com como referência
+que a Beatriz trouxe. **Decisão dela em aberto: se este site assume o endereço
+`beatrizreis.vercel.app`** (hoje servido pelo projeto `projetos`).
+
+- **O público é RECRUTADOR e empresa contratando, não cliente de serviço.** Foi
+  escolha explícita da Beatriz, contra a alternativa de traduzir a landing de
+  venda. Por isso o texto fala de decisão técnica e resultado verificável em vez
+  de promessa, e o contato é e-mail e LinkedIn antes de WhatsApp. Não
+  reintroduzir o tom de "seu negócio está sangrando": aquilo é a outra peça.
+- **A tese do posicionamento**: ela não é uma desenvolvedora que aprendeu sobre
+  pharma — é alguém de dentro da operação comercial farmacêutica que passou a
+  construir o software dela. É isso que a torna rara, e é o que o hero diz.
+- **Sete projetos, com selo honesto**: No ar (Personal Assistant, R2D, Marque Seu
+  Jogo — com link para abrir), Entregue (Rep.Rota, Finances Control, Bot do
+  WhatsApp — com print), Sob NDA (ferramenta clínica). Nunca dar selo "no ar"
+  a projeto sem link aberto.
+- **Bilíngue com a URL mandando, não o botão**: `/` é português e está escrito
+  no próprio `index.html`; `/en` é inglês, servido pelo mesmo arquivo via
+  rewrite e trocado pelo `js/site.js`. Cada um tem canonical, title, description
+  e `hreflang` próprios. **O seletor PT|EN são dois `<a href>`, não botões** —
+  funciona sem JavaScript e dá ao buscador um caminho para achar o inglês.
+- **`js/conteudo.js` é a única fonte do texto**, com as duas línguas na mesma
+  chave. `node sincronizar.mjs` reescreve o português dentro do `index.html` a
+  partir dele e **falha** se uma chave existir num idioma e faltar no outro.
+  Não é etapa de build — o site publica sem rodar nada.
+- **As fontes (Inter e Playfair Display) são hospedadas em `fonts/`**, não
+  puxadas do Google. O colofão do rodapé afirma que não há dependência externa;
+  é a mesma regra "nada de CDN" do R2D; e Google Fonts embutido entrega o IP do
+  visitante ao Google a cada carregamento (o Landgericht München tratou isso
+  como violação do GDPR em jan/2026), o que importa com recrutador na Europa.
+  Só os pesos usados são servidos: por isso `.obra-tese` leva `font-weight:600`
+  — das itálicas da Playfair só a 600 existe, e sem isso o navegador fabrica
+  uma falsa itálica.
+- **A animação de entrada fica atrás de `html.js`.** Sem essa trava, quem abre
+  sem JavaScript vê uma capa e mais nada, e **a impressão sai em branco** — que
+  é exatamente o que acontece quando um recrutador salva o portfólio em PDF.
+  Existe um bloco `@media print` por causa disso.
+- **`.obra-fig img` precisa de `height:auto`.** Os `<img>` trazem width/height
+  reais (reservam espaço, evitam o pulo do layout); sem `height:auto` o
+  navegador obedece o atributo e achata a imagem.
+- **Limite de tamanho de captura vai no `<figure>`, nunca em `width:auto` na
+  `<img>`**: com `loading="lazy"` o navegador não conhece o tamanho natural e a
+  imagem colapsa para 2×2 px. `.retrato` (420px) para print de tela,
+  `.alto` (260px) para print de celular.
+- **A paleta foi medida, par a par, nos dois temas** — as razões estão anotadas
+  no topo do `css/site.css`. Terracota `#b4563a` (4,6:1 no claro) e
+  `#d98a6a` (7,0:1 no escuro); teal `#2f6b6b` / `#6fb3b3` como segunda cor.
+  Mudou cor, mede de novo, e **nos dois temas**.
+- **O botão do hero leva para `#contato`, não para um `mailto:`** — em máquina
+  sem cliente de e-mail o mailto não faz nada e parece site quebrado.
+- **Canal de contato vazio em `CONTATO` some da página** em vez de virar link
+  quebrado. **Faltam o LinkedIn e o GitHub**: `js/conteudo.js`, primeiras linhas.
+- Sem teste automatizado; o que existe é conferir no navegador nos dois idiomas,
+  nos dois temas, no celular, **com o JavaScript desligado** e imprimindo em PDF.
+- **O portfólio antigo (`portfólio/`, com acento) e o `index.html` da raiz
+  continuam intocados.** São duas cópias do mesmo site de venda antigo, e a que
+  está no ar em `beatrizreis.vercel.app` é a pior das duas (953 KB, imagens em
+  base64, sem nenhuma tag de SEO). Aposentar as duas depende da decisão da
+  Beatriz sobre o endereço.
