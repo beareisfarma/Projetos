@@ -49,6 +49,22 @@
     nos = document.querySelectorAll('[data-i18n-rotulo]');
     for (i = 0; i < nos.length; i++) nos[i].setAttribute('aria-label', t(nos[i].getAttribute('data-i18n-rotulo')));
 
+    /* Fichas de tecnologia guardadas como "um|dois|três" viram <span class="tecla">.
+       Ficam no dicionário porque nem toda ficha é nome próprio: "Multiusuário"
+       e "Gráficos em SVG" precisam virar "Multi-user" e "SVG charts", enquanto
+       "pdf.js" e "IndexedDB" são os mesmos nos dois idiomas. */
+    nos = document.querySelectorAll('[data-i18n-pilha]');
+    for (i = 0; i < nos.length; i++) {
+      var fichas = t(nos[i].getAttribute('data-i18n-pilha')).split('|');
+      nos[i].innerHTML = '';
+      for (var k = 0; k < fichas.length; k++) {
+        var ficha = document.createElement('span');
+        ficha.className = 'tecla';
+        ficha.textContent = fichas[k];
+        nos[i].appendChild(ficha);
+      }
+    }
+
     /* Listas guardadas como "um|dois|três" viram <li> */
     nos = document.querySelectorAll('[data-i18n-lista]');
     for (i = 0; i < nos.length; i++) {

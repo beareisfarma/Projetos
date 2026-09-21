@@ -66,7 +66,8 @@ const CONTEUDO = {
     'obra.decisoes': 'Decisões que importaram',
     'obra.abrir':    'Abrir o produto',
 
-    /* 01 — Personal Assistant */
+    'o1.nome': 'Personal Assistant',
+    'o1.pilha': 'PWA|Web Push · VAPID|Supabase Postgres|Deno Edge Functions|pg_cron · pg_net|bcrypt · pgcrypto|Whisper',
     'o1.tese': 'Prazo que só existe na cabeça é prazo perdido.',
     'o1.desc': 'Assistente pessoal de prazos. Você manda um recado por texto ou por áudio — «consulta com a Ana sexta às 14h» — e o sistema lê a data, agenda a escada de avisos que você escolheu (2 dias, 1 dia, 1 hora, 15 minutos) e notifica na tela de bloqueio do celular, com o app fechado.',
     'o1.d1.html': '<strong>A IA não está no caminho crítico.</strong> Quem lê a data é um interpretador de português escrito à mão, determinístico e gratuito, que cobre «sexta às 14h», «dia 20», «amanhã de manhã» e «em duas semanas». A Claude API só entra quando o recado não tem data reconhecível, e uma variável de ambiente desliga a IA por completo. Sem chave nenhuma, o app funciona inteiro.',
@@ -77,6 +78,8 @@ const CONTEUDO = {
     'o1.n3': 'intervalo do tick no pg_cron',
 
     /* 02 — R2D */
+    'o2.nome': 'Relatório de Execução do R2D',
+    'o2.pilha': 'PWA offline-first|pdf.js|IndexedDB|html2canvas|jsPDF|Gráficos em SVG|Service Worker',
     'o2.tese': 'O plano já foi aprovado. O que falta é provar a execução.',
     'o2.desc': 'Ferramenta de campo para a força de representantes da indústria farmacêutica. Lê o PDF do plano aprovado apenas como referência, registra as ações realizadas (data, ação, PDV ou médico, resultado, fotos) e os indicadores mês a mês, e fecha um relatório de três páginas em PDF para a gerência — números primeiro, depois objetivo e gap, depois as ações em ordem cronológica.',
     'o2.d1.html': '<strong>O extrator descarta de propósito a seção de indicadores do PDF.</strong> Ler market share de dentro do plano seria inventar um número que vai subir para a gerência. A ferramenta guarda, compara e desenha — não calcula, não estima e não completa indicador nenhum. Diferença entre dois valores digitados é comparação; o resto seria chute com cara de dado.',
@@ -87,6 +90,8 @@ const CONTEUDO = {
     'o2.n3': 'para gerar um PDF de 0,82 MB',
 
     /* 03 — Marque Seu Jogo */
+    'o3.nome': 'Marque Seu Jogo',
+    'o3.pilha': 'PWA|Service Worker|Sem framework',
     'o3.tese': 'Quatro cronômetros diferentes num bolso só.',
     'o3.desc': 'Cronômetro e placar para quem joga. Quatro modos — cronômetro, timer, HIIT e Tabata — mais um placar de vôlei separado. Instalável na tela de início, funciona sem rede, e põe os números numa fonte inclinada que se lê da beira da quadra.',
     'o3.d1.html': '<strong>PWA de verdade, não site que finge ser app.</strong> Service worker próprio, instalação na tela de início e funcionamento integral sem rede — que é o estado normal da maioria dos ginásios.',
@@ -94,24 +99,32 @@ const CONTEUDO = {
     'o3.n2': 'apps no mesmo endereço',
 
     /* 04 — Rep.Rota */
+    'o4.nome': 'Rep.Rota',
+    'o4.pilha': 'Web app|Multiusuário|Mapa|Agenda de ciclos',
     'o4.tese': 'O representante não perde venda por preguiça. Perde por roteiro ruim.',
     'o4.desc': 'Sistema de gestão de carteira para representantes comerciais, consultores de vendas e consultores médicos: clientes categorizados por potencial, roteiro de visitas, agenda de ciclos e mapa, num painel só, acessível de qualquer aparelho.',
     'o4.d1.html': '<strong>Construído a partir da rotina, não de um briefing.</strong> A categorização por potencial e a agenda de ciclos existem porque é assim que o trabalho se organiza na prática — não porque ficavam bem numa tela.',
     'o4.fig': 'Painel de carteira e tela de acesso.',
 
     /* 05 — Finances Control */
+    'o5.nome': 'Finances Control',
+    'o5.pilha': 'Dashboard|Multiusuário|Alertas',
     'o5.tese': 'Não falta disciplina. Falta enxergar para onde o dinheiro vai.',
     'o5.desc': 'Aplicativo de organização financeira com painel visual e diagnóstico por categoria: mostra em tempo real onde o dinheiro está indo, sinaliza gasto crítico, acompanha meta de poupança e exibe o orçamento do mês.',
     'o5.d1.html': '<strong>Diagnóstico, não extrato.</strong> Listar gasto qualquer planilha faz. O valor está em apontar a categoria que estourou e o quanto ainda falta para a meta — a leitura, não o dado.',
     'o5.fig': 'Painel com diagnóstico por categoria e meta de poupança.',
 
     /* 06 — Assistente no WhatsApp */
+    'o6.nome': 'Assistente no WhatsApp',
+    'o6.pilha': 'IA conversacional|WhatsApp|Agendamento',
     'o6.tese': '80% do atendimento é previsível. Nenhuma parte dele precisava de você.',
     'o6.desc': 'Assistente conversacional no WhatsApp que atende, tira dúvida, coleta informação e agenda consulta 24 horas por dia, sem intervenção humana. Chega até uma pessoa apenas o contato já qualificado.',
     'o6.d1.html': '<strong>Qualificar é o produto; responder é o efeito colateral.</strong> Um bot que só responde economiza digitação. Um bot que qualifica decide o que merece o tempo de uma pessoa — e é aí que o custo cai de verdade.',
     'o6.fig': 'Conversa real do assistente no WhatsApp.',
 
     /* 07 — NDA */
+    'o7.nome': 'Ferramenta clínica · Pharma',
+    'o7.pilha': 'Web|Decisão clínica|Confidencial',
     'o7.tese': 'A venda trava no segundo em que o profissional hesita.',
     'o7.desc': 'Solução web desenvolvida para uma grande empresa farmacêutica. Apoia o profissional de saúde na decisão clínica no momento exato da orientação ao paciente. Escopo, arquitetura e resultado disponíveis mediante assinatura de NDA.',
     'o7.d1.html': '<strong>O gargalo nunca foi informação — era o momento.</strong> O conteúdo já existia em bula e material técnico. O que faltava era ele chegar no segundo da decisão, sem exigir leitura. Por isso a ferramenta é uma entrada e uma resposta, não uma biblioteca.',
@@ -193,7 +206,8 @@ const CONTEUDO = {
     'obra.decisoes': 'Decisions that mattered',
     'obra.abrir':    'Open the product',
 
-    /* 01 — Personal Assistant */
+    'o1.nome': 'Personal Assistant',
+    'o1.pilha': 'PWA|Web Push · VAPID|Supabase Postgres|Deno Edge Functions|pg_cron · pg_net|bcrypt · pgcrypto|Whisper',
     'o1.tese': 'A deadline that lives only in your head is a deadline you will miss.',
     'o1.desc': 'A personal deadline assistant. You send a note by text or by voice — “appointment with Ana, Friday at 2pm” — and the system reads the date, schedules the reminder ladder you chose (2 days, 1 day, 1 hour, 15 minutes) and pushes to your phone’s lock screen with the app closed.',
     'o1.d1.html': '<strong>AI is off the critical path.</strong> Dates are read by a hand-written, deterministic Portuguese parser that costs nothing and covers “Friday at 2pm”, “the 20th”, “tomorrow morning” and “in two weeks”. The Claude API only steps in when a note carries no recognisable date, and one environment variable turns AI off entirely. With no API key at all, the app still works end to end.',
@@ -204,6 +218,8 @@ const CONTEUDO = {
     'o1.n3': 'pg_cron tick interval',
 
     /* 02 — R2D */
+    'o2.nome': 'R2D Execution Report',
+    'o2.pilha': 'PWA offline-first|pdf.js|IndexedDB|html2canvas|jsPDF|SVG charts|Service Worker',
     'o2.tese': 'The plan is already approved. What is missing is proof of execution.',
     'o2.desc': 'A field tool for pharmaceutical sales forces. It reads the approved plan PDF purely as reference, records the actions actually taken (date, action, point of sale or doctor, outcome, photos) and the month-by-month indicators, then closes a three-page PDF report for management — numbers first, then objective and gap, then the actions in chronological order.',
     'o2.d1.html': '<strong>The extractor deliberately discards the indicator section of the PDF.</strong> Reading market share out of the plan would mean inventing a number that travels up to management. The tool stores, compares and charts — it does not calculate, estimate or fill in any indicator. The difference between two values you typed is a comparison; anything beyond that would be a guess wearing the costume of data.',
@@ -214,6 +230,8 @@ const CONTEUDO = {
     'o2.n3': 'to generate a 0.82 MB PDF',
 
     /* 03 — Marque Seu Jogo */
+    'o3.nome': 'Marque Seu Jogo',
+    'o3.pilha': 'PWA|Service Worker|No framework',
     'o3.tese': 'Four different timers in a single pocket.',
     'o3.desc': 'A stopwatch and scoreboard for people who actually play. Four modes — stopwatch, timer, HIIT and Tabata — plus a separate volleyball scoreboard. Installs to the home screen, runs with no network, and sets the numbers in a slanted face you can read from the sideline.',
     'o3.d1.html': '<strong>A real PWA, not a website pretending to be an app.</strong> Its own service worker, home-screen install and full function with no network — which is the normal state of most gyms.',
@@ -221,24 +239,32 @@ const CONTEUDO = {
     'o3.n2': 'apps at the same address',
 
     /* 04 — Rep.Rota */
+    'o4.nome': 'Rep.Rota',
+    'o4.pilha': 'Web app|Multi-user|Map|Cycle calendar',
     'o4.tese': 'A field rep does not lose sales to laziness. They lose them to a bad route.',
     'o4.desc': 'A territory management system for sales reps, commercial consultants and medical liaisons: accounts ranked by potential, visit routing, cycle calendar and map, in a single dashboard, on any device.',
     'o4.d1.html': '<strong>Built from the routine, not from a brief.</strong> Potential-based ranking and the cycle calendar exist because that is how the work is actually organised — not because they looked good on a screen.',
     'o4.fig': 'Territory dashboard and sign-in screen.',
 
     /* 05 — Finances Control */
+    'o5.nome': 'Finances Control',
+    'o5.pilha': 'Dashboard|Multi-user|Alerts',
     'o5.tese': 'It is not a discipline problem. It is a visibility problem.',
     'o5.desc': 'A personal finance app with a visual dashboard and per-category diagnosis: it shows in real time where the money is going, flags critical spending, tracks a savings goal and lays out the month’s budget.',
     'o5.d1.html': '<strong>Diagnosis, not a bank statement.</strong> Any spreadsheet can list expenses. The value is in naming the category that blew up and how far the goal still is — the reading, not the data.',
     'o5.fig': 'Dashboard with per-category diagnosis and savings goal.',
 
     /* 06 — WhatsApp assistant */
+    'o6.nome': 'WhatsApp Assistant',
+    'o6.pilha': 'Conversational AI|WhatsApp|Scheduling',
     'o6.tese': '80% of your inbound is predictable. None of it needed you.',
     'o6.desc': 'A conversational assistant on WhatsApp that answers, resolves questions, collects information and books appointments around the clock, with no human in the loop. Only the already-qualified contact reaches a person.',
     'o6.d1.html': '<strong>Qualifying is the product; answering is the side effect.</strong> A bot that only answers saves typing. A bot that qualifies decides what deserves a person’s time — and that is where the cost actually drops.',
     'o6.fig': 'A real conversation with the WhatsApp assistant.',
 
     /* 07 — NDA */
+    'o7.nome': 'Clinical tool · Pharma',
+    'o7.pilha': 'Web|Clinical decision|Confidential',
     'o7.tese': 'The sale stalls the second the professional hesitates.',
     'o7.desc': 'A web tool built for a large pharmaceutical company. It supports the health professional’s clinical decision at the exact moment of advising the patient. Scope, architecture and outcome available under NDA.',
     'o7.d1.html': '<strong>The bottleneck was never information — it was timing.</strong> The content already existed in the leaflet and the technical material. What was missing was it arriving at the second of the decision, without demanding reading. That is why the tool is one input and one answer, not a library.',

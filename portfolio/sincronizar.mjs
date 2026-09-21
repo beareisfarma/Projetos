@@ -68,6 +68,11 @@ function trocar(atributo, transformar) {
 
 trocar('data-i18n',       (v) => escaparTexto(v));
 trocar('data-i18n-html',  (v) => v);
+trocar('data-i18n-pilha', (v) =>
+  '\n          ' +
+  v.split('|').map((i) => `<span class="tecla">${escaparTexto(i)}</span>`).join('\n          ') +
+  '\n        '
+);
 trocar('data-i18n-lista', (v) =>
   '\n          ' +
   v.split('|').map((i) => `<li>${escaparTexto(i)}</li>`).join('\n          ') +
@@ -82,7 +87,7 @@ if (faltando.length) {
 
 /* O caminho inverso: chave no dicionário que ninguém usa na página.
    Não é erro — pode ser texto de meta ou de atributo — mas vale o aviso. */
-const usadas = new Set([...original.matchAll(/data-i18n(?:-html|-lista|-alt|-rotulo)?="([^"]+)"/g)].map((m) => m[1]));
+const usadas = new Set([...original.matchAll(/data-i18n(?:-html|-lista|-pilha|-alt|-rotulo)?="([^"]+)"/g)].map((m) => m[1]));
 const soltas = Object.keys(pt).filter((c) => !usadas.has(c) && !c.startsWith('meta.'));
 if (soltas.length) console.warn('Aviso — chaves sem uso na página: ' + soltas.join(', '));
 
