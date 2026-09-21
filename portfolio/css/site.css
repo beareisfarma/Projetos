@@ -112,13 +112,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Enquanto o inglês é aplicado, o corpo fica escondido por um instante.
-   Sem isso o visitante de fora vê um lampejo de português antes da troca.
-   A classe é removida pelo site.js assim que a tradução termina — e também
-   por um timer de segurança, para a página nunca ficar em branco se o JS falhar. */
-html.i18n-pendente body { opacity: 0; }
-body { transition: opacity .18s ease; }
-
 a { color: inherit; }
 img { max-width: 100%; display: block; }
 

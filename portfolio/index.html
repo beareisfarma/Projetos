@@ -41,12 +41,11 @@
 <link rel="stylesheet" href="css/site.css">
 
 <script>
-/* Roda antes de qualquer pintura, por dois motivos:
-   1. aplicar o tema guardado, senão o claro pisca antes do escuro;
-   2. em /en, segurar o corpo por um instante enquanto o texto é trocado,
-      senão o visitante de fora vê um lampejo de português.
-   O setTimeout é a rede de segurança: se o site.js não carregar,
-   a página aparece mesmo assim em vez de ficar em branco. */
+/* Roda antes de qualquer pintura, para aplicar o tema guardado — senão
+   o claro pisca antes do escuro.
+
+   Não existe mais guarda contra lampejo de idioma: o inglês sai pronto
+   do servidor em en.html, então não há troca de texto para esconder. */
 (function () {
   var d = document.documentElement;
   /* Só com esta classe o CSS esconde as seções para revelá-las na rolagem.
@@ -56,10 +55,6 @@
     var tema = localStorage.getItem('bcr-tema');
     if (tema === 'light' || tema === 'dark') d.setAttribute('data-theme', tema);
   } catch (e) { /* aba privativa: segue no tema do sistema */ }
-  if (location.pathname.replace(/\/+$/, '') === '/en') {
-    d.className += ' i18n-pendente';
-    setTimeout(function () { d.classList.remove('i18n-pendente'); }, 1500);
-  }
 })();
 </script>
 </head>

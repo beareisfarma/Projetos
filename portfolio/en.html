@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<!-- GERADO por sincronizar.mjs a partir de index.html + js/conteudo.js.
+     Não edite à mão: edite o dicionário e rode `node sincronizar.mjs`. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Beatriz C. Reis — Project management, applied AI and full-stack development</title>
+<meta name="description" content="I work inside commercial field operations in the pharmaceutical industry and build the software that operation needs. Seven products delivered, three live. Offline PWAs, Web Push, Supabase and zero-cost architecture.">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Beatriz C. Reis">
+
+<!-- O português mora em "/", o inglês em "/en". Dois endereços de verdade,
+     para o buscador poder indexar e servir cada idioma ao público certo. -->
+<link rel="canonical" href="https://beatrizreis.vercel.app/en">
+<link rel="alternate" hreflang="pt-BR" href="https://beatrizreis.vercel.app/">
+<link rel="alternate" hreflang="en"    href="https://beatrizreis.vercel.app/en">
+<link rel="alternate" hreflang="x-default" href="https://beatrizreis.vercel.app/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Beatriz C. Reis">
+<meta property="og:url" content="https://beatrizreis.vercel.app/en">
+<meta property="og:title" content="Beatriz C. Reis — Project management, applied AI and full-stack development">
+<meta property="og:description" content="I work inside commercial field operations in the pharmaceutical industry and build the software that operation needs. Seven products delivered, three live. Offline PWAs, Web Push, Supabase and zero-cost architecture.">
+<meta property="og:image" content="https://beatrizreis.vercel.app/img/beatriz-reis.jpg">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Beatriz C. Reis — Project management, applied AI and full-stack development">
+<meta name="twitter:description" content="I work inside commercial field operations in the pharmaceutical industry and build the software that operation needs. Seven products delivered, three live. Offline PWAs, Web Push, Supabase and zero-cost architecture.">
+<meta name="twitter:image" content="https://beatrizreis.vercel.app/img/beatriz-reis.jpg">
+
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#faf8f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)">
+
+<!-- As fontes são servidas por este mesmo domínio (ver css/fontes.css).
+     Nada sai daqui para terceiros — nem uma requisição. -->
+<link rel="preload" href="fonts/inter-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/playfair-display-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/fontes.css">
+<link rel="stylesheet" href="css/site.css">
+
+<script>
+/* Roda antes de qualquer pintura, para aplicar o tema guardado — senão
+   o claro pisca antes do escuro.
+
+   Não existe mais guarda contra lampejo de idioma: o inglês sai pronto
+   do servidor em en.html, então não há troca de texto para esconder. */
+(function () {
+  var d = document.documentElement;
+  /* Só com esta classe o CSS esconde as seções para revelá-las na rolagem.
+     Sem JavaScript, elas continuam visíveis em vez de sumirem para sempre. */
+  d.className += ' js';
+  try {
+    var tema = localStorage.getItem('bcr-tema');
+    if (tema === 'light' || tema === 'dark') d.setAttribute('data-theme', tema);
+  } catch (e) { /* aba privativa: segue no tema do sistema */ }
+})();
+</script>
+</head>
+<body>
+
+<a class="pular" href="#conteudo" data-i18n="nav.pular">Skip to content</a>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav">
+  <div class="nav-in">
+    <a class="marca" href="/">Beatriz C<span class="ponto">.</span> Reis</a>
+
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#trabalho" data-i18n="nav.trabalho">Work</a></li>
+        <li><a href="#metodo"   data-i18n="nav.metodo">Method</a></li>
+        <li><a href="#perfil"   data-i18n="nav.perfil">Profile</a></li>
+        <li><a href="#contato"  data-i18n="nav.contato">Contact</a></li>
+      </ul>
+    </nav>
+
+    <div class="controles">
+      <div class="idioma" role="group" aria-label="Idioma" data-i18n-rotulo="nav.idioma">
+        <a href="/"   data-idioma="pt" hreflang="pt-BR">PT</a>
+        <a href="/en" data-idioma="en" hreflang="en" aria-current="true">EN</a>
+      </div>
+      <button class="tema" id="btnTema" type="button"
+              aria-label="Alternar tema claro e escuro" data-i18n-rotulo="nav.tema">☾</button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+<div class="shell">
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <p class="hero-topo"><span class="ponto-vivo" aria-hidden="true"></span><span data-i18n="hero.hoje">Currently: commercial field operations · pharmaceutical industry</span></p>
+
+    <h1 data-i18n="hero.nome">Beatriz C. Reis</h1>
+
+    <p class="hero-papeis">
+      <span data-i18n="hero.papel1">Project management</span>
+      <span data-i18n="hero.papel2">Applied AI</span>
+      <span data-i18n="hero.papel3">Full-stack development</span>
+      <span data-i18n="hero.papel4">Pharmaceutical industry</span>
+    </p>
+
+    <p class="hero-lead" data-i18n-html="hero.lead1.html">I don’t study the problem from the outside. <strong>I work inside commercial field operations in the pharmaceutical industry</strong> — and I build the software that operation needs. Every product on this page started as a problem I had to solve myself, after hours.</p>
+    <p class="hero-lead" data-i18n-html="hero.lead2.html">Seven products delivered, three of them live. <strong>Two open straight in the browser, with no sign-up at all</strong>; the third runs on a private account, and the reason why is written below. All hand-written, all running at zero infrastructure cost, all with a deterministic core and AI kept off the critical path — because a product that only works when an API key answers isn’t a product.</p>
+
+    <div class="hero-acoes">
+      <a class="btn btn-forte" href="#trabalho">
+        <span data-i18n="hero.btn1">See the work</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+      </a>
+      <a class="btn btn-leve" href="#contato">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+        <span data-i18n="hero.btn2">Get in touch</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===================== TRABALHO ===================== -->
+  <section class="secao" id="trabalho">
+    <div class="secao-cab revelar">
+      <p class="rotulo"><span data-i18n="trab.rotulo">01 — Selected work</span></p>
+      <h2 data-i18n="trab.titulo">Seven problems. Seven systems.</h2>
+      <p class="prosa" data-i18n="trab.lead">Each entry gives the problem, the technical decision that mattered most, and what you can go and check. Where there is a link, it opens the running product — not a demo video.</p>
+    </div>
+
+    <!-- 01 · Personal Assistant -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">01</div>
+        <span class="selo selo-privado" data-i18n="selo.privado">Live · private account</span>
+      </div>
+      <div class="obra-corpo">
+        <h3 data-i18n="o1.nome">Personal Assistant</h3>
+        <p class="obra-tese" data-i18n="o1.tese">A deadline that lives only in your head is a deadline you will miss.</p>
+        <p data-i18n="o1.desc">A personal deadline assistant. You send a note by text or by voice — “appointment with Ana, Friday at 2pm” — and the system reads the date, schedules the reminder ladder you chose (2 days, 1 day, 1 hour, 15 minutes) and pushes to your phone’s lock screen with the app closed.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisions that mattered</span></p>
+          <ul>
+            <li data-i18n-html="o1.d1.html"><strong>AI is off the critical path.</strong> Dates are read by a hand-written, deterministic Portuguese parser that costs nothing and covers “Friday at 2pm”, “the 20th”, “tomorrow morning” and “in two weeks”. The Claude API only steps in when a note carries no recognisable date, and one environment variable turns AI off entirely. With no API key at all, the app still works end to end.</li>
+            <li data-i18n-html="o1.d2.html"><strong>Pulling a reminder off the queue is atomic in the database.</strong> <code>DELETE … RETURNING</code> with <code>FOR UPDATE SKIP LOCKED</code> — that is what stops two ticks from notifying the same deadline. Read-then-delete would have been simpler, and would have double-notified.</li>
+            <li data-i18n-html="o1.d3.html"><strong>The API runs in a Supabase Edge Function, not on Vercel.</strong> Inside it the service key already exists in the environment, so the project deploys without anyone registering a single variable. Scheduling is Postgres’s own <code>pg_cron</code> — no external scheduler, no paid tier.</li>
+            <li data-i18n-html="o1.d4.html"><strong>There is no public sign-up, and that is deliberate.</strong> This is a personal assistant that pushes notifications to my own phone’s lock screen, not a SaaS: a new account is created by SQL. The sign-in screen still rate-limits to five attempts per origin, and <em>being locked out beats the correct password</em> — checking the credential first would make the limit decorative.</li>
+          </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">What was used, and why</span></p>
+          <dl data-i18n-ficha="o1.ficha">
+            <dt>PWA + Service Worker</dt><dd>installs to the home screen and opens with no network</dd>
+            <dt>Supabase Postgres</dt><dd>database and alert queue in one place, in a single transaction</dd>
+            <dt>Deno Edge Function</dt><dd>the API; the service key already exists in its environment, zero variables to register</dd>
+            <dt>pg_cron + pg_net</dt><dd>the clock lives inside the database — no external service, no paid tier</dd>
+            <dt>Web Push (VAPID)</dt><dd>straight to the device, no middleman and no cost</dd>
+            <dt>bcrypt via pgcrypto</dt><dd>the password is never stored in the clear; it is checked inside Postgres</dd>
+            <dt>Whisper (Groq)</dt><dd>transcribes the voice note on the free tier</dd>
+            <dt>Claude API</dt><dd>optional, and only when a note carries no recognisable date</dd>
+          </dl>
+        </div>
+
+        <div class="obra-arq">
+          <p class="rotulo"><span data-i18n="obra.arquitetura">Architecture</span></p>
+          <figure class="obra-diag">
+            <svg class="dg" viewBox="0 0 380 626" role="img" data-i18n-rotulo="d1.legenda" aria-label="·" xmlns="http://www.w3.org/2000/svg">
+              <rect class="dg-cx" x="10" y="8" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="130" y="33" text-anchor="middle" data-i18n="d1.n1">A note — text or voice</text>
+              <line class="dg-seta" x1="130" y1="50" x2="130" y2="84"/>
+              <polygon class="dg-ponta" points="130,92 125,83 135,83"/>
+              <text class="dg-arot" x="140" y="74" data-i18n="d1.a1">voice → Whisper</text>
+              <rect class="dg-cx dg-cx-forte" x="10" y="92" width="240" height="52" rx="7"/>
+              <text class="dg-rot" x="130" y="115" text-anchor="middle" data-i18n="d1.n2">Local date parser</text>
+              <text class="dg-nota" x="130" y="131" text-anchor="middle" data-i18n="d1.n2b">deterministic · no cost</text>
+              <line class="dg-seta dg-tracejada" x1="250" y1="118" x2="254" y2="118"/>
+              <polygon class="dg-ponta" points="262,118 253,113 253,123"/>
+              <rect class="dg-cx dg-tracejada" x="262" y="100" width="110" height="36" rx="7"/>
+              <text class="dg-rot" x="317" y="122" text-anchor="middle" data-i18n="d1.r1">Claude API</text>
+              <text class="dg-nota" x="317" y="150" text-anchor="middle" data-i18n="d1.r1b">only if no date</text>
+              <line class="dg-seta" x1="130" y1="144" x2="130" y2="178"/>
+              <polygon class="dg-ponta" points="130,186 125,177 135,177"/>
+              <text class="dg-arot" x="140" y="168" data-i18n="d1.a2">writes the reminder</text>
+              <rect class="dg-cx" x="10" y="186" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="130" y="211" text-anchor="middle" data-i18n="d1.n3">Reminder + alert ladder</text>
+              <line class="dg-seta" x1="130" y1="228" x2="130" y2="262"/>
+              <polygon class="dg-ponta" points="130,270 125,261 135,261"/>
+              <text class="dg-arot" x="140" y="252" data-i18n="d1.a5">queues the alerts</text>
+              <rect class="dg-grupo" x="10" y="270" width="240" height="86" rx="9"/>
+              <text class="dg-grot" x="22" y="288" data-i18n="d1.g">Postgres</text>
+              <rect class="dg-cx" x="20" y="298" width="110" height="42" rx="7"/>
+              <text class="dg-rot" x="75" y="323" text-anchor="middle" data-i18n="d1.g1">alert queue</text>
+              <rect class="dg-cx" x="142" y="298" width="98" height="42" rx="7"/>
+              <text class="dg-rot" x="191" y="323" text-anchor="middle" data-i18n="d1.g2">pg_cron</text>
+              <line class="dg-seta" x1="130" y1="356" x2="130" y2="390"/>
+              <polygon class="dg-ponta" points="130,398 125,389 135,389"/>
+              <text class="dg-arot" x="140" y="380" data-i18n="d1.a3">every minute</text>
+              <rect class="dg-cx" x="10" y="398" width="240" height="52" rx="7"/>
+              <text class="dg-rot" x="130" y="421" text-anchor="middle" data-i18n="d1.n4">tick · Edge Function</text>
+              <text class="dg-nota" x="130" y="437" text-anchor="middle" data-i18n="d1.n4b">DELETE … RETURNING · SKIP LOCKED</text>
+              <line class="dg-seta" x1="130" y1="450" x2="130" y2="484"/>
+              <polygon class="dg-ponta" points="130,492 125,483 135,483"/>
+              <text class="dg-arot" x="140" y="474" data-i18n="d1.a4">no middleman</text>
+              <rect class="dg-cx" x="10" y="492" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="130" y="517" text-anchor="middle" data-i18n="d1.n5">Web Push · VAPID</text>
+              <line class="dg-seta" x1="130" y1="534" x2="130" y2="568"/>
+              <polygon class="dg-ponta" points="130,576 125,567 135,567"/>
+              <text class="dg-arot" x="140" y="558" data-i18n="d1.a6">with the app closed</text>
+              <rect class="dg-cx" x="10" y="576" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="130" y="601" text-anchor="middle" data-i18n="d1.n6">Phone lock screen</text>
+            </svg>
+            <figcaption data-i18n="d1.legenda">The path a note takes to the lock screen. Reading the date is deterministic; AI is an optional detour.</figcaption>
+          </figure>
+        </div>
+
+        <div class="obra-numeros">
+          <div><div class="numero-val">74</div><div class="numero-rot" data-i18n="o1.n1">automated tests</div></div>
+          <div><div class="numero-val">R$ 0</div><div class="numero-rot" data-i18n="o1.n2">monthly infrastructure cost</div></div>
+          <div><div class="numero-val">1 min</div><div class="numero-rot" data-i18n="o1.n3">pg_cron tick interval</div></div>
+        </div>
+
+        <a class="obra-link" href="https://assistentepessoal.vercel.app" target="_blank" rel="noopener">
+          <span data-i18n="obra.abrirConta">Open the app · account required</span> <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- 02 · R2D -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">02</div>
+        <span class="selo selo-vivo" data-i18n="selo.vivo">Live</span>
+      </div>
+      <div class="obra-corpo">
+        <h3 data-i18n="o2.nome">R2D Execution Report</h3>
+        <p class="obra-tese" data-i18n="o2.tese">The plan is already approved. What is missing is proof of execution.</p>
+        <p data-i18n="o2.desc">A field tool for pharmaceutical sales forces. It reads the approved plan PDF purely as reference, records the actions actually taken (date, action, point of sale or doctor, outcome, photos) and the month-by-month indicators, then closes a three-page PDF report for management — numbers first, then objective and gap, then the actions in chronological order.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisions that mattered</span></p>
+          <ul>
+            <li data-i18n-html="o2.d1.html"><strong>The extractor deliberately discards the indicator section of the PDF.</strong> Reading market share out of the plan would mean inventing a number that travels up to management. The tool stores, compares and charts — it does not calculate, estimate or fill in any indicator. The difference between two values you typed is a comparison; anything beyond that would be a guess wearing the costume of data.</li>
+            <li data-i18n-html="o2.d2.html"><strong>No CDN.</strong> pdf.js, html2canvas, jsPDF and the typeface are vendored and cached by the service worker. The real setting is a pharmacy aisle and a clinic waiting room: the app has to open with no signal, or it is good for nothing.</li>
+            <li data-i18n-html="o2.d3.html"><strong>No sign-up, no login, no server.</strong> Everything lives in the browser’s IndexedDB. The trade-off was taken head-on rather than hidden: JSON backup and restore with the photos embedded, right at the top of the screen.</li>
+          </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">What was used, and why</span></p>
+          <dl data-i18n-ficha="o2.ficha">
+            <dt>Offline-first PWA</dt><dd>a pharmacy aisle and a waiting room are the real setting</dd>
+            <dt>pdf.js</dt><dd>reads the approved plan in the browser itself; no file is uploaded anywhere</dd>
+            <dt>IndexedDB</dt><dd>everything lives on the device — no sign-up, no login, no server</dd>
+            <dt>Hand-written SVG charts</dt><dd>one chart per indicator; a percentage and an index number do not share an axis</dd>
+            <dt>html2canvas + jsPDF</dt><dd>closes the PDF report inside the browser</dd>
+            <dt>Service Worker</dt><dd>caches the libraries and the typeface; nothing comes from a CDN</dd>
+            <dt>JSON backup</dt><dd>the trade-off of having no server, taken head-on, with the photos embedded</dd>
+          </dl>
+        </div>
+
+        <div class="obra-arq">
+          <p class="rotulo"><span data-i18n="obra.arquitetura">Architecture</span></p>
+          <figure class="obra-diag">
+            <svg class="dg" viewBox="0 0 380 322" role="img" data-i18n-rotulo="d2.legenda" aria-label="·" xmlns="http://www.w3.org/2000/svg">
+              <rect class="dg-cx" x="10" y="8" width="200" height="42" rx="7"/>
+              <text class="dg-rot" x="110" y="33" text-anchor="middle" data-i18n="d2.n1">Approved plan PDF</text>
+              <line class="dg-seta" x1="110" y1="50" x2="110" y2="84"/>
+              <polygon class="dg-ponta" points="110,92 105,83 115,83"/>
+              <text class="dg-arot" x="120" y="74" data-i18n="d2.a1">pdf.js</text>
+              <rect class="dg-cx" x="10" y="92" width="200" height="42" rx="7"/>
+              <text class="dg-rot" x="110" y="117" text-anchor="middle" data-i18n="d2.n2">extractor</text>
+              <line class="dg-seta dg-tracejada" x1="210" y1="113" x2="214" y2="113"/>
+              <polygon class="dg-ponta" points="222,113 213,108 213,118"/>
+              <rect class="dg-cx dg-cx-descarte dg-tracejada" x="222" y="95" width="150" height="36" rx="7"/>
+              <text class="dg-rot dg-rot-peq" x="297" y="117" text-anchor="middle" data-i18n="d2.r1">indicators in the PDF</text>
+              <text class="dg-nota dg-descarte" x="297" y="146" text-anchor="middle" data-i18n="d2.r1b">discarded</text>
+              <text class="dg-nota dg-descarte" x="297" y="159" text-anchor="middle" data-i18n="d2.r1c">on purpose</text>
+              <line class="dg-seta" x1="110" y1="134" x2="110" y2="178"/>
+              <polygon class="dg-ponta" points="110,186 105,177 115,177"/>
+              <text class="dg-arot" x="120" y="163" data-i18n="d2.a2">objective · gap · actions</text>
+              <rect class="dg-cx" x="10" y="186" width="200" height="42" rx="7"/>
+              <text class="dg-rot" x="110" y="211" text-anchor="middle" data-i18n="d2.n3">IndexedDB · in the browser</text>
+              <line class="dg-seta" x1="222" y1="207" x2="218" y2="207"/>
+              <polygon class="dg-ponta" points="210,207 219,202 219,212"/>
+              <text class="dg-arot" x="216" y="199" text-anchor="middle" data-i18n="d2.a4">never read from the PDF</text>
+              <rect class="dg-cx" x="222" y="189" width="150" height="36" rx="7"/>
+              <text class="dg-rot dg-rot-peq" x="297" y="211" text-anchor="middle" data-i18n="d2.r2">typed-in numbers</text>
+              <line class="dg-seta" x1="110" y1="228" x2="110" y2="262"/>
+              <polygon class="dg-ponta" points="110,270 105,261 115,261"/>
+              <text class="dg-arot" x="120" y="252" data-i18n="d2.a3">html2canvas + jsPDF</text>
+              <rect class="dg-cx" x="10" y="270" width="200" height="42" rx="7"/>
+              <text class="dg-rot" x="110" y="295" text-anchor="middle" data-i18n="d2.n4">Report · 3 pages</text>
+            </svg>
+            <figcaption data-i18n="d2.legenda">The plan comes in as reference only. The indicator section is discarded on purpose: the numbers are typed in, never read out.</figcaption>
+          </figure>
+        </div>
+
+        <div class="obra-numeros">
+          <div><div class="numero-val">21</div><div class="numero-rot" data-i18n="o2.n1">automated tests</div></div>
+          <div><div class="numero-val">3</div><div class="numero-rot" data-i18n="o2.n2">pages in the final report</div></div>
+          <div><div class="numero-val">1,3 s</div><div class="numero-rot" data-i18n="o2.n3">to generate a 0.82 MB PDF</div></div>
+        </div>
+
+        <a class="obra-link" href="https://r2d-relatorio.vercel.app" target="_blank" rel="noopener">
+          <span data-i18n="obra.abrir">Open the product</span> <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- 03 · Marque Seu Jogo -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">03</div>
+        <span class="selo selo-vivo" data-i18n="selo.vivo">Live</span>
+      </div>
+      <div class="obra-corpo">
+        <h3 data-i18n="o3.nome">Marque Seu Jogo</h3>
+        <p class="obra-tese" data-i18n="o3.tese">Four different timers in a single pocket.</p>
+        <p data-i18n="o3.desc">A stopwatch and scoreboard for people who actually play. Four modes — stopwatch, timer, HIIT and Tabata — plus a separate volleyball scoreboard. Installs to the home screen, runs with no network, and sets the numbers in a slanted face you can read from the sideline.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisions that mattered</span></p>
+          <ul>
+            <li data-i18n-html="o3.d1.html"><strong>A real PWA, not a website pretending to be an app.</strong> Its own service worker, home-screen install and full function with no network — which is the normal state of most gyms.</li>
+          </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">What was used, and why</span></p>
+          <dl data-i18n-ficha="o3.ficha">
+            <dt>PWA + Service Worker</dt><dd>installs and runs with no network, the normal state of a gym</dd>
+            <dt>Screen Wake Lock</dt><dd>the screen does not go dark in the middle of a set</dd>
+            <dt>Web Audio + vibration</dt><dd>beeps and buzzes at the end of an interval, phone still in a pocket</dd>
+            <dt>localStorage</dt><dd>keeps the score and the theme between sessions</dd>
+            <dt>HTML, CSS and JS with no framework</dt><dd>a stopwatch does not need a dependency tree</dd>
+          </dl>
+        </div>
+
+        <div class="obra-numeros">
+          <div><div class="numero-val">4</div><div class="numero-rot" data-i18n="o3.n1">counting modes</div></div>
+          <div><div class="numero-val">2</div><div class="numero-rot" data-i18n="o3.n2">apps at the same address</div></div>
+        </div>
+
+        <a class="obra-link" href="https://marqueseujogo.vercel.app" target="_blank" rel="noopener">
+          <span data-i18n="obra.abrir">Open the product</span> <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- 04 · Rep.Rota -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">04</div>
+        <span class="selo selo-entregue" data-i18n="selo.entregue">Delivered</span>
+      </div>
+      <div class="obra-corpo">
+        <h3 data-i18n="o4.nome">Rep.Rota</h3>
+        <p class="obra-tese" data-i18n="o4.tese">A field rep does not lose sales to laziness. They lose them to a bad route.</p>
+        <p data-i18n="o4.desc">A territory management system for sales reps, commercial consultants and medical liaisons: accounts ranked by potential, visit routing, cycle calendar and map, in a single dashboard, on any device.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisions that mattered</span></p>
+          <ul>
+            <li data-i18n-html="o4.d1.html"><strong>Built from the routine, not from a brief.</strong> Potential-based ranking and the cycle calendar exist because that is how the work is actually organised — not because they looked good on a screen.</li>
+          </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">What was used, and why</span></p>
+          <dl data-i18n-ficha="o4.ficha">
+            <dt>Accounts ranked by potential</dt><dd>that is how a visit actually gets decided</dd>
+            <dt>Visit routing with a map</dt><dd>the loss is not laziness, it is a badly spent kilometre</dd>
+            <dt>Cycle calendar</dt><dd>a rep's work is cyclical, not linear</dd>
+            <dt>Multi-user</dt><dd>the whole team on one base, each with their own territory</dd>
+            <dt>Browser access</dt><dd>works on a phone in the car and on a computer at home</dd>
+          </dl>
+        </div>
+
+        <figure class="obra-fig par">
+          <img src="img/rep-rota-painel.jpg" width="700" height="439" loading="lazy" decoding="async" alt="Painel de carteira do Rep.Rota" data-i18n-alt="o4.fig">
+          <img src="img/rep-rota-login.jpg" width="700" height="886" loading="lazy" decoding="async" alt="Tela de acesso do Rep.Rota" data-i18n-alt="o4.fig">
+          <figcaption data-i18n="o4.fig">Territory dashboard and sign-in screen.</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 05 · Finances Control -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">05</div>
+        <span class="selo selo-entregue" data-i18n="selo.entregue">Delivered</span>
+      </div>
+      <div class="obra-corpo">
+        <h3 data-i18n="o5.nome">Finances Control</h3>
+        <p class="obra-tese" data-i18n="o5.tese">It is not a discipline problem. It is a visibility problem.</p>
+        <p data-i18n="o5.desc">A personal finance app with a visual dashboard and per-category diagnosis: it shows in real time where the money is going, flags critical spending, tracks a savings goal and lays out the month’s budget.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisions that mattered</span></p>
+          <ul>
+            <li data-i18n-html="o5.d1.html"><strong>Diagnosis, not a bank statement.</strong> Any spreadsheet can list expenses. The value is in naming the category that blew up and how far the goal still is — the reading, not the data.</li>
+          </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">What was used, and why</span></p>
+          <dl data-i18n-ficha="o5.ficha">
+            <dt>Visual monthly dashboard</dt><dd>the whole budget on a single screen</dd>
+            <dt>Per-category diagnosis</dt><dd>names what blew up instead of listing expenses</dd>
+            <dt>Critical spending alert</dt><dd>warns before month end, while it can still be fixed</dd>
+            <dt>Savings goal</dt><dd>shows how far is left, not only how much is gone</dd>
+            <dt>Multi-user</dt><dd>a whole household looking at the same number</dd>
+          </dl>
+        </div>
+
+        <figure class="obra-fig retrato">
+          <img src="img/finances-control-dashboard.jpg" width="700" height="830" loading="lazy" decoding="async" alt="Painel do Finances Control" data-i18n-alt="o5.fig">
+          <figcaption data-i18n="o5.fig">Dashboard with per-category diagnosis and savings goal.</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 06 · Assistente no WhatsApp -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">06</div>
+        <span class="selo selo-entregue" data-i18n="selo.entregue">Delivered</span>
+      </div>
+      <div class="obra-corpo">
+        <h3 data-i18n="o6.nome">WhatsApp Assistant</h3>
+        <p class="obra-tese" data-i18n="o6.tese">80% of your inbound is predictable. None of it needed you.</p>
+        <p data-i18n="o6.desc">A conversational assistant on WhatsApp that answers, resolves questions, collects information and books appointments around the clock, with no human in the loop. Only the already-qualified contact reaches a person.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisions that mattered</span></p>
+          <ul>
+            <li data-i18n-html="o6.d1.html"><strong>Qualifying is the product; answering is the side effect.</strong> A bot that only answers saves typing. A bot that qualifies decides what deserves a person’s time — and that is where the cost actually drops.</li>
+          </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">What was used, and why</span></p>
+          <dl data-i18n-ficha="o6.ficha">
+            <dt>24/7 answering on WhatsApp</dt><dd>people write when they can, not when you are available</dd>
+            <dt>Conversational AI</dt><dd>understands the question instead of offering a menu</dd>
+            <dt>Automatic qualification</dt><dd>decides what deserves a person's time</dd>
+            <dt>Direct booking</dt><dd>closes the appointment inside the chat, with no handover</dd>
+            <dt>Native WhatsApp</dt><dd>the customer installs nothing</dd>
+          </dl>
+        </div>
+
+        <div class="obra-arq">
+          <p class="rotulo"><span data-i18n="obra.arquitetura">Architecture</span></p>
+          <figure class="obra-diag">
+            <svg class="dg" viewBox="0 0 380 418" role="img" data-i18n-rotulo="d3.legenda" aria-label="·" xmlns="http://www.w3.org/2000/svg">
+              <rect class="dg-cx" x="70" y="8" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="190" y="33" text-anchor="middle" data-i18n="d3.n1">Customer message</text>
+              <line class="dg-seta" x1="190" y1="50" x2="190" y2="84"/>
+              <polygon class="dg-ponta" points="190,92 185,83 195,83"/>
+              <text class="dg-arot" x="200" y="74" data-i18n="d3.a2">at any hour</text>
+              <rect class="dg-cx" x="70" y="92" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="190" y="117" text-anchor="middle" data-i18n="d3.n2">Assistant · AI</text>
+              <line class="dg-seta" x1="190" y1="134" x2="190" y2="168"/>
+              <polygon class="dg-ponta" points="190,176 185,167 195,167"/>
+              <text class="dg-arot" x="200" y="158" data-i18n="d3.a3">handles it alone</text>
+              <rect class="dg-grupo" x="70" y="176" width="240" height="140" rx="9"/>
+              <text class="dg-grot" x="82" y="194" data-i18n="d3.g">24/7 · no human involved</text>
+              <rect class="dg-cx" x="82" y="204" width="216" height="32" rx="7"/>
+              <text class="dg-rot" x="190" y="224" text-anchor="middle" data-i18n="d3.g1">answers questions</text>
+              <rect class="dg-cx" x="82" y="240" width="216" height="32" rx="7"/>
+              <text class="dg-rot" x="190" y="260" text-anchor="middle" data-i18n="d3.g2">collects information</text>
+              <rect class="dg-cx" x="82" y="276" width="216" height="32" rx="7"/>
+              <text class="dg-rot" x="190" y="296" text-anchor="middle" data-i18n="d3.g3">books the appointment</text>
+              <line class="dg-seta" x1="190" y1="316" x2="190" y2="358"/>
+              <polygon class="dg-ponta" points="190,366 185,357 195,357"/>
+              <text class="dg-arot" x="200" y="344" data-i18n="d3.a1">only the qualified lead</text>
+              <rect class="dg-cx dg-cx-forte" x="70" y="366" width="240" height="42" rx="7"/>
+              <text class="dg-rot" x="190" y="391" text-anchor="middle" data-i18n="d3.n3">A person</text>
+            </svg>
+            <figcaption data-i18n="d3.legenda">Answering is the side effect. The product is deciding what deserves to reach a person.</figcaption>
+          </figure>
+        </div>
+
+        <figure class="obra-fig alto">
+          <img src="img/bot-assistente-virtual-whatsapp.jpg" width="992" height="2000" loading="lazy" decoding="async" alt="Conversa do assistente no WhatsApp" data-i18n-alt="o6.fig">
+          <figcaption data-i18n="o6.fig">A real conversation with the WhatsApp assistant.</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <!-- 07 · NDA -->
+    <article class="obra revelar">
+      <div class="obra-rail">
+        <div class="obra-indice" aria-hidden="true">07</div>
+        <span class="selo selo-nda" data-i18n="selo.nda">Under NDA</span>
+      </div>
+      <div class="obra-corpo">
+        <h3 data-i18n="o7.nome">Clinical tool · Pharma</h3>
+        <p class="obra-tese" data-i18n="o7.tese">The sale stalls the second the professional hesitates.</p>
+        <p data-i18n="o7.desc">A web tool built for a large pharmaceutical company. It supports the health professional’s clinical decision at the exact moment of advising the patient. Scope, architecture and outcome available under NDA.</p>
+
+        <div class="obra-decisoes">
+          <p class="rotulo"><span data-i18n="obra.decisoes">Decisions that mattered</span></p>
+          <ul>
+            <li data-i18n-html="o7.d1.html"><strong>The bottleneck was never information — it was timing.</strong> The content already existed in the leaflet and the technical material. What was missing was it arriving at the second of the decision, without demanding reading. That is why the tool is one input and one answer, not a library.</li>
+          </ul>
+        </div>
+
+        <div class="obra-ficha">
+          <p class="rotulo"><span data-i18n="obra.ficha">What was used, and why</span></p>
+          <dl data-i18n-ficha="o7.ficha">
+            <dt>One input, one answer</dt><dd>a clinical decision happens in seconds, not in reading</dd>
+            <dt>Support at the point of advice</dt><dd>the information arrives the instant the doubt does</dd>
+            <dt>Web, nothing to install</dt><dd>the professional opens it on the device already in hand</dd>
+            <dt>Scope and architecture under NDA</dt><dd>details available on signature</dd>
+          </dl>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ===================== MÉTODO ===================== -->
+  <section class="secao" id="metodo">
+    <div class="secao-cab revelar">
+      <p class="rotulo"><span data-i18n="met.rotulo">02 — Method</span></p>
+      <h2 data-i18n="met.titulo">Four rules I do not break.</h2>
+      <p class="prosa" data-i18n="met.lead">These are not style preferences. Each one was learned expensively, on a project listed on this page.</p>
+    </div>
+
+    <div class="metodo revelar">
+      <div class="principio">
+        <div class="principio-n">01</div>
+        <h3 data-i18n="met.p1.t">Zero cost is a requirement, not a detail.</h3>
+        <p data-i18n="met.p1.d">What I build runs on free tiers end to end. Not out of elegance: a project that needs an invoice to keep existing dies the first month nobody looks at it.</p>
+      </div>
+      <div class="principio">
+        <div class="principio-n">02</div>
+        <h3 data-i18n="met.p2.t">AI stays off the critical path.</h3>
+        <p data-i18n="met.p2.d">The core is deterministic and testable. AI comes in as reinforcement, stays optional, and can be switched off with an environment variable. If the key disappears, the product stays whole.</p>
+      </div>
+      <div class="principio">
+        <div class="principio-n">03</div>
+        <h3 data-i18n="met.p3.t">Offline is the setting, not the exception.</h3>
+        <p data-i18n="met.p3.d">A pharmacy aisle, a waiting room, the side of a court. If an app only works on a good connection, it does not work where it is going to be used.</p>
+      </div>
+      <div class="principio">
+        <div class="principio-n">04</div>
+        <h3 data-i18n="met.p4.t">I deliver the problem solved, not the request fulfilled.</h3>
+        <p data-i18n="met.p4.d">The request is the symptom someone managed to name. My job is to understand the operation deeply enough to see what sits behind it — and, sometimes, to say that what was asked for will not fix it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PERFIL ===================== -->
+  <section class="secao" id="perfil">
+    <div class="secao-cab revelar">
+      <p class="rotulo"><span data-i18n="perf.rotulo">03 — Profile</span></p>
+    </div>
+
+    <div class="perfil revelar">
+      <div class="perfil-foto">
+        <img src="img/beatriz-reis.jpg" width="552" height="800" loading="lazy" decoding="async" alt="Retrato de Beatriz C. Reis" data-i18n-alt="perf.foto">
+      </div>
+      <div>
+        <h2 style="font-size:clamp(1.5rem,3.4vw,2.2rem);margin-bottom:1.2rem" data-i18n="perf.titulo">The person who writes the code and the person who uses the product are the same.</h2>
+        <p class="prosa" data-i18n="perf.p1">I hold a postgraduate degree in Marketing and Communications and I work in the pharmaceutical industry, in commercial field operations. I am not a developer who learned about pharma: I am someone from inside the operation who started building its software. That is why the reporting tool knows an evidence photo has to fit three to a row, and why the deadline assistant understands “Friday at 2pm” without asking for a calendar.</p>
+        <p class="prosa" data-i18n="perf.p2">I manage projects and I manage AI — both in the same place, where most companies still have one person for each. I write the code, decide the architecture, measure the palette’s contrast and answer for the outcome.</p>
+
+        <div class="credenciais">
+          <span class="credencial" data-i18n="perf.c1">Postgraduate · Marketing &amp; Communications</span>
+          <span class="credencial" data-i18n="perf.c2">AI Manager</span>
+          <span class="credencial" data-i18n="perf.c3">Project Manager</span>
+          <span class="credencial" data-i18n="perf.c4">Pharmaceutical industry</span>
+          <span class="credencial" data-i18n="perf.c5">Full-stack development</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="capacidades revelar" style="margin-top:3rem">
+      <div class="cap">
+        <h3 data-i18n="cap.g1">Product &amp; operations</h3>
+        <ul data-i18n-lista="cap.g1i">
+          <li>Discovery from the daily routine</li>
+          <li>Scope definition</li>
+          <li>Project management</li>
+          <li>Applied-AI management</li>
+          <li>Pharma commercial operations</li>
+          <li>Point-of-sale and prescriber relations</li>
+        </ul>
+      </div>
+      <div class="cap">
+        <h3 data-i18n="cap.g2">Engineering</h3>
+        <ul data-i18n-lista="cap.g2i">
+          <li>HTML, CSS and JavaScript with no framework</li>
+          <li>PWAs and service workers</li>
+          <li>Node and serverless functions</li>
+          <li>Postgres and PostgREST (Supabase)</li>
+          <li>Deno Edge Functions</li>
+          <li>Web Push with VAPID</li>
+          <li>Automated testing</li>
+        </ul>
+      </div>
+      <div class="cap">
+        <h3 data-i18n="cap.g3">Decisions I own</h3>
+        <ul data-i18n-lista="cap.g3i">
+          <li>Zero-cost architecture</li>
+          <li>Accessibility and measured contrast</li>
+          <li>Offline-first</li>
+          <li>Authentication and rate limiting</li>
+          <li>Where AI belongs and where it does not</li>
+          <li>Visual identity and typography</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CONTATO ===================== -->
+  <section class="secao" id="contato">
+    <div class="contato-cx revelar">
+      <p class="rotulo"><span data-i18n="cont.rotulo">04 — Contact</span></p>
+      <h2 data-i18n-html="cont.titulo.html">If something here <em>solves</em> a problem of yours, write to me.</h2>
+      <p class="prosa" data-i18n="cont.lead">I reply in Portuguese and in English. For work conversations, email and LinkedIn are the most direct route.</p>
+
+      <div class="canais">
+        <a class="canal" data-canal="email" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+          <span>
+            <span class="canal-rot" data-i18n="cont.email">Email</span><br>
+            <span class="canal-val"></span>
+          </span>
+          <span class="canal-seta" aria-hidden="true">→</span>
+        </a>
+        <a class="canal" data-canal="linkedin" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5M3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.76-2.05C20.4 8.65 22 10.9 22 14.4V21h-4v-5.9c0-1.4-.03-3.2-2-3.2-2 0-2.3 1.53-2.3 3.1V21H9z"/></svg>
+          <span>
+            <span class="canal-rot" data-i18n="cont.linkedin">LinkedIn</span><br>
+            <span class="canal-val"></span>
+          </span>
+          <span class="canal-seta" aria-hidden="true">→</span>
+        </a>
+        <a class="canal" data-canal="github" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5"/></svg>
+          <span>
+            <span class="canal-rot" data-i18n="cont.github">GitHub</span><br>
+            <span class="canal-val"></span>
+          </span>
+          <span class="canal-seta" aria-hidden="true">→</span>
+        </a>
+        <a class="canal" data-canal="whatsapp" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.44-.53.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.03 1.02-1.03 2.48s1.06 2.87 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.7.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.42.25-.69.25-1.28.18-1.41-.08-.13-.28-.2-.57-.35M12.05 21.8h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.89 9.89-9.89 2.64 0 5.12 1.04 6.99 2.9a9.83 9.83 0 0 1 2.89 7c0 5.44-4.44 9.88-9.88 9.88m8.41-18.3A11.8 11.8 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.9c0 2.09.54 4.14 1.58 5.94L.06 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45c6.55 0 11.89-5.34 11.89-11.9 0-3.17-1.24-6.16-3.48-8.4"/></svg>
+          <span>
+            <span class="canal-rot" data-i18n="cont.whatsapp">WhatsApp</span><br>
+            <span class="canal-val"></span>
+          </span>
+          <span class="canal-seta" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<!-- ===================== RODAPÉ ===================== -->
+<footer>
+  <div class="rodape-in">
+    <div class="credito">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 62" role="img" aria-label="BCR — Beatriz C Reis">
+        <g fill="currentColor" stroke="none">
+          <path transform="translate(29.07 46) scale(0.03600 -0.036)" d="M39 708Q62 707 98.5 706Q135 705 171 705Q219 705 262.5 706Q306 707 324 707Q436 707 491.5 663Q547 619 547 550Q547 515 530.5 480.5Q514 446 477 418.5Q440 391 379 375L379 373Q463 364 511 337Q559 310 579 272.5Q599 235 599 194Q599 135 569 91.5Q539 48 482.5 24Q426 0 347 0Q325 0 280.5 1.5Q236 3 173 3Q135 3 98.5 2.5Q62 2 39 0L39 20Q73 22 90 28Q107 34 112.5 52Q118 70 118 106L118 602Q118 639 112.5 656.5Q107 674 89.5 680.5Q72 687 39 688ZM303 688Q260 688 246.5 671Q233 654 233 602L233 106Q233 71 239 53Q245 35 260.5 29Q276 23 306 23Q396 23 436.5 68.5Q477 114 477 198Q477 275 436.5 317Q396 359 303 359L206 359Q206 359 206 367.5Q206 376 206 376L292 376Q347 376 377 398.5Q407 421 418 458.5Q429 496 429 539Q429 613 400 650.5Q371 688 303 688Z"/>
+          <path transform="translate(62.08 46) scale(0.03600 -0.036)" d="M380 722Q446 722 488.5 702.5Q531 683 564 657Q584 642 594.5 653.5Q605 665 609 708L632 708Q630 670 629 616.5Q628 563 628 474L605 474Q598 518 591.5 546Q585 574 574.5 594Q564 614 546 633Q517 669 475 685Q433 701 386 701Q335 701 296 675.5Q257 650 230.5 603Q204 556 190 492Q176 428 176 352Q176 274 191 210.5Q206 147 234.5 101.5Q263 56 303.5 31.5Q344 7 394 7Q435 7 479 23.5Q523 40 549 74Q577 104 587.5 141.5Q598 179 605 244L628 244Q628 152 629 95.5Q630 39 632 0L609 0Q605 43 595.5 54Q586 65 564 51Q527 25 485.5 5.5Q444 -14 379 -14Q280 -14 206 29Q132 72 91 153Q50 234 50 348Q50 460 92.5 544Q135 628 209 675Q283 722 380 722Z"/>
+          <path transform="translate(97.06 46) scale(0.03600 -0.036)" d="M39 708Q62 707 98.5 706Q135 705 171 705Q219 705 262.5 706Q306 707 324 707Q409 707 465.5 685Q522 663 549.5 623.5Q577 584 577 533Q577 502 564.5 467.5Q552 433 521 403.5Q490 374 437 355Q384 336 302 336L206 336L206 356L292 356Q359 356 394.5 378.5Q430 401 442.5 438.5Q455 476 455 522Q455 601 421 644.5Q387 688 303 688Q260 688 246.5 671Q233 654 233 602L233 106Q233 70 239 52Q245 34 262 28Q279 22 312 20L312 0Q288 2 251.5 2.5Q215 3 177 3Q135 3 98.5 2.5Q62 2 39 0L39 20Q73 22 90 28Q107 34 112.5 52Q118 70 118 106L118 602Q118 639 112.5 656.5Q107 674 89.5 680.5Q72 687 39 688ZM208 353Q259 351 290 348.5Q321 346 342 344Q363 342 381 339Q456 329 490.5 299Q525 269 538 207L563 105Q572 62 582.5 44Q593 26 614 26Q630 27 640.5 35.5Q651 44 663 59L677 48Q654 17 629 1.5Q604 -14 562 -14Q519 -14 488.5 8.5Q458 31 445 94L425 194Q416 237 405 268.5Q394 300 374.5 318Q355 336 318 336L210 336Z"/>
+        </g>
+        <g stroke="currentColor" stroke-width="1.4">
+          <line x1="10" y1="8" x2="62" y2="8"/>
+          <line x1="88" y1="8" x2="140" y2="8"/>
+          <line x1="10" y1="56" x2="140" y2="56"/>
+        </g>
+        <path d="M75 4 l4 4 -4 4 -4 -4 z" fill="#d7ff1a" stroke="currentColor" stroke-width="1"/>
+      </svg>
+      <span>Created by Beatriz C Reis</span>
+    </div>
+    <p class="colofao" data-i18n="rod.colofao">Hand-written: HTML, CSS and JavaScript, no framework and no build step. Two typefaces, no other external dependency. Palette contrast measured against WCAG AA. © 2026</p>
+  </div>
+</footer>
+
+<script src="js/conteudo.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>
