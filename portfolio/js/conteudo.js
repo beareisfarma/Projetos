@@ -18,8 +18,8 @@
    em vez de publicar um link quebrado.
    --------------------------------------------------------- */
 const CONTATO = {
-  email:    'beareisfarma@gmail.com',
-  linkedin: '',                              // ex.: 'https://www.linkedin.com/in/…'
+  email:    'beatrizreis.ia@gmail.com',
+  linkedin: 'https://www.linkedin.com/in/beatriz-reis-921353150',
   github:   '',                              // ex.: 'https://github.com/…'
   whatsapp: 'https://wa.me/5521997235209',
 };

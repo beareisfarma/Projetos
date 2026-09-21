@@ -407,7 +407,13 @@ que a Beatriz trouxe. **Decisão dela em aberto: se este site assume o endereço
 - **O botão do hero leva para `#contato`, não para um `mailto:`** — em máquina
   sem cliente de e-mail o mailto não faz nada e parece site quebrado.
 - **Canal de contato vazio em `CONTATO` some da página** em vez de virar link
-  quebrado. **Faltam o LinkedIn e o GitHub**: `js/conteudo.js`, primeiras linhas.
+  quebrado. Tudo em `js/conteudo.js`, primeiras linhas. Em 21/09/2026 a Beatriz
+  deu o e-mail **`beatrizreis.ia@gmail.com`** (não o `beareisfarma@`, que é o
+  antigo e continua no portfólio velho) e o LinkedIn
+  `linkedin.com/in/beatriz-reis-921353150`. **O GitHub segue vazio de
+  propósito** — o repositório é privado, e perfil vazio num portfólio para
+  recrutador conta contra. A ordem dos canais (e-mail → LinkedIn → WhatsApp)
+  também é deliberada para esse público.
 - Sem teste automatizado; o que existe é conferir no navegador nos dois idiomas,
   nos dois temas, no celular, **com o JavaScript desligado** e imprimindo em PDF.
 - **O portfólio antigo (`portfólio/`, com acento) e o `index.html` da raiz
