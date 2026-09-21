@@ -385,7 +385,7 @@ que a Beatriz trouxe. **Decisão dela em aberto: se este site assume o endereço
   puxadas do Google. O colofão do rodapé afirma que não há dependência externa;
   é a mesma regra "nada de CDN" do R2D; e Google Fonts embutido entrega o IP do
   visitante ao Google a cada carregamento (o Landgericht München tratou isso
-  como violação do GDPR em jan/2026), o que importa com recrutador na Europa.
+  como violação do GDPR em jan/2022), o que importa com recrutador na Europa.
   Só os pesos usados são servidos: por isso `.obra-tese` leva `font-weight:600`
   — das itálicas da Playfair só a 600 existe, e sem isso o navegador fabrica
   uma falsa itálica.
