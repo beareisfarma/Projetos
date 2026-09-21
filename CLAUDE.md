@@ -353,12 +353,13 @@ da Beatriz).
 
 ## Portfólio pessoal (`portfolio/`)
 
-**URL provisória: https://beatrizcreis.vercel.app** — projeto Vercel
-`beatriz-portfolio` (`prj_yqSMJnYLNahY4eGMUMDxObNr4oVC`), ligado a
-`beareisfarma/Projetos`, Root Directory `portfolio`, Vercel Authentication
-desligada. Nasceu em 21/09/2026, do zero, com o gabeonchain.com como referência
-que a Beatriz trouxe. **Decisão dela em aberto: se este site assume o endereço
-`beatrizreis.vercel.app`** (hoje servido pelo projeto `projetos`).
+**URL oficial: https://beatrizreis.vercel.app** (PT) e
+**https://beatrizreis.vercel.app/en** (EN) — projeto Vercel `beatriz-portfolio`
+(`prj_yqSMJnYLNahY4eGMUMDxObNr4oVC`), ligado a `beareisfarma/Projetos`, Root
+Directory `portfolio`, Vercel Authentication desligada. Nasceu em 21/09/2026,
+do zero, com o gabeonchain.com como referência que a Beatriz trouxe.
+`beatrizcreis.vercel.app` continua ativo como endereço secundário do mesmo
+deploy (foi o provisório enquanto o site era construído).
 
 - **O público é RECRUTADOR e empresa contratando, não cliente de serviço.** Foi
   escolha explícita da Beatriz, contra a alternativa de traduzir a landing de
@@ -433,8 +434,14 @@ que a Beatriz trouxe. **Decisão dela em aberto: se este site assume o endereço
   também é deliberada para esse público.
 - Sem teste automatizado; o que existe é conferir no navegador nos dois idiomas,
   nos dois temas, no celular, **com o JavaScript desligado** e imprimindo em PDF.
-- **O portfólio antigo (`portfólio/`, com acento) e o `index.html` da raiz
-  continuam intocados.** São duas cópias do mesmo site de venda antigo, e a que
-  está no ar em `beatrizreis.vercel.app` é a pior das duas (953 KB, imagens em
-  base64, sem nenhuma tag de SEO). Aposentar as duas depende da decisão da
-  Beatriz sobre o endereço.
+- **O portfólio antigo foi aposentado em 21/09/2026**, por decisão da Beatriz:
+  o `index.html` da raiz e a pasta `portfólio/` (com acento) foram apagados —
+  eram duas cópias da mesma landing de venda, e a que estava no ar era a pior
+  (953 KB, imagens em base64, zero tags de SEO). O histórico do git guarda tudo;
+  para recuperar algum texto, o último commit com elas é o anterior a esta
+  remoção. **Não recriar**: o site de venda e o portfólio para recrutador são
+  peças diferentes, e a escolha foi ficar só com o segundo.
+- **O projeto Vercel `projetos` (`prj_Irv1ZbhXSBV6Xl6bD4Wzm4LTQ76O`) ficou
+  órfão**: servia a raiz do repositório, perdeu o domínio `beatrizreis` e a
+  raiz não tem mais `index.html`. Os endereços `projetos-*.vercel.app` que
+  sobraram respondem 404. Dá para apagar o projeto quando a Beatriz quiser.
