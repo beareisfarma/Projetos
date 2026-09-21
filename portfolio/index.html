@@ -109,7 +109,7 @@
     </p>
 
     <p class="hero-lead" data-i18n-html="hero.lead1.html">Eu não estudo o problema de fora. <strong>Trabalho dentro da operação comercial da indústria farmacêutica</strong> — e construo o software que aquela operação precisa. Cada produto desta página nasceu de uma dor que eu mesma tinha que resolver no fim do expediente.</p>
-    <p class="hero-lead" data-i18n-html="hero.lead2.html">Sete produtos entregues, <strong>três deles no ar e abertos para você testar agora</strong>. Todos escritos à mão, todos rodando a custo zero, todos com o núcleo determinístico e a IA fora do caminho crítico — porque produto que só funciona quando a chave de API responde não é produto.</p>
+    <p class="hero-lead" data-i18n-html="hero.lead2.html">Sete produtos entregues, três deles no ar. <strong>Dois abrem direto no navegador, sem cadastro nenhum</strong>; o terceiro roda em conta privada, e o porquê disso está escrito lá embaixo. Todos escritos à mão, todos rodando a custo zero, todos com o núcleo determinístico e a IA fora do caminho crítico — porque produto que só funciona quando a chave de API responde não é produto.</p>
 
     <div class="hero-acoes">
       <a class="btn btn-forte" href="#trabalho">
@@ -128,14 +128,14 @@
     <div class="secao-cab revelar">
       <p class="rotulo"><span data-i18n="trab.rotulo">01 — Trabalho selecionado</span></p>
       <h2 data-i18n="trab.titulo">Sete problemas. Sete sistemas.</h2>
-      <p class="prosa" data-i18n="trab.lead">Cada entrada traz o problema, a decisão técnica que mais pesou e o que dá para conferir. Os links levam ao produto rodando — não a um vídeo de demonstração.</p>
+      <p class="prosa" data-i18n="trab.lead">Cada entrada traz o problema, a decisão técnica que mais pesou e o que dá para conferir. Onde há link, ele abre o produto rodando — não um vídeo de demonstração.</p>
     </div>
 
     <!-- 01 · Personal Assistant -->
     <article class="obra revelar">
       <div class="obra-rail">
         <div class="obra-indice" aria-hidden="true">01</div>
-        <span class="selo selo-vivo" data-i18n="selo.vivo">No ar</span>
+        <span class="selo selo-privado" data-i18n="selo.privado">No ar · conta privada</span>
         <div class="obra-pilha" data-i18n-pilha="o1.pilha">
           <span class="tecla">PWA</span>
           <span class="tecla">Web Push · VAPID</span>
@@ -157,6 +157,7 @@
             <li data-i18n-html="o1.d1.html"><strong>A IA não está no caminho crítico.</strong> Quem lê a data é um interpretador de português escrito à mão, determinístico e gratuito, que cobre «sexta às 14h», «dia 20», «amanhã de manhã» e «em duas semanas». A Claude API só entra quando o recado não tem data reconhecível, e uma variável de ambiente desliga a IA por completo. Sem chave nenhuma, o app funciona inteiro.</li>
             <li data-i18n-html="o1.d2.html"><strong>A retirada do aviso da fila é atômica no banco.</strong> <code>DELETE … RETURNING</code> com <code>FOR UPDATE SKIP LOCKED</code> — é isso que impede dois ticks de notificarem o mesmo prazo. Ler-e-depois-apagar seria mais simples e duplicaria notificação.</li>
             <li data-i18n-html="o1.d3.html"><strong>A API roda numa Edge Function do Supabase, não na Vercel.</strong> Lá dentro a chave de serviço já existe no ambiente, então o projeto sobe sem ninguém cadastrar variável nenhuma. O agendamento é o <code>pg_cron</code> do próprio Postgres — sem serviço externo e sem plano pago.</li>
+            <li data-i18n-html="o1.d4.html"><strong>Não existe cadastro público, e isso é de propósito.</strong> É um assistente pessoal que empurra notificação para a tela de bloqueio do meu próprio celular, não um SaaS: conta nova se cria por SQL. A tela de acesso ainda limita a cinco tentativas por origem, e <em>estar bloqueado vence a senha certa</em> — conferir a credencial antes deixaria o limite decorativo.</li>
           </ul>
         </div>
 
@@ -167,7 +168,7 @@
         </div>
 
         <a class="obra-link" href="https://assistentepessoal.vercel.app" target="_blank" rel="noopener">
-          <span data-i18n="obra.abrir">Abrir o produto</span> <span aria-hidden="true">→</span>
+          <span data-i18n="obra.abrirConta">Abrir o app · pede conta</span> <span aria-hidden="true">→</span>
         </a>
       </div>
     </article>

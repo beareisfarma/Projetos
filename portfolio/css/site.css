@@ -598,3 +598,8 @@ html.js .revelar.vista { opacity: 1; transform: none; }
   .obra-fig img { box-shadow: none; }
   a[href^="http"]::after { content: ' (' attr(href) ')'; font-size: .72em; color: #555; word-break: break-all; }
 }
+
+/* "No ar, mas em conta privada" não é nem verde nem cinza: o produto está
+   funcionando, só não é aberto. Selo próprio para não prometer degustação
+   onde existe tela de login. */
+.selo-privado { color: var(--muted); border-color: var(--teal); background: var(--teal-wash); }
