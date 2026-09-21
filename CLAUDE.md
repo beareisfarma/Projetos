@@ -372,11 +372,28 @@ que a Beatriz trouxe. **Decisão dela em aberto: se este site assume o endereço
   Jogo — com link para abrir), Entregue (Rep.Rota, Finances Control, Bot do
   WhatsApp — com print), Sob NDA (ferramenta clínica). Nunca dar selo "no ar"
   a projeto sem link aberto.
-- **Bilíngue com a URL mandando, não o botão**: `/` é português e está escrito
-  no próprio `index.html`; `/en` é inglês, servido pelo mesmo arquivo via
-  rewrite e trocado pelo `js/site.js`. Cada um tem canonical, title, description
-  e `hreflang` próprios. **O seletor PT|EN são dois `<a href>`, não botões** —
-  funciona sem JavaScript e dá ao buscador um caminho para achar o inglês.
+- **Bilíngue com a URL mandando, não o botão**: `/` é o `index.html` em
+  português e `/en` é o **`en.html`**, um arquivo de verdade com o inglês já
+  escrito dentro. Cada um tem canonical, title, description e `hreflang`
+  próprios. **O seletor PT|EN são dois `<a href>`, não botões** — funciona sem
+  JavaScript e dá ao buscador um caminho para achar o inglês.
+- **`/en` NÃO pode ser um rewrite para `/index.html`.** Foi assim e deu **404
+  em produção**: com `cleanUrls: true` a Vercel deixa de servir `/index.html`
+  como caminho próprio (ele passa a existir só como `/`), então o destino do
+  rewrite não existe mais. Com `en.html` de verdade, o `cleanUrls` serve em
+  `/en` e não sobra sutileza de roteamento para dar errado.
+- **O `en.html` é GERADO** pelo `sincronizar.mjs` a partir do `index.html` + o
+  dicionário. Nunca editar à mão. `node sincronizar.mjs --check` falha se
+  qualquer um dos dois tiver divergido.
+- **Servidor de teste local tem que imitar a Vercel, não a minha intenção.**
+  O mock antigo mapeava `/en` direto para o `index.html` — passou em tudo
+  localmente e quebrou no ar. Hoje ele reproduz `cleanUrls`, `trailingSlash` e
+  a ordem de busca de arquivo. **E, mesmo assim, deploy de roteamento se
+  confere no ar**: dá para rodar `curl` de dentro de um sandbox da própria
+  Vercel (`create_sandboxes_v3` + `run_session_command`), porque deste
+  ambiente o proxy bloqueia `*.vercel.app`.
+- Cuidado com `pkill -f servidor.mjs`: o padrão casa com a própria linha de
+  comando do shell e mata o shell antes do resto rodar. Usar `'servidor[.]mjs'`.
 - **`js/conteudo.js` é a única fonte do texto**, com as duas línguas na mesma
   chave. `node sincronizar.mjs` reescreve o português dentro do `index.html` a
   partir dele e **falha** se uma chave existir num idioma e faltar no outro.
