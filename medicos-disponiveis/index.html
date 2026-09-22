@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Médicos disponíveis</title>
+<meta name="description" content="Roteiro de visitas médicas: cada pessoa envia a sua base, monta o roteiro do dia e fecha o ciclo com resumo. Funciona offline.">
+<meta name="theme-color" content="#071f2b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.png" sizes="64x64">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icone-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Médicos">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button type="button" class="brand-mark" id="irParaInicio" aria-label="Ir para o início" hidden>BR</button>
+  <div class="brand-mark estatica" id="marcaEstatica" aria-hidden="true">BR</div>
+  <div class="titulo">
+    <p class="eyebrow">ROTEIRO DE VISITAS</p>
+    <h1>Médicos disponíveis</h1>
+  </div>
+  <div class="acoes-topo">
+    <span class="estado-sinc" id="estadoSinc" role="status" hidden></span>
+    <button type="button" class="botao-topo" id="instalar" hidden>Instalar</button>
+    <button type="button" class="botao-topo com-icone" id="botaoAjustes" aria-label="Ajustes" hidden><svg class="icone-topo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 8.4a3.6 3.6 0 100 7.2 3.6 3.6 0 000-7.2zm9 3.6c0 .42-.03.83-.09 1.23l2.03 1.59-2.1 3.63-2.4-.97c-.63.5-1.33.9-2.09 1.19L15.96 21h-4.2l-.39-2.33a8.9 8.9 0 01-2.09-1.19l-2.4.97-2.1-3.63 2.03-1.59a9.2 9.2 0 010-2.46L2.78 9.18l2.1-3.63 2.4.97c.63-.5 1.33-.9 2.09-1.19L9.76 3h4.2l.39 2.33c.76.29 1.46.69 2.09 1.19l2.4-.97 2.1 3.63-2.03 1.59c.06.4.09.81.09 1.23z"/></svg><span class="rotulo-topo">Ajustes</span></button>
+  </div>
+</header>
+
+<div class="aviso" id="aviso" hidden><p id="avisoTexto"></p></div>
+
+
+<!-- ------------------------------------------------------------- entrar --- -->
+<main class="tela tela-estreita" id="telaEntrar" hidden>
+  <section class="cartao">
+    <div class="view-tabs dois" role="tablist">
+      <button type="button" role="tab" id="abaEntrar" aria-selected="true">Entrar</button>
+      <button type="button" role="tab" id="abaCriar" aria-selected="false">Criar conta</button>
+    </div>
+
+    <form id="formEntrar" class="formulario">
+      <label class="campo"><span>E-mail</span>
+        <input type="email" id="entrarEmail" autocomplete="username" required></label>
+      <label class="campo"><span>Senha</span>
+        <input type="password" id="entrarSenha" autocomplete="current-password" required></label>
+      <button type="submit" class="add-route">Entrar</button>
+      <button type="button" class="text-button" id="esqueciSenha">Esqueci minha senha</button>
+    </form>
+
+    <form id="formCriar" class="formulario" hidden>
+      <label class="campo"><span>E-mail</span>
+        <input type="email" id="criarEmail" autocomplete="username" required></label>
+      <label class="campo"><span>Senha (mínimo 8 caracteres)</span>
+        <input type="password" id="criarSenha" autocomplete="new-password" minlength="8" required></label>
+      <label class="campo"><span>Código de convite</span>
+        <input type="text" id="criarCodigo" autocomplete="off" placeholder="RTM-XXXXXXXX" required></label>
+      <button type="submit" class="add-route">Criar conta</button>
+      <p class="conta-detalhe">O cadastro é por convite. Se você não tem um código, peça a quem indicou o app.</p>
+    </form>
+
+    <p class="save-message" id="mensagemAcesso" role="status" hidden></p>
+  </section>
+</main>
+
+<!-- --------------------------------------------------------- nova senha --- -->
+<main class="tela tela-estreita" id="telaSenha" hidden>
+  <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDaSenha">← Voltar</button>
+      <span>Senha</span>
+    </div>
+    <p class="eyebrow">SEGURANÇA</p>
+    <h2 id="tituloSenha">Definir nova senha</h2>
+    <form id="formSenha" class="formulario">
+      <label class="campo" id="campoSenhaAtual"><span>Senha atual</span>
+        <input type="password" id="senhaAtual" autocomplete="current-password"></label>
+      <label class="campo"><span>Nova senha (mínimo 8 caracteres)</span>
+        <input type="password" id="senhaNova" autocomplete="new-password" minlength="8" required></label>
+      <button type="submit" class="add-route">Salvar senha</button>
+    </form>
+    <p class="save-message" id="mensagemSenha" role="status" hidden></p>
+  </section>
+</main>
+
+<!-- --------------------------------------------------------------- base --- -->
+<main class="tela tela-estreita" id="telaBase" hidden>
+  <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDaBase">← Voltar</button>
+      <span>Base de médicos</span>
+    </div>
+    <p class="eyebrow" id="eyebrowBase">SUA BASE DE MÉDICOS</p>
+    <h2 id="tituloBase">Envie a sua planilha</h2>
+    <p class="conta-detalhe" id="explicacaoBase">
+      Aceita planilha (.xlsx, .csv), o Word do roteiro semanal (.docx) e backup em .json.
+      O app lê o cabeçalho da sua planilha e mostra o que entendeu antes de aplicar.
+    </p>
+
+    <div class="passo" id="passoArquivo">
+      <div class="modo-base" id="modoBase" hidden>
+        <button type="button" class="modo" data-modo="nova" aria-pressed="true">Nova base (substitui tudo)</button>
+        <button type="button" class="modo" data-modo="merge" aria-pressed="false">Atualizar médicos (mantém o resto)</button>
+      </div>
+      <div class="area-arquivo" id="areaArquivo">
+        <span class="area-icone">⭳</span>
+        <strong>Escolher arquivo</strong>
+        <span class="conta-detalhe">Planilha (.xlsx, .csv), Word (.docx) ou backup (.json)</span>
+        <!-- O input cobre a área inteira, invisível: o toque vai direto para
+             ele. Nada de <label> com .click() por cima nem de display:none —
+             as duas coisas fazem o Safari do iPhone abrir e descartar a
+             escolha. Sem accept por extensão sozinha, também: o app Arquivos
+             do iOS deixa .xlsx cinza quando não reconhece o tipo. -->
+        <input type="file" id="arquivoBase" class="arquivo-capa"
+               accept=".xlsx,.xlsm,.xlsb,.xls,.csv,.tsv,.txt,.docx,.json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv,text/plain,application/json">
+      </div>
+    </div>
+
+    <div class="passo" id="passoMapa" hidden>
+      <h3 id="tituloMapa">Confira o que eu entendi</h3>
+      <p class="conta-detalhe" id="resumoArquivo"></p>
+      <div class="mapa" id="mapa"></div>
+      <div class="previa" id="previa"></div>
+      <div class="problemas" id="problemas" hidden></div>
+      <label class="campo"><span>Nome desta base</span>
+        <input type="text" id="nomeBase" maxlength="60"></label>
+      <button type="button" class="add-route" id="aplicarBase">Aplicar ao app</button>
+      <button type="button" class="text-button" id="cancelarBase">Escolher outro arquivo</button>
+    </div>
+
+    <p class="save-message" id="mensagemBase" role="status" hidden></p>
+  </section>
+</main>
+
+<!-- ------------------------------------------------------------- ajustes --- -->
+<main class="tela tela-estreita" id="telaAjustes" hidden>
+  <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDosAjustes">← Voltar</button>
+      <span>Ajustes</span>
+    </div>
+
+    <p class="eyebrow">CONTA</p>
+    <p class="conta-email" id="contaEmail"></p>
+    <p class="conta-detalhe" id="contaDetalhe"></p>
+
+    <div class="lista-ajustes">
+      <button type="button" class="item-ajuste" id="sincronizarAgora">
+        <strong>Sincronizar agora</strong>
+        <span id="detalheSinc">Enviar e receber o que mudou</span>
+      </button>
+      <button type="button" class="item-ajuste" id="trocarBase">
+        <strong>Trocar ou atualizar a base</strong>
+        <span id="detalheBase">Enviar uma planilha nova ou corrigir médicos</span>
+      </button>
+      <button type="button" class="item-ajuste" id="acrescentarMedico">
+        <strong>Acrescentar um médico ou horário</strong>
+        <span>Sem precisar enviar planilha nova</span>
+      </button>
+      <button type="button" class="item-ajuste" id="abrirConvites" hidden>
+        <strong>Convites</strong>
+        <span>Dar acesso ao app para outra pessoa</span>
+      </button>
+      <button type="button" class="item-ajuste" id="baixarCopia">
+        <strong>Baixar uma cópia de tudo</strong>
+        <span>Arquivo .json com base, ciclo e histórico</span>
+      </button>
+      <button type="button" class="item-ajuste" id="abrirTrocaSenha">
+        <strong>Trocar senha</strong>
+        <span>Pede a senha atual antes</span>
+      </button>
+      <button type="button" class="item-ajuste perigoso" id="sairConta">
+        <strong>Sair da conta</strong>
+        <span>Seus dados continuam guardados na nuvem</span>
+      </button>
+    </div>
+  </section>
+</main>
+
+<!-- -------------------------------------------------------- editar horário --- -->
+<main class="tela tela-estreita" id="telaEditar" hidden>
+  <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDaEdicao">← Voltar</button>
+      <span id="tituloEdicao">Editar horário</span>
+    </div>
+
+    <form id="formHorario" class="formulario">
+      <label class="campo"><span>Médico</span>
+        <input type="text" id="edNome" maxlength="80" required></label>
+      <label class="campo"><span>Especialidade</span>
+        <input type="text" id="edEspecialidade" maxlength="60" placeholder="Ex.: CARDIOLOGIA"></label>
+
+      <div class="par-campos">
+        <label class="campo"><span>Dia</span>
+          <select id="edDia"></select></label>
+        <label class="campo"><span>Turno</span>
+          <select id="edTurno">
+            <option value="">Pelo horário</option>
+            <option value="Manhã">Manhã</option>
+            <option value="Tarde">Tarde</option>
+          </select></label>
+      </div>
+
+      <div class="par-campos">
+        <label class="campo"><span>Começa às</span>
+          <input type="time" id="edInicio" required></label>
+        <label class="campo"><span>Termina às</span>
+          <input type="time" id="edFim"></label>
+      </div>
+
+      <label class="campo"><span>Bairro</span>
+        <input type="text" id="edBairro" maxlength="60"></label>
+      <label class="campo"><span>Endereço</span>
+        <input type="text" id="edEndereco" maxlength="120"></label>
+      <label class="campo"><span>Sala / complemento</span>
+        <input type="text" id="edSala" maxlength="40"></label>
+
+      <button type="submit" class="add-route">Salvar</button>
+      <button type="button" class="text-button perigo" id="excluirHorario" hidden>Excluir este horário</button>
+    </form>
+    <p class="save-message" id="mensagemEdicao" role="status" hidden></p>
+  </section>
+</main>
+
+<!-- ------------------------------------------------------------ convites --- -->
+<main class="tela tela-estreita" id="telaConvites" hidden>
+  <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDosConvites">← Voltar</button>
+      <span>Convites</span>
+    </div>
+    <p class="eyebrow">ACESSO DA EQUIPE</p>
+    <h2>Convites</h2>
+    <p class="conta-detalhe">
+      Cada código serve para uma conta só. Gere um por pessoa, mande o código,
+      e acompanhe aqui quem já entrou.
+    </p>
+
+    <form id="formConvite" class="formulario">
+      <label class="campo"><span>Para quem é este convite (opcional)</span>
+        <input type="text" id="notaConvite" maxlength="60" placeholder="Ex.: Camila, do time do Rio"></label>
+      <button type="submit" class="add-route">Gerar convite</button>
+    </form>
+
+    <p class="save-message" id="mensagemConvites" role="status" hidden></p>
+    <div class="convites" id="listaConvites"></div>
+  </section>
+</main>
+
+<!-- ---------------------------------------------------------------- app --- -->
+<main class="tela" id="telaApp" hidden>
+  <section class="filter-panel">
+    <div class="filter-heading">
+      <div>
+        <p class="eyebrow">PLANEJAMENTO</p>
+        <h2 id="tituloCiclo">Ciclo</h2>
+      </div>
+    </div>
+
+    <div class="view-tabs tres" role="tablist">
+      <button type="button" role="tab" id="abaDisponiveis" aria-selected="true">Disponíveis</button>
+      <button type="button" role="tab" id="abaRoteiro" aria-selected="false">Roteiro <span id="contaRoteiro">0</span></button>
+      <button type="button" role="tab" id="abaCiclo" aria-selected="false">Ciclo</button>
+    </div>
+
+    <div class="control-group" id="grupoDias">
+      <span class="control-label">Dia</span>
+      <div class="segmented days" id="dias"></div>
+    </div>
+
+    <div class="control-group" id="grupoTurnos">
+      <span class="control-label">Turno</span>
+      <div class="segmented" id="turnos"></div>
+    </div>
+
+    <label class="search-box" id="caixaBusca">
+      <span>&#8981;</span>
+      <input type="search" id="busca" placeholder="Buscar médico, especialidade, bairro ou endereço" autocomplete="off">
+    </label>
+
+    <button type="button" class="add-route" id="adicionarRoteiro" hidden></button>
+    <p class="save-message" id="mensagem" role="status" hidden></p>
+  </section>
+
+  <section class="results">
+    <div class="results-heading">
+      <div>
+        <p class="eyebrow" id="eyebrowResultados">DISPONIBILIDADE</p>
+        <h2 id="tituloResultados"></h2>
+        <p class="progresso" id="progresso"></p>
+      </div>
+      <span class="result-count" id="contagem"></span>
+    </div>
+    <div id="lista"></div>
+  </section>
+</main>
+
+<footer>
+  <p id="rodapeBase"></p>
+  <span class="credito">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 62" role="img" aria-label="BCR — Beatriz C Reis">
+  <g fill="currentColor" stroke="none">
+    <path transform="translate(29.07 46) scale(0.03600 -0.036)" d="M39 708Q62 707 98.5 706Q135 705 171 705Q219 705 262.5 706Q306 707 324 707Q436 707 491.5 663Q547 619 547 550Q547 515 530.5 480.5Q514 446 477 418.5Q440 391 379 375L379 373Q463 364 511 337Q559 310 579 272.5Q599 235 599 194Q599 135 569 91.5Q539 48 482.5 24Q426 0 347 0Q325 0 280.5 1.5Q236 3 173 3Q135 3 98.5 2.5Q62 2 39 0L39 20Q73 22 90 28Q107 34 112.5 52Q118 70 118 106L118 602Q118 639 112.5 656.5Q107 674 89.5 680.5Q72 687 39 688ZM303 688Q260 688 246.5 671Q233 654 233 602L233 106Q233 71 239 53Q245 35 260.5 29Q276 23 306 23Q396 23 436.5 68.5Q477 114 477 198Q477 275 436.5 317Q396 359 303 359L206 359Q206 359 206 367.5Q206 376 206 376L292 376Q347 376 377 398.5Q407 421 418 458.5Q429 496 429 539Q429 613 400 650.5Q371 688 303 688Z"/>
+    <path transform="translate(62.08 46) scale(0.03600 -0.036)" d="M380 722Q446 722 488.5 702.5Q531 683 564 657Q584 642 594.5 653.5Q605 665 609 708L632 708Q630 670 629 616.5Q628 563 628 474L605 474Q598 518 591.5 546Q585 574 574.5 594Q564 614 546 633Q517 669 475 685Q433 701 386 701Q335 701 296 675.5Q257 650 230.5 603Q204 556 190 492Q176 428 176 352Q176 274 191 210.5Q206 147 234.5 101.5Q263 56 303.5 31.5Q344 7 394 7Q435 7 479 23.5Q523 40 549 74Q577 104 587.5 141.5Q598 179 605 244L628 244Q628 152 629 95.5Q630 39 632 0L609 0Q605 43 595.5 54Q586 65 564 51Q527 25 485.5 5.5Q444 -14 379 -14Q280 -14 206 29Q132 72 91 153Q50 234 50 348Q50 460 92.5 544Q135 628 209 675Q283 722 380 722Z"/>
+    <path transform="translate(97.06 46) scale(0.03600 -0.036)" d="M39 708Q62 707 98.5 706Q135 705 171 705Q219 705 262.5 706Q306 707 324 707Q409 707 465.5 685Q522 663 549.5 623.5Q577 584 577 533Q577 502 564.5 467.5Q552 433 521 403.5Q490 374 437 355Q384 336 302 336L206 336L206 356L292 356Q359 356 394.5 378.5Q430 401 442.5 438.5Q455 476 455 522Q455 601 421 644.5Q387 688 303 688Q260 688 246.5 671Q233 654 233 602L233 106Q233 70 239 52Q245 34 262 28Q279 22 312 20L312 0Q288 2 251.5 2.5Q215 3 177 3Q135 3 98.5 2.5Q62 2 39 0L39 20Q73 22 90 28Q107 34 112.5 52Q118 70 118 106L118 602Q118 639 112.5 656.5Q107 674 89.5 680.5Q72 687 39 688ZM208 353Q259 351 290 348.5Q321 346 342 344Q363 342 381 339Q456 329 490.5 299Q525 269 538 207L563 105Q572 62 582.5 44Q593 26 614 26Q630 27 640.5 35.5Q651 44 663 59L677 48Q654 17 629 1.5Q604 -14 562 -14Q519 -14 488.5 8.5Q458 31 445 94L425 194Q416 237 405 268.5Q394 300 374.5 318Q355 336 318 336L210 336Z"/>
+  </g>
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="10" y1="8" x2="62" y2="8"/>
+    <line x1="88" y1="8" x2="140" y2="8"/>
+    <line x1="10" y1="56" x2="140" y2="56"/>
+  </g>
+  <path d="M75 4 l4 4 -4 4 -4 -4 z" fill="#d7ff1a" stroke="currentColor" stroke-width="1"/>
+</svg>
+    <span>Created by Beatriz C Reis</span>
+  </span>
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
