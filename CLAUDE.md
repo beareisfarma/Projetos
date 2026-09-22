@@ -350,3 +350,50 @@ da Beatriz).
   verificado ponta a ponta com Playwright: upload de PDF → 5 ações com 6 fotos →
   4 meses de indicadores → relatório de 3 páginas → PDF de 0,82 MB em 1,3 s, sem
   erro de console, no desktop e no iPhone.
+
+## App "Médicos disponíveis" (`medicos-disponiveis/`)
+
+**URL: https://medicos-disponiveis.vercel.app** — projeto Vercel
+`medicos-disponiveis` (`prj_d3KGTq55XhH0DAi0G4R87AaggTVS`), ligado a
+`beareisfarma/Projetos`, Root Directory `medicos-disponiveis`, sem build,
+deploy automático da `main`, Vercel Authentication desligada. Nasceu em
+22/09/2026, a partir de um ZIP que a Beatriz montou no ChatGPT Sites.
+
+Roteiro de visitas médicas: escolhe dia e turno, lista os médicos disponíveis
+agrupados por bairro e endereço, marca visitas e monta o roteiro de cada turno.
+Base de 755 disponibilidades (314 médicos, 91 endereços, Ipanema/Leblon/Copacabana).
+
+- **O original não rodava na Vercel, e não era questão de configuração**: usava
+  banco **Cloudflare D1** (`db/index.ts` importa `cloudflare:workers`) e os
+  cabeçalhos `oai-authenticated-user-*` para identificar a pessoa. Fora da
+  hospedagem do ChatGPT, a tela abriria e **nada salvaria**. O código como veio
+  está preservado em `medicos-disponiveis/origem-chatgpt/`.
+- **Recusada de propósito a migração para Next.js + Supabase** que o pacote
+  sugeria: é app de uma pessoa, os dados salvos são poucos KB e o uso real é
+  dentro de prédio de consultório, sem sinal — um backend falharia justamente na
+  hora de marcar a visita. Virou **PWA estático com `localStorage`**, mesma
+  decisão do `r2d-relatorio`. A contrapartida são **Backup e Restaurar** em JSON.
+  Sincronizar entre dois aparelhos é que exigiria Supabase + login: é projeto,
+  não ajuste.
+- **A marca de visita guarda a data e existe "Começar nova semana"**. No
+  original `visited_doctors` guardava só o nome: na segunda semana de uso tudo
+  estaria riscado e a marcação perderia sentido. Zerar as visitas **mantém os
+  roteiros montados**.
+- **A lista é redesenhada inteira a cada clique**, então a animação de entrada
+  dos cartões só roda quando muda o contexto (dia, turno, busca ou aba) — é o
+  que a classe `.animar` em `#lista` controla. Sem esse freio, cada marcação
+  fazia a tela toda piscar.
+- **Busca insensível a pontuação**: a base escreve o mesmo sobrenome de vários
+  jeitos (`Sant'anna`, `Sant Anna`) e a comparação também é feita sem espaços.
+  Nome com apóstrofo vai para atributo HTML — escapar sempre (`esc()`).
+- **No celular o botão "Adicionar ao roteiro" flutua no rodapé** enquanto há
+  seleção (classe `selecionando` no `body`): a seleção acontece rolando a lista,
+  e com o botão no topo era subir a página inteira para confirmar.
+- Dois avisos independentes na faixa do topo: falhar em carregar `medicos.json` é
+  uma coisa, o navegador não guardar as marcações é outra — o sucesso de um não
+  pode apagar o outro. E `localStorage` pode lançar exceção já no `getItem`
+  (navegação privada): tudo dentro de `try/catch`, a tela desenha sem ele.
+- Identidade: o desenho é o que veio do ChatGPT (navy `#071f2b`, teal `#14b8a6`),
+  preservado. O ícone (pino com cruz) é próprio. Logo pessoal BCR no rodapé.
+- Sem testes automatizados — é uma tela só, sem cálculo. A lista do que conferir
+  no navegador está no fim do `medicos-disponiveis/README.md`.
