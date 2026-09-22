@@ -156,6 +156,10 @@
         <strong>Trocar ou atualizar a base</strong>
         <span id="detalheBase">Enviar uma planilha nova ou corrigir médicos</span>
       </button>
+      <button type="button" class="item-ajuste" id="acrescentarMedico">
+        <strong>Acrescentar um médico ou horário</strong>
+        <span>Sem precisar enviar planilha nova</span>
+      </button>
       <button type="button" class="item-ajuste" id="abrirConvites" hidden>
         <strong>Convites</strong>
         <span>Dar acesso ao app para outra pessoa</span>
@@ -173,6 +177,52 @@
         <span>Seus dados continuam guardados na nuvem</span>
       </button>
     </div>
+  </section>
+</main>
+
+<!-- -------------------------------------------------------- editar horário --- -->
+<main class="tela tela-estreita" id="telaEditar" hidden>
+  <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDaEdicao">← Voltar</button>
+      <span id="tituloEdicao">Editar horário</span>
+    </div>
+
+    <form id="formHorario" class="formulario">
+      <label class="campo"><span>Médico</span>
+        <input type="text" id="edNome" maxlength="80" required></label>
+      <label class="campo"><span>Especialidade</span>
+        <input type="text" id="edEspecialidade" maxlength="60" placeholder="Ex.: CARDIOLOGIA"></label>
+
+      <div class="par-campos">
+        <label class="campo"><span>Dia</span>
+          <select id="edDia"></select></label>
+        <label class="campo"><span>Turno</span>
+          <select id="edTurno">
+            <option value="">Pelo horário</option>
+            <option value="Manhã">Manhã</option>
+            <option value="Tarde">Tarde</option>
+          </select></label>
+      </div>
+
+      <div class="par-campos">
+        <label class="campo"><span>Começa às</span>
+          <input type="time" id="edInicio" required></label>
+        <label class="campo"><span>Termina às</span>
+          <input type="time" id="edFim"></label>
+      </div>
+
+      <label class="campo"><span>Bairro</span>
+        <input type="text" id="edBairro" maxlength="60"></label>
+      <label class="campo"><span>Endereço</span>
+        <input type="text" id="edEndereco" maxlength="120"></label>
+      <label class="campo"><span>Sala / complemento</span>
+        <input type="text" id="edSala" maxlength="40"></label>
+
+      <button type="submit" class="add-route">Salvar</button>
+      <button type="button" class="text-button perigo" id="excluirHorario" hidden>Excluir este horário</button>
+    </form>
+    <p class="save-message" id="mensagemEdicao" role="status" hidden></p>
   </section>
 </main>
 

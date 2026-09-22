@@ -13,7 +13,7 @@
 import * as deposito from "./deposito.js";
 import * as nuvem from "./nuvem.js";
 import { normalizarConteudo } from "./importar.js";
-import { DIAS, TURNOS, hojeISO, texto } from "./utilidades.js";
+import { DIAS, TURNOS, hojeISO, texto, turnoPelaHora } from "./utilidades.js";
 
 export const estado = {
   sessao: null,
@@ -36,6 +36,42 @@ function avisarMudanca() {
   aoMudar(estado);
 }
 
+/* ------------------------------------------------- identidade das linhas */
+
+// Cada disponibilidade ganha um id próprio para poder ser editada e apagada.
+// Bases antigas (e a que já está na nuvem) não têm: o id é criado na primeira
+// vez que a base passa por aqui.
+function novoId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `h${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function garantirIds(base) {
+  if (!base?.conteudo?.agenda) return false;
+  let mudou = false;
+  for (const item of base.conteudo.agenda) {
+    if (!item.id) {
+      item.id = novoId();
+      mudou = true;
+    }
+  }
+  return mudou;
+}
+
+// A agenda é mantida na mesma ordem que o importador produz: dia, turno,
+// bairro, endereço, hora. Sem reordenar depois de editar, a linha alterada
+// aparecia fora de lugar na lista.
+function ordenarAgenda(agenda) {
+  agenda.sort(
+    (a, b) =>
+      DIAS.indexOf(a.dia) - DIAS.indexOf(b.dia) ||
+      (a.turno === b.turno ? 0 : a.turno === "Manhã" ? -1 : 1) ||
+      (a.bairro || "").localeCompare(b.bairro || "", "pt-BR") ||
+      (a.endereco || "").localeCompare(b.endereco || "", "pt-BR") ||
+      (a.inicio || "").localeCompare(b.inicio || ""),
+  );
+}
+
 /* ------------------------------------------------------------- persistência */
 
 async function guardarLocal() {
@@ -46,6 +82,7 @@ async function guardarLocal() {
 
 export async function carregarLocal() {
   estado.base = await deposito.ler("base");
+  garantirIds(estado.base);
   estado.ciclo = await deposito.ler("ciclo");
   estado.historico = (await deposito.ler("historico")) || [];
   estado.pendente = Boolean(
@@ -147,7 +184,11 @@ export async function sincronizar({ silencioso = true } = {}) {
 
     const baseDoCiclo = aberto?.base_id ? bases.find((b) => b.id === aberto.base_id) : null;
     const remota = baseDoCiclo || bases[0] || null;
-    if (remota && maisNova(remota, estado.base)) estado.base = { ...remota, localEm: null };
+    if (remota && maisNova(remota, estado.base)) {
+      estado.base = { ...remota, localEm: null };
+      // Base vinda da nuvem pode não ter os ids das linhas ainda.
+      if (garantirIds(estado.base)) marcarSujo(estado.base);
+    }
 
     if (aberto && maisNova(aberto, estado.ciclo)) estado.ciclo = { ...aberto, localEm: null };
     // O ciclo local já foi concluído no servidor por outro aparelho.
@@ -203,6 +244,9 @@ export async function definirBase({ nome, origem, conteudo }) {
       conteudo: limpo,
       atualizado_em: new Date().toISOString(),
     };
+    // Base recém-importada também precisa dos ids das linhas, senão editar um
+    // horário não acha a linha para alterar.
+    garantirIds(estado.base);
     marcarSujo(estado.base);
     // Base nova é começo de vida: o ciclo aberto passa a apontar para ela.
     if (estado.ciclo) {
@@ -216,10 +260,102 @@ export async function definirBase({ nome, origem, conteudo }) {
 export async function trocarConteudoDaBase(conteudo, rotulo) {
   await aplicar(() => {
     estado.base.conteudo = normalizarConteudo(conteudo);
+    garantirIds(estado.base);
     if (rotulo) estado.base.origem = rotulo;
     estado.base.atualizado_em = new Date().toISOString();
     marcarSujo(estado.base);
   });
+}
+
+function medicoOuNovo(nome) {
+  const lista = estado.base.conteudo.medicos;
+  let medico = lista.find((m) => m.nome === nome);
+  if (!medico) {
+    medico = { nome, especialidade: "", visitas: 1 };
+    lista.push(medico);
+    lista.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  }
+  return medico;
+}
+
+// Editar uma disponibilidade: dia, turno, horário, endereço, sala. O NOME não
+// entra aqui de propósito — ele é a chave das visitas já registradas, e trocá-lo
+// transformaria o médico em outra pessoa aos olhos do ciclo.
+export async function editarHorario(id, campos) {
+  await aplicar(() => {
+    const item = estado.base.conteudo.agenda.find((h) => h.id === id);
+    if (!item) return;
+    Object.assign(item, {
+      dia: campos.dia,
+      turno: campos.turno || turnoPelaHora(campos.inicio) || item.turno,
+      inicio: campos.inicio,
+      fim: campos.fim || campos.inicio,
+      bairro: texto(campos.bairro),
+      endereco: texto(campos.endereco),
+      sala: texto(campos.sala),
+      alerta: !campos.fim || campos.fim === campos.inicio,
+    });
+    if (campos.especialidade !== undefined) medicoOuNovo(item.nome).especialidade = texto(campos.especialidade);
+    ordenarAgenda(estado.base.conteudo.agenda);
+    estado.base.atualizado_em = new Date().toISOString();
+    marcarSujo(estado.base);
+  });
+}
+
+export async function acrescentarHorario(campos) {
+  const nome = texto(campos.nome);
+  if (!nome) return null;
+  await aplicar(() => {
+    estado.base.conteudo.agenda.push({
+      id: novoId(),
+      nome,
+      dia: campos.dia,
+      turno: campos.turno || turnoPelaHora(campos.inicio) || "Manhã",
+      bairro: texto(campos.bairro),
+      endereco: texto(campos.endereco),
+      inicio: campos.inicio,
+      fim: campos.fim || campos.inicio,
+      sala: texto(campos.sala),
+      alerta: !campos.fim || campos.fim === campos.inicio,
+    });
+    const medico = medicoOuNovo(nome);
+    if (campos.especialidade !== undefined) medico.especialidade = texto(campos.especialidade);
+    ordenarAgenda(estado.base.conteudo.agenda);
+    estado.base.atualizado_em = new Date().toISOString();
+    marcarSujo(estado.base);
+  });
+  return nome;
+}
+
+export async function removerHorario(id) {
+  await aplicar(() => {
+    const item = estado.base.conteudo.agenda.find((h) => h.id === id);
+    if (!item) return;
+    estado.base.conteudo.agenda = estado.base.conteudo.agenda.filter((h) => h.id !== id);
+    // Médico sem nenhum horário sai da lista, senão a base vai acumulando
+    // gente que não atende mais.
+    const aindaAtende = estado.base.conteudo.agenda.some((h) => h.nome === item.nome);
+    if (!aindaAtende) {
+      estado.base.conteudo.medicos = estado.base.conteudo.medicos.filter((m) => m.nome !== item.nome);
+    }
+    estado.base.atualizado_em = new Date().toISOString();
+    marcarSujo(estado.base);
+    // O roteiro do ciclo não pode apontar para um horário que não existe mais.
+    if (estado.ciclo) {
+      const antes = estado.ciclo.roteiro.length;
+      estado.ciclo.roteiro = estado.ciclo.roteiro.filter(
+        (i) => !(i.nome === item.nome && i.dia === item.dia && i.turno === item.turno && !aindaAtende),
+      );
+      if (estado.ciclo.roteiro.length !== antes) {
+        estado.ciclo.atualizado_em = new Date().toISOString();
+        marcarSujo(estado.ciclo);
+      }
+    }
+  });
+}
+
+export function horarioPorId(id) {
+  return estado.base?.conteudo.agenda.find((h) => h.id === id) || null;
 }
 
 export async function definirAlvo(nome, alvo) {

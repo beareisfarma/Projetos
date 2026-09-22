@@ -325,3 +325,12 @@ button.brand-mark:hover{background:rgba(255,255,255,.2)}
   .horario{grid-template-columns:1fr auto;row-gap:2px}
   .horario-onde{grid-column:1 / -1}
 }
+
+/* Formulário de horário: dois campos curtos lado a lado. */
+.par-campos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.editar-horario{border:0;background:transparent;color:var(--blue);font-size:.72rem;font-weight:800;cursor:pointer;padding:6px 8px;border-radius:8px;white-space:nowrap}
+.editar-horario:hover{background:var(--ice)}
+.horario-acoes{display:flex;gap:4px;align-items:center;flex:0 0 auto}
+.acrescentar-horario{margin-top:8px;border:1px dashed var(--line);background:#fbfdfd;color:var(--blue);border-radius:11px;min-height:38px;padding:0 12px;font-size:.75rem;font-weight:800;cursor:pointer;width:100%}
+.acrescentar-horario:hover{border-color:var(--teal);background:var(--ice)}
+@media(max-width:760px){.par-campos{grid-template-columns:1fr}}

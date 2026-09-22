@@ -165,6 +165,48 @@ dia em Todos cai no dia de hoje.
 - A meta vive na **base** (segue para o ciclo seguinte); a contagem vive no
   **ciclo** (zera no ciclo novo).
 
+## Corrigir horário sem subir arquivo nenhum
+
+A agenda muda o tempo todo: o médico trocou o dia, mudou a sala, começou a
+atender à tarde. Antes, qualquer correção obrigava a montar uma planilha e
+reimportar a base inteira para mexer numa linha. Agora dá para **editar direto
+no app**, e o arquivo continua servindo para o que ele é bom: carregar tudo de
+uma vez.
+
+Três caminhos, todos para a mesma tela:
+
+- **✎ Editar horário** no cartão do dia — corrigir o que está na frente dela;
+- **✎** em cada horário e **+ Acrescentar outro horário para este médico** na
+  visão por médico (dia = Todos) — o médico que passou a atender mais um dia;
+- **Acrescentar um médico ou horário**, nos Ajustes — quem não está na base.
+
+Decisões que não devem ser desfeitas:
+
+- **Cada linha da agenda tem um `id` próprio** (`garantirIds` em `dados.js`).
+  Sem ele, "o horário das 10h do Dr. Fulano na segunda" só poderia ser
+  encontrado comparando cinco campos — e é exatamente esse conjunto que a edição
+  muda. As bases antigas ganham ids na primeira abertura, e isso conta como
+  alteração local (sobe para a nuvem), senão a cada sincronização os ids
+  nasceriam de novo, diferentes, em cada aparelho.
+- **O nome não é editável na tela de edição de horário.** O nome é a chave que
+  liga o médico às visitas já registradas do ciclo; deixar trocá-lo ali
+  transformaria "corrigir o horário" em "perder o histórico de visitas" sem
+  aviso. Nome novo = médico novo (pelo Ajustes).
+- **O turno segue o horário de início**, a não ser que a pessoa escolha na mão.
+  Mudar 10:00 para 14:30 e continuar aparecendo na manhã é o tipo de erro que
+  só se descobre no corredor do consultório. O seletor mostra "Pelo horário
+  (Tarde)" para a escolha ficar visível antes de salvar.
+- **Salvar leva para o dia do horário editado**, com o turno em Todos. Voltar
+  para a lista onde ela estava esconderia justamente o que acabou de mudar.
+- **Apagar o último horário de um médico apaga o médico** e o tira dos roteiros
+  montados — deixar o nome sem nenhum horário criaria um cartão que não aparece
+  em dia nenhum.
+- A edição é **tratada como qualquer outra alteração local**: vale offline, entra
+  na fila de sincronização e sobe quando houver sinal.
+- **Importar uma base nova sobrescreve estas correções** — é o comportamento
+  esperado de "trocar a base". Para corrigir sem perder, o caminho é **atualizar**
+  (mesclagem por nome), não trocar.
+
 ## Arquivos
 
 | Arquivo | Papel |
@@ -264,8 +306,11 @@ dia em Todos cai no dia de hoje.
 ## Testes
 
 `teste-v2.mjs` (fora do repositório, no diretório de trabalho da sessão) roda 51
-asserções, e `teste-convites.mjs` mais 12 (gerar, anotar, copiar, apagar, esconder
-a tela de quem não pode convidar, e o celular). São no Chromium com um Supabase simulado: cadastro por convite, importação
+asserções; `teste-navegacao.mjs` mais 57 (uma tela por vez, todo caminho com
+volta); `teste-editar.mjs` mais 22 (alterar dia/horário/sala, turno seguindo o
+horário, acrescentar horário, acrescentar médico, excluir, e tudo sobrevivendo ao
+recarregamento); `teste-todos.mjs` mais 21, `teste-arquivo.mjs` 18,
+`teste-convites.mjs` 13 e `teste-especialidade.mjs` 8. São no Chromium com um Supabase simulado: cadastro por convite, importação
 do Word real (755 disponibilidades, 314 médicos), planilha longa com cabeçalhos
 estranhos, planilha larga, mesclagem, contador de visitas com meta, roteiro do
 dia com os dois turnos, conclusão de ciclo, histórico, funcionamento offline com

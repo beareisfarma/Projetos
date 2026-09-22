@@ -504,6 +504,21 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   três coisas juntas faziam o iPhone abrir o seletor e descartar o arquivo
   escolhido. O input cobre a área inteira com `opacity:0` e recebe o toque
   direto.
+- **Dá para corrigir horário/dia/sala dentro do app**, sem reimportar planilha
+  (22/09/2026 — ela pediu: "alterar o horário/dia de atendimento do médico direto
+  no app? Não tendo que subir nova base?"). Entradas: "✎ Editar horário" no cartão
+  do dia, "✎"/"+ Acrescentar outro horário" na visão por médico (dia = Todos), e
+  "Acrescentar um médico ou horário" nos Ajustes.
+  **Cada linha da agenda tem `id` próprio** (`garantirIds` em `js/dados.js`),
+  porque a edição muda justamente os campos que serviriam para identificá-la;
+  base antiga ganha ids na abertura e isso conta como alteração local, senão cada
+  aparelho geraria ids diferentes a cada sincronização. **O nome não é editável
+  ali**: é a chave que liga o médico às visitas do ciclo — nome novo é médico
+  novo. **O turno segue o horário de início** salvo escolha manual (mudar para
+  14:30 e continuar aparecendo na manhã é erro que só se descobre no corredor).
+  Apagar o último horário apaga o médico e o tira dos roteiros montados.
+  **Importar base nova sobrescreve as correções** — para preservar, usar
+  "atualizar" (mesclagem por nome), não "trocar".
 - **IA foi descartada nesta rodada** (ler base de imagem custaria por uso e
   precisaria de chave): ela escolheu só arquivos.
 - Armadilhas novas, todas no `README.md`: o `\b` ASCII do JavaScript descartou
@@ -512,6 +527,7 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   `IDBRequest` (verdadeiro!) e fingia base carregada; repintar a lista apagava o
   texto sendo digitado; detecção de coluna em uma passada fazia "Hora de fim"
   roubar a coluna "Visitas".
-- Testes: 51 asserções no Chromium com Supabase simulado + RLS verificado por
-  SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
+- Testes: 190 asserções no Chromium com Supabase simulado (navegação, base,
+  especialidade, "Todos", edição de horário, convites, offline) + RLS verificado
+  por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
   não tem saída para a internet.

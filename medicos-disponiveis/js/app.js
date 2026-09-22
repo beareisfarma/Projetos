@@ -22,6 +22,7 @@ import {
   diaDeHoje,
   esc,
   hojeISO,
+  turnoPelaHora,
 } from "./utilidades.js";
 
 const el = (id) => document.getElementById(id);
@@ -34,6 +35,7 @@ const tela = {
   senha: el("telaSenha"),
   base: el("telaBase"),
   ajustes: el("telaAjustes"),
+  editar: el("telaEditar"),
   convites: el("telaConvites"),
   app: el("telaApp"),
 };
@@ -48,6 +50,8 @@ const visao = {
   modoBase: "nova",
   nomeNovoCiclo: "",
   pilha: [],
+  editandoId: null,
+  turnoEscolhidoNaMao: false,
   arquivoLido: null,
   mapa: {},
   tokenRecuperacao: null,
@@ -267,6 +271,111 @@ el("abrirTrocaSenha").addEventListener("click", () => {
 el("trocarBase").addEventListener("click", () => abrirTelaDeBase());
 
 el("baixarCopia").addEventListener("click", () => baixarCopia());
+
+/* ------------------------------------------------------ editar horário */
+
+function abrirEdicao(id, nomeSugerido) {
+  const item = id ? dados.horarioPorId(id) : null;
+  visao.editandoId = item ? id : null;
+
+  const medico = item ? dados.medicoDe(item.nome) : nomeSugerido ? dados.medicoDe(nomeSugerido) : null;
+  el("tituloEdicao").textContent = item ? "Editar horário" : "Novo horário";
+  // O nome é a chave das visitas já registradas: só pode ser digitado quando o
+  // horário é novo. Editar o nome de um horário existente transformaria o
+  // médico em outra pessoa aos olhos do ciclo.
+  el("edNome").value = item ? item.nome : nomeSugerido || "";
+  el("edNome").readOnly = Boolean(item);
+  el("edEspecialidade").value = medico?.especialidade || "";
+  el("edDia").innerHTML = DIAS.map(
+    (dia) => `<option value="${esc(dia)}"${(item?.dia || visao.dia) === dia ? " selected" : ""}>${esc(dia)}</option>`,
+  ).join("");
+  // O turno acompanha o horário: mudar o início para 14:30 e deixar "Manhã"
+  // mandaria a linha para o turno errado. Só para de acompanhar se a pessoa
+  // escolher o turno na mão.
+  visao.turnoEscolhidoNaMao = false;
+  el("edTurno").value = "";
+  atualizarRotuloTurno(item?.inicio || "");
+  el("edInicio").value = item?.inicio || "";
+  el("edFim").value = item?.fim || "";
+  el("edBairro").value = item?.bairro || "";
+  el("edEndereco").value = item?.endereco || "";
+  el("edSala").value = item?.sala || "";
+  el("excluirHorario").hidden = !item;
+  dizer("mensagemEdicao", "");
+  ir("editar");
+}
+
+// A primeira opção mostra qual turno o horário implica, para não ser adivinhação.
+function atualizarRotuloTurno(inicio) {
+  const derivado = turnoPelaHora(inicio);
+  const automatica = el("edTurno").querySelector('option[value=""]');
+  if (automatica) automatica.textContent = derivado ? `Pelo horário (${derivado})` : "Pelo horário";
+}
+
+el("edInicio").addEventListener("input", () => {
+  atualizarRotuloTurno(el("edInicio").value);
+  if (!visao.turnoEscolhidoNaMao) el("edTurno").value = "";
+});
+
+el("edTurno").addEventListener("change", () => {
+  visao.turnoEscolhidoNaMao = el("edTurno").value !== "";
+});
+
+el("formHorario").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  const campos = {
+    nome: el("edNome").value,
+    especialidade: el("edEspecialidade").value,
+    dia: el("edDia").value,
+    turno: el("edTurno").value,
+    inicio: el("edInicio").value,
+    fim: el("edFim").value,
+    bairro: el("edBairro").value,
+    endereco: el("edEndereco").value,
+    sala: el("edSala").value,
+  };
+  if (!campos.nome.trim()) {
+    dizer("mensagemEdicao", "Escreva o nome do médico.");
+    return;
+  }
+  if (!campos.inicio) {
+    dizer("mensagemEdicao", "Informe a hora de início.");
+    return;
+  }
+  if (campos.fim && campos.fim < campos.inicio) {
+    dizer("mensagemEdicao", "A hora de término é anterior à de início.");
+    return;
+  }
+
+  const editando = Boolean(visao.editandoId);
+  if (editando) await dados.editarHorario(visao.editandoId, campos);
+  else await dados.acrescentarHorario(campos);
+
+  visao.editandoId = null;
+  dizer("mensagem", editando ? "Horário alterado." : "Horário acrescentado.", "ok");
+
+  // Volta para o app mostrando o DIA do horário mexido, com os dois turnos:
+  // quem acabou de alterar quer ver o resultado, não a tela de onde veio.
+  visao.aba = "disponiveis";
+  visao.dia = campos.dia;
+  visao.turno = TODOS;
+  visao.busca = "";
+  el("busca").value = "";
+  irParaInicio();
+});
+
+el("excluirHorario").addEventListener("click", async () => {
+  const item = dados.horarioPorId(visao.editandoId);
+  if (!item) return;
+  if (!confirm(`Excluir ${item.dia} ${item.inicio}–${item.fim} de ${item.nome}?`)) return;
+  await dados.removerHorario(visao.editandoId);
+  visao.editandoId = null;
+  dizer("mensagem", "Horário excluído.", "ok");
+  visao.aba = "disponiveis";
+  irParaInicio();
+});
+
+el("acrescentarMedico").addEventListener("click", () => abrirEdicao(null, ""));
 
 /* ------------------------------------------------------------- convites */
 
@@ -703,6 +812,12 @@ el("lista").addEventListener("click", async (evento) => {
       else visao.selecionados.add(nome);
       desenhar();
       break;
+    case "editar":
+      abrirEdicao(botao.dataset.id);
+      break;
+    case "acrescentar":
+      abrirEdicao(null, nome);
+      break;
     case "adicionar-um":
       await dados.adicionarAoRoteiro([nome], dia, turno);
       dizer("mensagem", `${nome} entrou no roteiro de ${dia} · ${turno}.`, "ok");
@@ -955,6 +1070,7 @@ function cartaoDisponivel(item, noRoteiro) {
       ${item.sala ? `<div class="room">Sala/complemento: ${esc(item.sala)}</div>` : ""}
       <div class="doctor-actions">${botoesDeVisita(item.nome)}${botaoRoteiro}</div>
       <div class="linha-meta">
+        <button type="button" class="editar-horario" data-acao="editar" data-id="${esc(item.id)}">✎ Editar horário</button>
         <label class="meta"><span>Meta do ciclo</span>
           <select data-acao="alvo" data-nome="${nome}">
             <option value="1"${medico.visitas === 2 ? "" : " selected"}>1 visita</option>
@@ -1009,9 +1125,12 @@ function cartaoPorMedico(nome, itens) {
       return `<div class="horario">
         <span class="horario-quando">${esc(item.dia.slice(0, 3))} · ${esc(item.inicio)}–${esc(item.fim)}</span>
         <span class="horario-onde">${esc([item.bairro, item.endereco, item.sala && `sala ${item.sala}`].filter(Boolean).join(" · "))}</span>
-        <button type="button" class="horario-acao${jaEsta ? " ja" : ""}" data-acao="${jaEsta ? "retirar" : "adicionar-um"}" data-nome="${nomeEsc}" data-dia="${esc(item.dia)}" data-turno="${esc(item.turno)}">${
-          jaEsta ? "− no roteiro" : "+ roteiro"
-        }</button>
+        <span class="horario-acoes">
+          <button type="button" class="editar-horario" data-acao="editar" data-id="${esc(item.id)}" aria-label="Editar este horário">✎</button>
+          <button type="button" class="horario-acao${jaEsta ? " ja" : ""}" data-acao="${jaEsta ? "retirar" : "adicionar-um"}" data-nome="${nomeEsc}" data-dia="${esc(item.dia)}" data-turno="${esc(item.turno)}">${
+            jaEsta ? "− no roteiro" : "+ roteiro"
+          }</button>
+        </span>
       </div>`;
     })
     .join("");
@@ -1024,6 +1143,7 @@ function cartaoPorMedico(nome, itens) {
         ${fichaVisitas(nome)}
       </div>
       <div class="horarios">${horarios}</div>
+      <button type="button" class="acrescentar-horario" data-acao="acrescentar" data-nome="${nomeEsc}">+ Acrescentar outro horário para este médico</button>
       <div class="doctor-actions">${botoesDeVisita(nome)}</div>
     </div>
   </article>`;

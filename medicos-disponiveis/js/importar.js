@@ -424,6 +424,9 @@ function montarConteudo(agenda) {
 export function normalizarConteudo(conteudo) {
   const agenda = (Array.isArray(conteudo?.agenda) ? conteudo.agenda : [])
     .map((item) => ({
+      // O id da linha, quando já existe, é preservado: é por ele que a tela de
+      // edição encontra o horário para alterar.
+      ...(item.id ? { id: item.id } : {}),
       nome: separarEspecialidade(item.nome ?? item.name).nome,
       dia: lerDia(item.dia ?? item.day),
       turno: lerTurno(item.turno ?? item.shift) || turnoPelaHora(lerHora(item.inicio ?? item.start)),
