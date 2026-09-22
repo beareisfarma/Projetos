@@ -913,9 +913,11 @@ function cartaoDisponivel(item, noRoteiro) {
   return `<article class="doctor-card situacao-${situacao}">
     <div class="time">${esc(item.inicio)}<span>até ${esc(item.fim)}</span></div>
     <div>
-      <span class="doctor-name">${nome}</span>
-      ${fichaVisitas(item.nome)}
-      ${medico.especialidade ? `<div class="especialidade">${esc(medico.especialidade)}</div>` : ""}
+      <div class="linha-nome">
+        <span class="doctor-name">${nome}</span>
+        ${medico.especialidade ? `<span class="especialidade">${esc(medico.especialidade)}</span>` : ""}
+        ${fichaVisitas(item.nome)}
+      </div>
       ${item.sala ? `<div class="room">Sala/complemento: ${esc(item.sala)}</div>` : ""}
       <div class="doctor-actions">${botoesDeVisita(item.nome)}${botaoRoteiro}</div>
       <div class="linha-meta">
@@ -1048,9 +1050,13 @@ function desenharRoteiro() {
             <div class="route-main">
               <div class="route-time">${esc(info?.inicio || "—")}<span>${info?.fim ? `até ${esc(info.fim)}` : ""}</span></div>
               <div>
-                <h3>${nome} ${fichaVisitas(item.nome)}</h3>
+                <h3 class="linha-nome">
+                  <span>${nome}</span>
+                  ${medico.especialidade ? `<span class="especialidade">${esc(medico.especialidade)}</span>` : ""}
+                  ${fichaVisitas(item.nome)}
+                </h3>
                 <p>${esc(
-                  [medico.especialidade, info?.bairro, info?.endereco, info?.sala && `sala ${info.sala}`]
+                  [info?.bairro, info?.endereco, info?.sala && `sala ${info.sala}`]
                     .filter(Boolean)
                     .join(" · ") || "Endereço não encontrado",
                 )}</p>

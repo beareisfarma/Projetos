@@ -225,7 +225,14 @@ button.brand-mark:hover{background:rgba(255,255,255,.2)}
 .contador.parcial{background:#fff4d9;color:#795300}
 .contador.concluido{background:#dff5ef;color:#087466}
 .contador.nao_visitado{background:#fff0ed;color:#984334}
-.especialidade{font-size:.8rem;color:#0b637a;font-weight:750;margin-top:3px}
+/* A especialidade fica ao LADO do nome, em corpo menor: é o que se lê de
+   relance para saber se vale a parada. Numa linha separada, embaixo, o olho
+   não pega. `align-items:baseline` alinha pela base das letras, não pelo topo
+   da caixa, senão o texto menor flutua. */
+.linha-nome{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;row-gap:3px}
+.linha-nome .contador{margin-left:0}
+.especialidade{font-size:.72rem;font-weight:800;color:#0b637a;background:#e8f2f8;border:1px solid #d3e6f0;border-radius:7px;padding:1px 7px;white-space:nowrap;line-height:1.5}
+.route-card h3.linha-nome{padding-right:56px}
 .linha-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:9px}
 .meta{display:flex;align-items:center;gap:6px}
 .meta > span{font-size:.72rem;color:var(--muted);font-weight:750}

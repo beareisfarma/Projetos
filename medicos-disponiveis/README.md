@@ -134,6 +134,11 @@ lista de problemas, visível na tela, e fica de fora.
   `2/2`. O botão **trava na meta**: `3/2` não significa nada e estragaria o
   resumo.
 - **"Não encontrei"** é diferente de visita: registra a tentativa sem contar.
+- **A especialidade fica ao LADO do nome**, em corpo menor, dentro de uma
+  fichinha — é o que se lê de relance para decidir se a parada vale. Numa linha
+  separada embaixo, o olho não pega. Vale nas duas telas (Disponíveis e
+  Roteiro), e some quando a base não traz especialidade, em vez de deixar uma
+  caixinha vazia.
 - A meta vive na **base** (segue para o ciclo seguinte); a contagem vive no
   **ciclo** (zera no ciclo novo).
 
