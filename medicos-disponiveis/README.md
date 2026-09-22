@@ -109,7 +109,10 @@ Formatos aceitos:
   **ou largo** (uma coluna por dia da semana, com o horário na célula).
 - **`.docx`** no formato do roteiro semanal da Beatriz
   (`SEGUNDA-FEIRA` / `MANHÃ — n médicos` / `📍 Bairro` / endereço /
-  `• 08:00–12:00 — Nome — sala/complemento 101 ⚠`).
+  `• 08:00–12:00 — Nome (ESPECIALIDADE) — sala/complemento 101 ⚠`).
+  **A especialidade entre parênteses é separada do nome na importação** — se
+  ficasse colada, o nome do médico mudaria e as visitas já registradas no ciclo,
+  que são guardadas por nome, deixariam de casar.
 - **`.json`**: base do próprio app ou a lista achatada da v1 (em inglês).
 
 Dois modos:
@@ -139,6 +142,12 @@ lista de problemas, visível na tela, e fica de fora.
   separada embaixo, o olho não pega. Vale nas duas telas (Disponíveis e
   Roteiro), e some quando a base não traz especialidade, em vez de deixar uma
   caixinha vazia.
+- **Mostrada abreviada, guardada inteira.** `PSIQUIATRIA` vira `Psiq`,
+  `GINECOLOGIA/OBSTETRICIA` vira `Gineco/Obst`. O texto completo fica no
+  `title` (toque longo) e é o que vai para o banco; **a busca casa as duas
+  formas**, porque a pessoa procura pelo que está lendo na tela.
+  As abreviações conhecidas estão numa tabela em `utilidades.js`; o que não
+  estiver nela passa pela regra genérica.
 - A meta vive na **base** (segue para o ciclo seguinte); a contagem vive no
   **ciclo** (zera no ciclo novo).
 

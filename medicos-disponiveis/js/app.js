@@ -13,6 +13,7 @@ import * as deposito from "./deposito.js";
 import {
   DIAS,
   TURNOS,
+  abreviarEspecialidade,
   agrupar,
   casa,
   chaveBusca,
@@ -859,11 +860,24 @@ function agendaFiltrada() {
     if (item.dia !== visao.dia || item.turno !== visao.turno) return false;
     if (!procurado) return true;
     const medico = dados.medicoDe(item.nome);
+    // Tanto "cardiologia" quanto "cardio" têm de achar: a pessoa busca pelo que
+    // está lendo na tela, que é a forma curta.
     return casa(
-      chaveBusca(`${item.nome} ${medico.especialidade} ${item.bairro} ${item.endereco} ${item.sala}`),
+      chaveBusca(
+        `${item.nome} ${medico.especialidade} ${abreviarEspecialidade(medico.especialidade)} ` +
+          `${item.bairro} ${item.endereco} ${item.sala}`,
+      ),
       procurado,
     );
   });
+}
+
+// Mostra a forma curta; o nome inteiro fica no title, para conferir com um
+// toque longo. O que é guardado e buscado continua sendo o texto original.
+function fichaEspecialidade(especialidade) {
+  const curta = abreviarEspecialidade(especialidade);
+  if (!curta) return "";
+  return `<span class="especialidade" title="${esc(especialidade)}">${esc(curta)}</span>`;
 }
 
 function fichaVisitas(nome) {
@@ -915,7 +929,7 @@ function cartaoDisponivel(item, noRoteiro) {
     <div>
       <div class="linha-nome">
         <span class="doctor-name">${nome}</span>
-        ${medico.especialidade ? `<span class="especialidade">${esc(medico.especialidade)}</span>` : ""}
+        ${fichaEspecialidade(medico.especialidade)}
         ${fichaVisitas(item.nome)}
       </div>
       ${item.sala ? `<div class="room">Sala/complemento: ${esc(item.sala)}</div>` : ""}
@@ -1052,7 +1066,7 @@ function desenharRoteiro() {
               <div>
                 <h3 class="linha-nome">
                   <span>${nome}</span>
-                  ${medico.especialidade ? `<span class="especialidade">${esc(medico.especialidade)}</span>` : ""}
+                  ${fichaEspecialidade(medico.especialidade)}
                   ${fichaVisitas(item.nome)}
                 </h3>
                 <p>${esc(

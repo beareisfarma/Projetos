@@ -12,7 +12,17 @@
  * sem hora reconhecível entra na lista de problemas e fica de fora.
  */
 
-import { DIAS, lerAlvo, lerDia, lerHora, lerTurno, semAcento, texto, turnoPelaHora } from "./utilidades.js";
+import {
+  DIAS,
+  lerAlvo,
+  lerDia,
+  lerHora,
+  lerTurno,
+  semAcento,
+  separarEspecialidade,
+  texto,
+  turnoPelaHora,
+} from "./utilidades.js";
 
 /* --------------------------------------------- bibliotecas carregadas na hora */
 
@@ -380,6 +390,17 @@ function montarConteudo(agenda) {
   const medicos = new Map();
 
   for (const item of agenda) {
+    // "Fulano (CARDIOLOGIA)": a especialidade sai do nome. Se ficasse colada
+    // nele, o nome do médico mudaria e as visitas já registradas no ciclo — que
+    // são guardadas por nome — deixariam de casar.
+    if (!item.especialidade) {
+      const separado = separarEspecialidade(item.nome);
+      if (separado.especialidade) {
+        item.nome = separado.nome;
+        item.especialidade = separado.especialidade;
+      }
+    }
+
     const atual = medicos.get(item.nome) || { nome: item.nome, especialidade: "", visitas: 1 };
     if (item.especialidade && !atual.especialidade) atual.especialidade = item.especialidade;
     if (item.visitas === 2) atual.visitas = 2;
@@ -403,7 +424,7 @@ function montarConteudo(agenda) {
 export function normalizarConteudo(conteudo) {
   const agenda = (Array.isArray(conteudo?.agenda) ? conteudo.agenda : [])
     .map((item) => ({
-      nome: texto(item.nome ?? item.name),
+      nome: separarEspecialidade(item.nome ?? item.name).nome,
       dia: lerDia(item.dia ?? item.day),
       turno: lerTurno(item.turno ?? item.shift) || turnoPelaHora(lerHora(item.inicio ?? item.start)),
       bairro: texto(item.bairro ?? item.neighborhood),
@@ -418,11 +439,11 @@ export function normalizarConteudo(conteudo) {
 
   const medicos = new Map();
   for (const item of Array.isArray(conteudo?.medicos) ? conteudo.medicos : []) {
-    const nome = texto(item.nome ?? item.name);
-    if (!nome) continue;
-    medicos.set(nome, {
-      nome,
-      especialidade: texto(item.especialidade),
+    const separado = separarEspecialidade(item.nome ?? item.name);
+    if (!separado.nome) continue;
+    medicos.set(separado.nome, {
+      nome: separado.nome,
+      especialidade: texto(item.especialidade) || separado.especialidade,
       visitas: item.visitas === 2 ? 2 : 1,
     });
   }

@@ -154,3 +154,106 @@ export function lerAlvo(valor) {
   if (/\b2\b|dois|duas|dupla|quinzenal/.test(limpo)) return 2;
   return 1;
 }
+
+/* ------------------------------------------------------- especialidades */
+
+// Nome do médico e especialidade vêm juntos no documento: "Fulano (CARDIOLOGIA)".
+// A especialidade sai do nome — senão ela entraria no nome do médico, que é a
+// chave usada para casar as visitas já registradas de um ciclo.
+export function separarEspecialidade(bruto) {
+  const texto0 = texto(bruto);
+  const comParenteses = /^(.*?)\s*\(([^()]{2,60})\)\s*$/.exec(texto0);
+  if (!comParenteses) return { nome: texto0, especialidade: "" };
+  const nome = texto(comParenteses[1]);
+  if (!nome) return { nome: texto0, especialidade: "" };
+  return { nome, especialidade: texto(comParenteses[2]) };
+}
+
+// Abreviações das especialidades que aparecem na base. A tela mostra a forma
+// curta (e o nome inteiro no title, para quem quiser conferir); a busca e o
+// armazenamento continuam com o texto original.
+const ABREVIACOES = new Map([
+  ["psiquiatria", "Psiq"],
+  ["clinico geral", "Clínico"],
+  ["clinica geral", "Clínico"],
+  ["clinica medica", "Clínico"],
+  ["endocrinologia", "Endócrino"],
+  ["neurologia", "Neuro"],
+  ["cardiologia", "Cardio"],
+  ["ginecologia/obstetricia", "Gineco/Obst"],
+  ["ginecologia e obstetricia", "Gineco/Obst"],
+  ["ginecologia", "Gineco"],
+  ["obstetricia", "Obst"],
+  ["otorrinolaringologia", "Otorrino"],
+  ["angiologia", "Angio"],
+  ["geriatria", "Geriatria"],
+  ["pediatria", "Pediatria"],
+  ["gastroenterologia", "Gastro"],
+  ["dermatologia", "Dermato"],
+  ["ortopedia", "Ortopedia"],
+  ["ortopedia e traumatologia", "Ortopedia"],
+  ["reumatologia", "Reumato"],
+  ["urologia", "Urologia"],
+  ["oftalmologia", "Oftalmo"],
+  ["pneumologia", "Pneumo"],
+  ["nefrologia", "Nefro"],
+  ["hematologia", "Hemato"],
+  ["oncologia", "Onco"],
+  ["infectologia", "Infecto"],
+  ["nutrologia", "Nutro"],
+  ["mastologia", "Masto"],
+  ["proctologia", "Procto"],
+  ["cirurgia geral", "Cirurgia"],
+  ["cirurgia vascular", "C. Vascular"],
+  ["medicina do trabalho", "Med. Trabalho"],
+  ["medicina interna", "Med. Interna"],
+  ["homeopatia", "Homeopatia"],
+  ["acupuntura", "Acupuntura"],
+]);
+
+const PALAVRAS_MINUSCULAS = new Set(["de", "da", "do", "das", "dos", "e"]);
+
+function maiusculaInicial(palavra, primeira = true) {
+  if (!palavra) return palavra;
+  const minuscula = palavra.toLowerCase();
+  // "Cirurgia De Cabeça" fica errado: preposição no meio não leva maiúscula.
+  if (!primeira && PALAVRAS_MINUSCULAS.has(semAcento(minuscula))) return minuscula;
+  return minuscula[0].toUpperCase() + minuscula.slice(1);
+}
+
+export function abreviarEspecialidade(bruto) {
+  const original = texto(bruto);
+  if (!original) return "";
+
+  const chave = semAcento(original).replace(/\s+/g, " ").trim();
+  const conhecida = ABREVIACOES.get(chave);
+  if (conhecida) return conhecida;
+
+  // Não conhecida: encurta cada parte. "-ologia" vira "-o" (REUMATOLOGIA →
+  // Reumato), que é como as pessoas falam mesmo. A regra vale por PALAVRA, não
+  // pela frase inteira: aplicada à frase, "Pediatria e Neonatologia" virava
+  // "Pediatria e N…", que não informa nada.
+  const encurtarPalavra = (palavra, primeira) => {
+    const semSufixo = /^(.*?)(ologia|ologista)$/i.exec(semAcento(palavra));
+    const base = semSufixo && semSufixo[1].length >= 3 ? palavra.slice(0, semSufixo[1].length) + "o" : palavra;
+    return maiusculaInicial(base, primeira);
+  };
+
+  const partes = original
+    .split(/\s*\/\s*|\s+e\s+/i)
+    .map((parte) => texto(parte))
+    .filter(Boolean)
+    .map((parte) =>
+      parte
+        .split(/\s+/)
+        .map((palavra, indice) => encurtarPalavra(palavra, indice === 0))
+        .join(" "),
+    );
+
+  const juntas = partes.join("/");
+  if (juntas.length <= 14) return juntas;
+
+  // Ainda comprida: fica só a primeira parte, que é a especialidade principal.
+  const primeira = partes[0] || juntas;
+  return primeira.length > 14 ? `${primeira.slice(0, 13)}…` : primeira;
+}

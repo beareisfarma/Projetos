@@ -466,8 +466,19 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   novo). O botão trava na meta. "Não encontrei" é outra coisa, não conta visita.
 - **Ciclo** é fechado quando ela quiser: gera resumo, vai para o histórico, e o
   próximo começa com a mesma base ou com uma nova.
-- **Especialidade** aparece quando a base tiver. O Word dela NÃO tem
-  especialidade nem número de visitas — a fonte é o `ConsultaCadMed.xlsx`.
+- **Especialidade fica AO LADO do nome**, em corpo menor, e **abreviada**
+  (`PSIQUIATRIA` → `Psiq`, `GINECOLOGIA/OBSTETRICIA` → `Gineco/Obst`). Numa
+  linha separada embaixo o olho não pega — foi pedido explícito dela em
+  22/09/2026. O texto inteiro fica no `title` e é o que vai para o banco; a
+  busca casa as duas formas. Tabela de abreviações em `utilidades.js`.
+- **No Word dela a especialidade vem entre parênteses depois do nome**
+  (`Fulano (CARDIOLOGIA)`) e é SEPARADA na importação. Se ficasse colada, o nome
+  do médico mudaria e as visitas do ciclo — guardadas por nome — não casariam
+  mais. Confirmado que os 314 nomes são idênticos com e sem especialidade.
+- **A base dela na nuvem já está com as 314 especialidades** (aplicadas por SQL
+  em 22/09/2026, por posição, com md5 da ordem dos nomes como trava). O número
+  de visitas por médico continua 1 para todos — o Word não traz isso; a fonte
+  seria o `ConsultaCadMed.xlsx`.
 - **O importador não tem layout fixo**: lê o cabeçalho, sugere o mapeamento e
   mostra prévia + problemas antes de aplicar. Aceita planilha longa e larga
   (coluna por dia), `.docx` no formato dela e `.json`. **Nunca inventa horário.**
