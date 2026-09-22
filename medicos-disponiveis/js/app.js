@@ -383,9 +383,13 @@ for (const botao of document.querySelectorAll("#modoBase .modo")) {
   });
 }
 
-el("areaArquivo").addEventListener("click", () => el("arquivoBase").click());
+// Sem `.click()` aqui de propósito: o input já é a área inteira. Disparar um
+// segundo clique por cima fazia o Safari do iPhone abrir o seletor e descartar
+// o arquivo escolhido.
 el("arquivoBase").addEventListener("change", () => {
   const arquivo = el("arquivoBase").files?.[0];
+  // Limpa depois de guardar a referência, para que escolher o MESMO arquivo de
+  // novo (depois de corrigi-lo) dispare o change outra vez.
   el("arquivoBase").value = "";
   if (arquivo) receberArquivo(arquivo);
 });
@@ -408,7 +412,21 @@ el("areaArquivo").addEventListener("drop", (e) => {
 });
 
 async function receberArquivo(arquivo) {
-  dizer("mensagemBase", "Lendo o arquivo…");
+  const nome = arquivo.name || "arquivo";
+  if (!/\.(xlsx|xlsm|xlsb|xls|csv|tsv|txt|docx|json)$/i.test(nome)) {
+    dizer(
+      "mensagemBase",
+      `"${nome}" não é um formato que eu leio. Exporte como Excel (.xlsx) ou CSV e tente de novo. ` +
+        `Planilha do Numbers ou do Google Sheets: use Exportar → Excel/CSV. PDF e foto não servem.`,
+    );
+    return;
+  }
+  if (arquivo.size === 0) {
+    dizer("mensagemBase", `"${nome}" chegou vazio. Se ele está no iCloud, abra o arquivo uma vez para baixá-lo e tente de novo.`);
+    return;
+  }
+
+  dizer("mensagemBase", `Lendo ${nome}…`);
   try {
     const lido = await importar.lerArquivo(arquivo);
     visao.arquivoLido = lido;

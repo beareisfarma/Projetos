@@ -167,7 +167,13 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
 .modo-base[hidden]{display:none}
 .modo-base .modo{border:0;background:transparent;color:#536b77;min-height:44px;border-radius:10px;cursor:pointer;font-size:.78rem;font-weight:800;padding:8px 6px}
 .modo-base .modo[aria-pressed="true"]{background:var(--navy);color:#fff}
-.area-arquivo{margin-top:18px;display:grid;justify-items:center;gap:5px;padding:30px 20px;border:2px dashed var(--line);border-radius:18px;background:#fbfdfd;cursor:pointer;text-align:center}
+.area-arquivo{position:relative;margin-top:18px;display:grid;justify-items:center;gap:5px;padding:30px 20px;border:2px dashed var(--line);border-radius:18px;background:#fbfdfd;cursor:pointer;text-align:center}
+/* O input é a área toda, transparente. Assim o toque chega nele de verdade,
+   sem intermediário — que é o que quebrava no iPhone. */
+/* inset negativo para cobrir também a borda tracejada: tocar exatamente na
+   linha pontilhada não pode ser um toque perdido. */
+.arquivo-capa{position:absolute;inset:-2px;opacity:0;cursor:pointer;font-size:0}
+.area-arquivo:focus-within{border-color:var(--teal);outline:3px solid rgba(20,184,166,.18)}
 .area-arquivo:hover,.area-arquivo.arrastando{border-color:var(--teal);background:#f2fbfa}
 .area-icone{font-size:1.7rem;color:var(--teal)}
 .area-arquivo strong{font-size:.95rem}

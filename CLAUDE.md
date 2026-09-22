@@ -443,6 +443,11 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
 - **O importador não tem layout fixo**: lê o cabeçalho, sugere o mapeamento e
   mostra prévia + problemas antes de aplicar. Aceita planilha longa e larga
   (coluna por dia), `.docx` no formato dela e `.json`. **Nunca inventa horário.**
+- **Seletor de arquivo: nunca `<label>` + `input.click()` juntos, nunca
+  `display:none` no input, e `accept` sempre com extensões E tipos MIME.** As
+  três coisas juntas faziam o iPhone abrir o seletor e descartar o arquivo
+  escolhido. O input cobre a área inteira com `opacity:0` e recebe o toque
+  direto.
 - **IA foi descartada nesta rodada** (ler base de imagem custaria por uso e
   precisaria de chave): ela escolheu só arquivos.
 - Armadilhas novas, todas no `README.md`: o `\b` ASCII do JavaScript descartou

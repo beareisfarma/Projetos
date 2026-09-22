@@ -179,6 +179,15 @@ lista de problemas, visível na tela, e fica de fora.
 - **Variável com o mesmo nome de uma coluna** (`codigo`) faz o Postgres recusar a
   comparação por ambiguidade. Dentro de PL/pgSQL, nome de variável é diferente
   do nome da coluna.
+- **Três defeitos empilhados quebravam o seletor de arquivo no iPhone.** A área
+  era um `<label>` E o JS ainda chamava `input.click()` — dupla ativação, que no
+  Safari abre o seletor e descarta a escolha. O input estava `hidden`
+  (`display:none`), que o Safari recusa ativar por label. E o `accept` só com
+  extensões deixa `.xlsx` cinza no app Arquivos do iOS. Hoje: container `div`, o
+  input cobre a área inteira (borda incluída) com `opacity:0`, sem nenhum clique
+  programático, e o `accept` traz extensões **e** tipos MIME.
+- **Limpar `input.value` depois de ler o arquivo** é o que permite escolher o
+  mesmo arquivo de novo depois de corrigi-lo; sem isso o `change` não dispara.
 - **Confirmação em vermelho parece erro.** O mesmo lugar mostra sucesso e falha,
   então o tipo precisa aparecer na cor (`.save-message.boa`).
 - **`localStorage` e IndexedDB podem lançar exceção** (navegação privada). Tudo

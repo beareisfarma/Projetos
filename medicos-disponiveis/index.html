@@ -111,12 +111,18 @@
         <button type="button" class="modo" data-modo="nova" aria-pressed="true">Nova base (substitui tudo)</button>
         <button type="button" class="modo" data-modo="merge" aria-pressed="false">Atualizar médicos (mantém o resto)</button>
       </div>
-      <label class="area-arquivo" id="areaArquivo">
-        <input type="file" id="arquivoBase" accept=".xlsx,.xlsm,.xlsb,.xls,.csv,.tsv,.txt,.docx,.json" hidden>
+      <div class="area-arquivo" id="areaArquivo">
         <span class="area-icone">⭳</span>
         <strong>Escolher arquivo</strong>
-        <span class="conta-detalhe">ou arraste aqui</span>
-      </label>
+        <span class="conta-detalhe">Planilha (.xlsx, .csv), Word (.docx) ou backup (.json)</span>
+        <!-- O input cobre a área inteira, invisível: o toque vai direto para
+             ele. Nada de <label> com .click() por cima nem de display:none —
+             as duas coisas fazem o Safari do iPhone abrir e descartar a
+             escolha. Sem accept por extensão sozinha, também: o app Arquivos
+             do iOS deixa .xlsx cinza quando não reconhece o tipo. -->
+        <input type="file" id="arquivoBase" class="arquivo-capa"
+               accept=".xlsx,.xlsm,.xlsb,.xls,.csv,.tsv,.txt,.docx,.json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv,text/plain,application/json">
+      </div>
       <button type="button" class="text-button" id="voltarDaBase" hidden>Voltar para o app</button>
     </div>
 
