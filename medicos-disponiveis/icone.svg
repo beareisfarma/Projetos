@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Médicos disponíveis">
+  <rect width="512" height="512" rx="112" fill="#071f2b"/>
+  <path d="M256 92c-70 0-127 57-127 127 0 90 127 201 127 201s127-111 127-201c0-70-57-127-127-127z" fill="#14b8a6"/>
+  <rect x="238" y="152" width="36" height="134" rx="8" fill="#071f2b"/>
+  <rect x="189" y="201" width="134" height="36" rx="8" fill="#071f2b"/>
+</svg>
