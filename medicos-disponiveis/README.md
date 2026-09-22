@@ -126,6 +126,20 @@ Dois modos:
 **O importador nunca inventa horário.** Linha sem hora reconhecível entra na
 lista de problemas, visível na tela, e fica de fora.
 
+## Procurar um médico sem saber o dia
+
+Dia e turno têm a opção **"Todos"**. Com o dia em Todos, a tela muda de forma:
+em vez de 755 disponibilidades (o mesmo médico repetido até quatro vezes),
+mostra **um cartão por médico** — 314 —, com todos os horários dele embaixo e um
+botão por horário para mandá-lo ao roteiro daquele dia.
+
+É o modo de "achar o Dr. Fulano": digita o nome e ele aparece uma vez só, com
+tudo o que se precisa saber. Escolher um dia volta ao agrupamento por bairro e
+endereço, que é o modo de "planejar a terça".
+
+A aba **Roteiro não tem "Todos"**: roteiro é sempre de um dia. Entrar nela com o
+dia em Todos cai no dia de hoje.
+
 ## Ciclos, visitas e metas
 
 - Um **ciclo** é o período de trabalho, fechado quando a pessoa quiser. Concluir

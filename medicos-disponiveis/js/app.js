@@ -26,6 +26,9 @@ import {
 
 const el = (id) => document.getElementById(id);
 
+// Valor de "sem filtro" para dia e turno.
+const TODOS = "Todos";
+
 const tela = {
   entrar: el("telaEntrar"),
   senha: el("telaSenha"),
@@ -636,6 +639,8 @@ el("abaRoteiro").addEventListener("click", () => trocarAba("roteiro"));
 el("abaCiclo").addEventListener("click", () => trocarAba("ciclo"));
 
 function trocarAba(qual) {
+  // O roteiro é sempre de um dia específico: não existe "roteiro de todos os dias".
+  if (qual === "roteiro" && visao.dia === TODOS) visao.dia = diaDeHoje();
   visao.aba = qual;
   visao.selecionados = new Set();
   dizer("mensagem", "");
@@ -697,6 +702,10 @@ el("lista").addEventListener("click", async (evento) => {
       if (visao.selecionados.has(nome)) visao.selecionados.delete(nome);
       else visao.selecionados.add(nome);
       desenhar();
+      break;
+    case "adicionar-um":
+      await dados.adicionarAoRoteiro([nome], dia, turno);
+      dizer("mensagem", `${nome} entrou no roteiro de ${dia} · ${turno}.`, "ok");
       break;
     case "retirar":
       await dados.removerDoRoteiro(nome, dia || visao.dia, turno);
@@ -814,15 +823,25 @@ function desenhar() {
 }
 
 function desenharControles() {
-  el("dias").innerHTML = DIAS.map(
-    (dia) => `<button type="button" data-dia="${esc(dia)}" aria-pressed="${dia === visao.dia}">${esc(dia.slice(0, 3))}</button>`,
-  ).join("");
-  el("turnos").innerHTML = TURNOS.map(
-    (turno) =>
-      `<button type="button" data-turno="${esc(turno)}" aria-pressed="${turno === visao.turno}">${
-        turno === "Manhã" ? "☀&nbsp; Manhã" : "◐&nbsp; Tarde"
-      }</button>`,
-  ).join("");
+  // "Todos" é o primeiro de cada grupo: é o atalho para procurar um médico sem
+  // saber em que dia ele atende.
+  const opcoesDia = visao.aba === "roteiro" ? DIAS : [TODOS, ...DIAS];
+  el("dias").innerHTML = opcoesDia
+    .map(
+      (dia) =>
+        `<button type="button" data-dia="${esc(dia)}" aria-pressed="${dia === visao.dia}">${esc(
+          dia === TODOS ? TODOS : dia.slice(0, 3),
+        )}</button>`,
+    )
+    .join("");
+  el("turnos").innerHTML = [TODOS, ...TURNOS]
+    .map(
+      (turno) =>
+        `<button type="button" data-turno="${esc(turno)}" aria-pressed="${turno === visao.turno}">${
+          turno === "Manhã" ? "☀&nbsp; Manhã" : turno === "Tarde" ? "◐&nbsp; Tarde" : TODOS
+        }</button>`,
+    )
+    .join("");
 }
 
 function desenharEstadoSinc() {
@@ -857,7 +876,8 @@ function agendaFiltrada() {
   const agenda = dados.estado.base?.conteudo.agenda || [];
   const procurado = chaveBusca(visao.busca);
   return agenda.filter((item) => {
-    if (item.dia !== visao.dia || item.turno !== visao.turno) return false;
+    if (visao.dia !== TODOS && item.dia !== visao.dia) return false;
+    if (visao.turno !== TODOS && item.turno !== visao.turno) return false;
     if (!procurado) return true;
     const medico = dados.medicoDe(item.nome);
     // Tanto "cardiologia" quanto "cardio" têm de achar: a pessoa busca pelo que
@@ -972,21 +992,82 @@ function pintar(html) {
   if (campoCiclo) campoCiclo.value = visao.nomeNovoCiclo || "";
 }
 
+// Procurando um médico sem saber o dia, listar as 755 disponibilidades repete o
+// mesmo nome quatro vezes. Aqui cada médico aparece UMA vez, com todos os
+// horários dele embaixo — e cada horário pode ir para o roteiro do seu dia.
+function cartaoPorMedico(nome, itens) {
+  const medico = dados.medicoDe(nome);
+  const situacao = dados.situacaoDe(nome);
+  const nomeEsc = esc(nome);
+  const doRoteiro = new Set(
+    (dados.estado.ciclo?.roteiro || []).map((i) => `${i.nome}|${i.dia}|${i.turno}`),
+  );
+
+  const horarios = itens
+    .map((item) => {
+      const jaEsta = doRoteiro.has(`${nome}|${item.dia}|${item.turno}`);
+      return `<div class="horario">
+        <span class="horario-quando">${esc(item.dia.slice(0, 3))} · ${esc(item.inicio)}–${esc(item.fim)}</span>
+        <span class="horario-onde">${esc([item.bairro, item.endereco, item.sala && `sala ${item.sala}`].filter(Boolean).join(" · "))}</span>
+        <button type="button" class="horario-acao${jaEsta ? " ja" : ""}" data-acao="${jaEsta ? "retirar" : "adicionar-um"}" data-nome="${nomeEsc}" data-dia="${esc(item.dia)}" data-turno="${esc(item.turno)}">${
+          jaEsta ? "− no roteiro" : "+ roteiro"
+        }</button>
+      </div>`;
+    })
+    .join("");
+
+  return `<article class="doctor-card por-medico situacao-${situacao}">
+    <div>
+      <div class="linha-nome">
+        <span class="doctor-name">${nomeEsc}</span>
+        ${fichaEspecialidade(medico.especialidade)}
+        ${fichaVisitas(nome)}
+      </div>
+      <div class="horarios">${horarios}</div>
+      <div class="doctor-actions">${botoesDeVisita(nome)}</div>
+    </div>
+  </article>`;
+}
+
+function listaPorMedico(filtrada) {
+  const porNome = agrupar(filtrada, (item) => item.nome);
+  return Object.keys(porNome)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .map((nome) => cartaoPorMedico(nome, porNome[nome]))
+    .join("");
+}
+
 function desenharDisponiveis() {
   const filtrada = agendaFiltrada();
-  el("eyebrowResultados").textContent = "DISPONIBILIDADE";
-  el("tituloResultados").textContent = `${visao.dia} · ${visao.turno}`;
-  el("contagem").textContent = `${filtrada.length} médicos`;
+  const semDia = visao.dia === TODOS;
+  const nomes = [...new Set(filtrada.map((i) => i.nome))];
+
+  el("eyebrowResultados").textContent = semDia ? "TODOS OS MÉDICOS" : "DISPONIBILIDADE";
+  el("tituloResultados").textContent = semDia
+    ? visao.turno === TODOS
+      ? "Base inteira"
+      : `Todos os dias · ${visao.turno}`
+    : `${visao.dia} · ${visao.turno === TODOS ? "dia inteiro" : visao.turno}`;
+  el("contagem").textContent = `${semDia ? nomes.length : filtrada.length} médicos`;
   el("contagem").hidden = false;
 
-  const nomes = [...new Set(filtrada.map((i) => i.nome))];
   const concluidos = nomes.filter((nome) => dados.situacaoDe(nome) === "concluido").length;
   el("progresso").innerHTML = nomes.length
-    ? `<b>${concluidos}</b> de ${nomes.length} com a meta batida neste turno`
+    ? `<b>${concluidos}</b> de ${nomes.length} com a meta batida ${semDia ? "na base" : "neste turno"}`
     : "";
 
   if (!filtrada.length) {
-    pintar(vazio("Nenhum médico aqui", "Tente outro dia, turno ou termo de busca."));
+    pintar(
+      vazio(
+        "Nenhum médico aqui",
+        semDia ? "Nenhum médico com esse termo de busca." : "Tente outro dia, turno ou termo de busca.",
+      ),
+    );
+    return;
+  }
+
+  if (semDia) {
+    pintar(listaPorMedico(filtrada));
     return;
   }
 

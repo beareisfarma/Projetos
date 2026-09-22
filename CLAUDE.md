@@ -458,6 +458,11 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
 - **Offline-first de verdade**: IndexedDB é a cópia de trabalho, o Supabase é o
   arquivo. `localEm` marca o que ainda não subiu; conflito é último-a-escrever.
   A subida é agrupada (1,2 s) para não virar uma chamada por clique.
+- **Dia e turno têm "Todos"** (pedido dela em 22/09/2026: achar um médico sem
+  saber o dia). Com o dia em Todos a tela troca de forma: **um cartão por
+  médico** (314) com os horários dele embaixo, em vez das 755 disponibilidades
+  com o mesmo nome repetido. Cada horário tem "+ roteiro" para o dia dele.
+  A aba Roteiro NÃO tem "Todos" — roteiro é sempre de um dia.
 - **O roteiro é por DIA, com seções Manhã e Tarde juntas** (pedido explícito
   dela: não quer trocar de turno para ver quem é de qual). O seletor de turno só
   existe na aba Disponíveis.

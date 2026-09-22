@@ -311,3 +311,17 @@ button.brand-mark:hover{background:rgba(255,255,255,.2)}
 /* "63 médicos" estava quebrando em duas linhas dentro da pílula. */
 .result-count{white-space:nowrap}
 .result-count[hidden]{display:none}
+
+/* Visão "Todos": um cartão por médico, com os horários dele embaixo. */
+.doctor-card.por-medico{grid-template-columns:1fr;padding:15px}
+.horarios{display:grid;gap:6px;margin-top:9px}
+.horario{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;padding:8px 11px;background:#fbfdfd}
+.horario-quando{font-size:.78rem;font-weight:850;color:var(--blue);white-space:nowrap}
+.horario-onde{font-size:.75rem;color:var(--muted);line-height:1.35;min-width:0}
+.horario-acao{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--blue);border-radius:9px;min-height:32px;padding:0 9px;font-size:.72rem;font-weight:800;cursor:pointer;white-space:nowrap}
+.horario-acao:hover{border-color:var(--teal);background:var(--ice)}
+.horario-acao.ja{background:#fff5f2;border-color:#e3b2a8;color:#954b3e}
+@media(max-width:760px){
+  .horario{grid-template-columns:1fr auto;row-gap:2px}
+  .horario-onde{grid-column:1 / -1}
+}
