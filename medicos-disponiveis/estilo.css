@@ -124,11 +124,14 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
    Versão 2: contas, importação de base, ciclos e contador de visitas.
    ================================================================== */
 
-.tela{display:grid}
+/* NÃO declarar display aqui: `.tela` é classe e venceria o `main{display:block}`
+   da consulta de mídia, deixando o app em duas colunas no celular — o painel de
+   resultados saía da tela. Quem manda no layout do app continua sendo `main`. */
 .tela-estreita{max-width:640px;margin:auto;padding:0 24px 52px;display:block}
 .cartao{background:rgba(255,255,255,.98);border:1px solid rgba(255,255,255,.6);border-radius:24px;box-shadow:var(--shadow);padding:24px}
 
 .acoes-topo{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.brand-mark{flex:0 0 auto}
 .estado-sinc{font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9fd8d2;padding:5px 9px;border-radius:99px;background:rgba(255,255,255,.1);white-space:nowrap}
 .estado-sinc.ok{color:#8fe3d6}
 .estado-sinc.pendente{color:#ffd88a;background:rgba(255,196,84,.16)}
@@ -218,6 +221,13 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
 .historico-item strong{font-size:.9rem}
 
 @media(max-width:760px){
+  /* No celular o cabeçalho não tem largura para a etiqueta de sincronização:
+     ela vira um ponto colorido, e o título deixa de quebrar em três linhas. */
+  .estado-sinc{width:11px;height:11px;padding:0;border-radius:50%;overflow:hidden;text-indent:-999px;background:#9fd8d2}
+  .estado-sinc.ok{background:#8fe3d6}
+  .estado-sinc.pendente{background:#ffc454}
+  .topbar{gap:10px}
+  .instalar{padding:7px 10px;font-size:.72rem}
   .tela-estreita{padding:0 12px 36px}
   .cartao{border-radius:20px;padding:18px}
   .painel-conta{padding:0 12px 12px}
