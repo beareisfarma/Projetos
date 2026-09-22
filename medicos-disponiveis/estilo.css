@@ -132,6 +132,11 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
 
 .acoes-topo{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .brand-mark{flex:0 0 auto}
+
+/* A página é desenhada por baixo da barra de status do iPhone (viewport-fit=cover
+   + status bar translúcida). Sem esta folga, o relógio e a bateria caem em cima
+   do nome do app. */
+.topbar{padding-top:calc(30px + env(safe-area-inset-top))}
 .estado-sinc{font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9fd8d2;padding:5px 9px;border-radius:99px;background:rgba(255,255,255,.1);white-space:nowrap}
 .estado-sinc.ok{color:#8fe3d6}
 .estado-sinc.pendente{color:#ffd88a;background:rgba(255,196,84,.16)}
@@ -226,7 +231,7 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
   .estado-sinc{width:11px;height:11px;padding:0;border-radius:50%;overflow:hidden;text-indent:-999px;background:#9fd8d2}
   .estado-sinc.ok{background:#8fe3d6}
   .estado-sinc.pendente{background:#ffc454}
-  .topbar{gap:10px}
+  .topbar{gap:10px;padding-top:calc(18px + env(safe-area-inset-top))}
   .instalar{padding:7px 10px;font-size:.72rem}
   .tela-estreita{padding:0 12px 36px}
   .cartao{border-radius:20px;padding:18px}

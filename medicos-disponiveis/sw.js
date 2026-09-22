@@ -3,7 +3,7 @@
  * Estratégia: cache-first para a casca e a base de médicos, com atualização em
  * segundo plano. Subir o número da versão troca o cache inteiro.
  */
-const VERSAO = "medicos-v2";
+const VERSAO = "medicos-v3";
 const CASCA = [
   "./",
   "./index.html",
