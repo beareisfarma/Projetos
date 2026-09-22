@@ -527,6 +527,16 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   `IDBRequest` (verdadeiro!) e fingia base carregada; repintar a lista apagava o
   texto sendo digitado; detecção de coluna em uma passada fazia "Hora de fim"
   roubar a coluna "Visitas".
+- **A cota da Vercel Hobby é 100 deploys por dia na CONTA inteira**, não por
+  projeto, e o 402 diz `api-deployments-free-per-day` com o horário do reset em
+  `limit.reset`. Já bloqueou a publicação por um dia inteiro. Duas fontes de
+  desperdício, as duas tapadas: cada push construía os sete projetos ligados a
+  este repositório (resolvido com Ignored Build Step por projeto, com pathspec
+  git) e cada push construía DUAS vezes — produção pela `main` e prévia pela
+  branch de trabalho (resolvido com `previewDeploymentsDisabled` no projeto; ela
+  só usa a URL de produção). Antes de culpar o Ignored Build Step por um deploy
+  que não saiu, rodar o pathspec local: `git diff --quiet <antes> <depois> --
+  ':(top)pasta'` — saída 1 quer dizer "tem mudança, deve construir".
 - Testes: 190 asserções no Chromium com Supabase simulado (navegação, base,
   especialidade, "Todos", edição de horário, convites, offline) + RLS verificado
   por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
