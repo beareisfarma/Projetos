@@ -443,6 +443,18 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
 - **O importador não tem layout fixo**: lê o cabeçalho, sugere o mapeamento e
   mostra prévia + problemas antes de aplicar. Aceita planilha longa e larga
   (coluna por dia), `.docx` no formato dela e `.json`. **Nunca inventa horário.**
+- **Uma tela por vez, sempre.** Seis telas e nenhum painel flutuante: o antigo
+  painel de conta ficava por cima da tela de convites e a Beatriz reclamou com
+  razão ("tá tudo muito confuso"). Cabeçalho tem atalho de início (a marca) e
+  botão de Ajustes (engrenagem SVG — a palavra fazia o título quebrar em duas
+  linhas no iPhone). Toda tela secundária começa com "← Voltar", e o Voltar usa
+  pilha: de Convites volta para Ajustes, de Ajustes volta para o app.
+  `teste-navegacao.mjs` confere a cada passo que **exatamente uma** `.tela` está
+  visível — é a rede de proteção contra esse tipo de bagunça voltar.
+- **Nada de faixa escura com altura fixa no fundo da página**: cortava cartões
+  altos ao meio e parecia defeito. O navy fica atrás do cabeçalho e de mais
+  nada; o conteúdo é centralizado pelo padding, não por `100vw` (que traz
+  rolagem lateral).
 - **Seletor de arquivo: nunca `<label>` + `input.click()` juntos, nunca
   `display:none` no input, e `accept` sempre com extensões E tipos MIME.** As
   três coisas juntas faziam o iPhone abrir o seletor e descartar o arquivo

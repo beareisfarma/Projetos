@@ -60,6 +60,24 @@ médicos. Hoje a base mora na conta, protegida por RLS.
   Supabase, que no plano gratuito é limitado; em caso de bloqueio, redefinir
   pelo painel é mais rápido.
 
+## Navegação
+
+**Uma tela por vez, sempre.** Seis telas (`entrar`, `senha`, `base`, `ajustes`,
+`convites`, `app`) e nenhuma delas se sobrepõe a outra — a versão anterior tinha
+um painel de conta flutuante que ficava por cima da tela de convites e deixava
+tudo confuso.
+
+- O cabeçalho tem **um atalho de início** (a marca "BR", que aparece só quando há
+  para onde voltar) e **um botão de Ajustes** (engrenagem; a palavra só aparece
+  em tela larga, porque com ela o título quebrava em duas linhas no iPhone).
+- Toda tela secundária começa com a mesma barra: **← Voltar** e o nome da tela.
+- O Voltar usa uma **pilha** (`visao.pilha`), então voltar de Convites cai em
+  Ajustes, e voltar de Ajustes cai no app — nunca num lugar aleatório.
+- Sem base carregada, a tela de base **não tem Voltar**: não existe app para
+  onde ir, e um botão que não leva a lugar nenhum é pior que nenhum botão.
+- O ícone é SVG desenhado, nunca emoji: a largura de um glifo de emoji muda
+  entre sistemas e desalinha o cabeçalho (a mesma armadilha do app de lembretes).
+
 ## Convites (quem entra no app)
 
 O cadastro é por código, e **quem gera os códigos é a dona da conta, dentro do
@@ -123,7 +141,7 @@ lista de problemas, visível na tela, e fica de fora.
 
 | Arquivo | Papel |
 | --- | --- |
-| `index.html` | As quatro telas: entrar, nova senha, base e app. |
+| `index.html` | As seis telas: entrar, senha, base, ajustes, convites e app. |
 | `estilo.css` | Desenho original da v1 (intacto no topo) + acréscimos da v2. |
 | `config.js` | URL do Supabase e a chave publicável. |
 | `js/utilidades.js` | Normalização de texto, datas, leitura de dia/turno/hora. |
@@ -188,6 +206,20 @@ lista de problemas, visível na tela, e fica de fora.
   programático, e o `accept` traz extensões **e** tipos MIME.
 - **Limpar `input.value` depois de ler o arquivo** é o que permite escolher o
   mesmo arquivo de novo depois de corrigi-lo; sem isso o `change` não dispara.
+- **Painel flutuante sobre uma tela = confusão.** O antigo painel de conta ficava
+  visível por cima da tela de convites, com botões soltos no fundo escuro e sem
+  caminho de volta. Regra: uma tela por vez, e todo caminho tem volta. O teste
+  `teste-navegacao.mjs` confere em cada passo que **exatamente uma** `.tela`
+  está visível.
+- **Faixa escura de altura fixa corta cartão alto ao meio.** O fundo era um
+  degradê com corte em 210px (350px no celular) e, numa tela de ajustes
+  comprida, a linha atravessava a página e parecia defeito de renderização. Hoje
+  o navy está atrás do cabeçalho e de mais nada, com o conteúdo centralizado
+  pelo próprio padding (`max(24px, calc((100% - 1120px)/2))`) — nada de `100vw`,
+  que traz rolagem lateral por causa da barra de rolagem.
+- **Rótulo maior no cabeçalho = título quebrado.** Trocar "Conta" por "Ajustes"
+  bastou para o título virar duas linhas no iPhone 13. No celular o botão é só
+  o ícone.
 - **Confirmação em vermelho parece erro.** O mesmo lugar mostra sucesso e falha,
   então o tipo precisa aparecer na cor (`.save-message.boa`).
 - **`localStorage` e IndexedDB podem lançar exceção** (navegação privada). Tudo

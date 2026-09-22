@@ -18,34 +18,21 @@
 <body>
 
 <header class="topbar">
-  <div class="brand-mark">BR</div>
+  <button type="button" class="brand-mark" id="irParaInicio" aria-label="Ir para o início" hidden>BR</button>
+  <div class="brand-mark estatica" id="marcaEstatica" aria-hidden="true">BR</div>
   <div class="titulo">
     <p class="eyebrow">ROTEIRO DE VISITAS</p>
     <h1>Médicos disponíveis</h1>
   </div>
   <div class="acoes-topo">
-    <span class="estado-sinc" id="estadoSinc" hidden></span>
-    <button type="button" class="instalar" id="instalar" hidden>Instalar</button>
-    <button type="button" class="instalar" id="botaoConta" hidden>Conta</button>
+    <span class="estado-sinc" id="estadoSinc" role="status" hidden></span>
+    <button type="button" class="botao-topo" id="instalar" hidden>Instalar</button>
+    <button type="button" class="botao-topo com-icone" id="botaoAjustes" aria-label="Ajustes" hidden><svg class="icone-topo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 8.4a3.6 3.6 0 100 7.2 3.6 3.6 0 000-7.2zm9 3.6c0 .42-.03.83-.09 1.23l2.03 1.59-2.1 3.63-2.4-.97c-.63.5-1.33.9-2.09 1.19L15.96 21h-4.2l-.39-2.33a8.9 8.9 0 01-2.09-1.19l-2.4.97-2.1-3.63 2.03-1.59a9.2 9.2 0 010-2.46L2.78 9.18l2.1-3.63 2.4.97c.63-.5 1.33-.9 2.09-1.19L9.76 3h4.2l.39 2.33c.76.29 1.46.69 2.09 1.19l2.4-.97 2.1 3.63-2.03 1.59c.06.4.09.81.09 1.23z"/></svg><span class="rotulo-topo">Ajustes</span></button>
   </div>
 </header>
 
 <div class="aviso" id="aviso" hidden><p id="avisoTexto"></p></div>
 
-<section class="painel-conta" id="painelConta" hidden>
-  <div>
-    <p class="eyebrow">CONTA</p>
-    <p class="conta-email" id="contaEmail"></p>
-    <p class="conta-detalhe" id="contaDetalhe"></p>
-  </div>
-  <div class="conta-botoes">
-    <button type="button" class="text-button" id="sincronizarAgora">Sincronizar agora</button>
-    <button type="button" class="text-button" id="abrirTrocaSenha">Trocar senha</button>
-    <button type="button" class="text-button" id="trocarBase">Trocar ou atualizar base</button>
-    <button type="button" class="text-button" id="abrirConvites" hidden>Convites</button>
-    <button type="button" class="text-button perigo" id="sairConta">Sair</button>
-  </div>
-</section>
 
 <!-- ------------------------------------------------------------- entrar --- -->
 <main class="tela tela-estreita" id="telaEntrar" hidden>
@@ -82,6 +69,10 @@
 <!-- --------------------------------------------------------- nova senha --- -->
 <main class="tela tela-estreita" id="telaSenha" hidden>
   <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDaSenha">← Voltar</button>
+      <span>Senha</span>
+    </div>
     <p class="eyebrow">SEGURANÇA</p>
     <h2 id="tituloSenha">Definir nova senha</h2>
     <form id="formSenha" class="formulario">
@@ -90,7 +81,6 @@
       <label class="campo"><span>Nova senha (mínimo 8 caracteres)</span>
         <input type="password" id="senhaNova" autocomplete="new-password" minlength="8" required></label>
       <button type="submit" class="add-route">Salvar senha</button>
-      <button type="button" class="text-button" id="cancelarSenha">Cancelar</button>
     </form>
     <p class="save-message" id="mensagemSenha" role="status" hidden></p>
   </section>
@@ -99,6 +89,10 @@
 <!-- --------------------------------------------------------------- base --- -->
 <main class="tela tela-estreita" id="telaBase" hidden>
   <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDaBase">← Voltar</button>
+      <span>Base de médicos</span>
+    </div>
     <p class="eyebrow" id="eyebrowBase">SUA BASE DE MÉDICOS</p>
     <h2 id="tituloBase">Envie a sua planilha</h2>
     <p class="conta-detalhe" id="explicacaoBase">
@@ -123,7 +117,6 @@
         <input type="file" id="arquivoBase" class="arquivo-capa"
                accept=".xlsx,.xlsm,.xlsb,.xls,.csv,.tsv,.txt,.docx,.json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv,text/plain,application/json">
       </div>
-      <button type="button" class="text-button" id="voltarDaBase" hidden>Voltar para o app</button>
     </div>
 
     <div class="passo" id="passoMapa" hidden>
@@ -142,9 +135,54 @@
   </section>
 </main>
 
+<!-- ------------------------------------------------------------- ajustes --- -->
+<main class="tela tela-estreita" id="telaAjustes" hidden>
+  <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDosAjustes">← Voltar</button>
+      <span>Ajustes</span>
+    </div>
+
+    <p class="eyebrow">CONTA</p>
+    <p class="conta-email" id="contaEmail"></p>
+    <p class="conta-detalhe" id="contaDetalhe"></p>
+
+    <div class="lista-ajustes">
+      <button type="button" class="item-ajuste" id="sincronizarAgora">
+        <strong>Sincronizar agora</strong>
+        <span id="detalheSinc">Enviar e receber o que mudou</span>
+      </button>
+      <button type="button" class="item-ajuste" id="trocarBase">
+        <strong>Trocar ou atualizar a base</strong>
+        <span id="detalheBase">Enviar uma planilha nova ou corrigir médicos</span>
+      </button>
+      <button type="button" class="item-ajuste" id="abrirConvites" hidden>
+        <strong>Convites</strong>
+        <span>Dar acesso ao app para outra pessoa</span>
+      </button>
+      <button type="button" class="item-ajuste" id="baixarCopia">
+        <strong>Baixar uma cópia de tudo</strong>
+        <span>Arquivo .json com base, ciclo e histórico</span>
+      </button>
+      <button type="button" class="item-ajuste" id="abrirTrocaSenha">
+        <strong>Trocar senha</strong>
+        <span>Pede a senha atual antes</span>
+      </button>
+      <button type="button" class="item-ajuste perigoso" id="sairConta">
+        <strong>Sair da conta</strong>
+        <span>Seus dados continuam guardados na nuvem</span>
+      </button>
+    </div>
+  </section>
+</main>
+
 <!-- ------------------------------------------------------------ convites --- -->
 <main class="tela tela-estreita" id="telaConvites" hidden>
   <section class="cartao">
+    <div class="topo-tela">
+      <button type="button" class="voltar" data-voltar="1" id="voltarDosConvites">← Voltar</button>
+      <span>Convites</span>
+    </div>
     <p class="eyebrow">ACESSO DA EQUIPE</p>
     <h2>Convites</h2>
     <p class="conta-detalhe">
@@ -160,7 +198,6 @@
 
     <p class="save-message" id="mensagemConvites" role="status" hidden></p>
     <div class="convites" id="listaConvites"></div>
-    <button type="button" class="text-button" id="voltarDosConvites">Voltar para o app</button>
   </section>
 </main>
 

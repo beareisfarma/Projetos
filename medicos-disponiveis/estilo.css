@@ -1,9 +1,9 @@
 :root{--ink:#102d3c;--muted:#637985;--navy:#071f2b;--blue:#0e7490;--teal:#14b8a6;--ice:#eef7f8;--line:#d9e6e9;--paper:#fff;--warning:#9a5b00;--warning-bg:#fff7e6;--shadow:0 14px 40px rgba(7,31,43,.09)}
 *{box-sizing:border-box}
 html{font-size:16px;background:#edf4f5}
-body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(180deg,var(--navy) 0 210px,#edf4f5 210px);min-height:100vh}
+body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#edf4f5;min-height:100vh}
 button,input{font:inherit}
-.topbar{max-width:1120px;margin:auto;padding:30px 24px 22px;color:#fff;display:flex;align-items:center;gap:14px}
+.topbar{padding:30px 24px 22px;color:#fff;display:flex;align-items:center;gap:14px}
 .brand-mark{width:44px;height:44px;border:1px solid rgba(255,255,255,.28);border-radius:14px;display:grid;place-items:center;font-size:.85rem;font-weight:800;letter-spacing:.06em;background:rgba(255,255,255,.08)}
 h1,h2,h3,p{margin:0}
 h1{font-size:clamp(1.45rem,4vw,2rem);line-height:1.1;letter-spacing:-.025em}
@@ -11,7 +11,7 @@ h2{font-size:clamp(1.25rem,3vw,1.55rem);line-height:1.2;letter-spacing:-.02em}
 h3{font-size:1rem;line-height:1.3}
 .eyebrow{font-size:.72rem;letter-spacing:.15em;font-weight:800;color:var(--teal);margin-bottom:5px}
 .topbar .eyebrow{color:#85e6dc}
-main{max-width:1120px;margin:auto;padding:0 24px 52px;display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:24px;align-items:start}
+main{max-width:1120px;margin:auto;padding:22px 24px 52px;display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:24px;align-items:start}
 .filter-panel,.results{background:rgba(255,255,255,.98);border:1px solid rgba(255,255,255,.6);border-radius:24px;box-shadow:var(--shadow)}
 .filter-panel{padding:24px;position:sticky;top:18px}
 .filter-heading,.results-heading{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
@@ -59,7 +59,7 @@ main{max-width:1120px;margin:auto;padding:0 24px 52px;display:grid;grid-template
 .empty-state span{display:grid;place-items:center;margin:0 auto 16px;width:46px;height:46px;border-radius:50%;background:var(--ice);color:var(--teal);font-size:1.7rem}
 .empty-state p{margin-top:6px;font-size:.9rem}
 footer{text-align:center;color:#6c8089;font-size:.76rem;padding:0 24px 30px}
-@media(max-width:760px){body{background:linear-gradient(180deg,var(--navy) 0 350px,#edf4f5 350px)}.topbar{padding:22px 16px 17px}.brand-mark{width:40px;height:40px}main{display:block;padding:0 12px 36px}.filter-panel{position:static;border-radius:20px;padding:19px}.results{margin-top:14px;border-radius:20px;padding:19px;min-height:420px}.segmented.days{overflow-x:auto;display:flex;padding:4px}.segmented.days button{min-width:60px}.doctor-card{grid-template-columns:64px minmax(0,1fr);padding:14px 12px;gap:11px}.address-title{padding:11px 12px}.results-heading{align-items:center}.status-actions{grid-template-columns:1fr}.route-card{padding:14px}.route-main{grid-template-columns:58px minmax(0,1fr)}.doctor-actions{display:grid;grid-template-columns:1fr}.visit-toggle,.route-toggle{width:100%;justify-content:flex-start}}
+@media(max-width:760px){.brand-mark{width:40px;height:40px}main{display:block;padding:16px 12px 36px}.filter-panel{position:static;border-radius:20px;padding:19px}.results{margin-top:14px;border-radius:20px;padding:19px;min-height:420px}.segmented.days{overflow-x:auto;display:flex;padding:4px}.segmented.days button{min-width:60px}.doctor-card{grid-template-columns:64px minmax(0,1fr);padding:14px 12px;gap:11px}.address-title{padding:11px 12px}.results-heading{align-items:center}.status-actions{grid-template-columns:1fr}.route-card{padding:14px}.route-main{grid-template-columns:58px minmax(0,1fr)}.doctor-actions{display:grid;grid-template-columns:1fr}.visit-toggle,.route-toggle{width:100%;justify-content:flex-start}}
 @media(prefers-reduced-motion:no-preference){.doctor-card{animation:rise .24s ease both}@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}}
 
 /* ------------------------------------------------------------------
@@ -71,8 +71,7 @@ footer{text-align:center;color:#6c8089;font-size:.76rem;padding:0 24px 30px}
 
 .topbar{position:relative}
 .topbar .titulo{flex:1 1 auto;min-width:0}
-.instalar{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;border-radius:11px;min-height:38px;padding:8px 13px;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}
-.instalar:hover{background:rgba(255,255,255,.18)}
+
 
 /* Faixa de dados: backup, restaurar e virada de semana. */
 .dados{margin-top:22px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px}
@@ -87,7 +86,7 @@ footer{text-align:center;color:#6c8089;font-size:.76rem;padding:0 24px 30px}
 /* Data da visita registrada, para a marca não virar eterna. */
 .visita-em{display:block;font-size:.72rem;color:#087466;font-weight:750;margin-top:6px}
 
-.aviso{margin:0 auto;max-width:1120px;padding:0 24px 14px}
+.aviso{margin:0 auto;max-width:1120px;padding:16px 24px 0}
 .aviso p{background:var(--warning-bg);border:1px solid #f0d9a8;color:var(--warning);border-radius:13px;padding:11px 14px;font-size:.8rem;font-weight:750;line-height:1.4}
 
 /* Rodapé com o crédito e a logo pessoal. */
@@ -127,7 +126,7 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
 /* NÃO declarar display aqui: `.tela` é classe e venceria o `main{display:block}`
    da consulta de mídia, deixando o app em duas colunas no celular — o painel de
    resultados saía da tela. Quem manda no layout do app continua sendo `main`. */
-.tela-estreita{max-width:640px;margin:auto;padding:0 24px 52px;display:block}
+.tela-estreita{max-width:640px;margin:auto;padding:22px 24px 52px;display:block}
 .cartao{background:rgba(255,255,255,.98);border:1px solid rgba(255,255,255,.6);border-radius:24px;box-shadow:var(--shadow);padding:24px}
 
 .acoes-topo{display:flex;align-items:center;gap:8px;flex:0 0 auto}
@@ -136,19 +135,46 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
 /* A página é desenhada por baixo da barra de status do iPhone (viewport-fit=cover
    + status bar translúcida). Sem esta folga, o relógio e a bateria caem em cima
    do nome do app. */
-.topbar{padding-top:calc(30px + env(safe-area-inset-top))}
+/* O navy fica atrás do cabeçalho e de mais nada. Antes era uma faixa de altura
+   fixa no fundo da página (210px, 350px no celular) que cortava cartões altos
+   ao meio e parecia defeito. O padding lateral centraliza o conteúdo em 1120px
+   sem precisar de 100vw (que traz rolagem lateral por causa da barra). */
+.topbar{
+  background:var(--navy);
+  padding:calc(30px + env(safe-area-inset-top)) max(24px, calc((100% - 1120px) / 2)) 26px;
+}
 .estado-sinc{font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9fd8d2;padding:5px 9px;border-radius:99px;background:rgba(255,255,255,.1);white-space:nowrap}
 .estado-sinc.ok{color:#8fe3d6}
 .estado-sinc.pendente{color:#ffd88a;background:rgba(255,196,84,.16)}
 
-/* Painel de conta: abre e fecha sobre o conteúdo, sem trocar de tela. */
-.painel-conta{max-width:1120px;margin:auto;padding:0 24px 16px;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start}
-.painel-conta > div:first-child{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 16px;flex:1 1 280px}
-.conta-email{font-weight:800;font-size:.95rem}
+.conta-email{font-weight:800;font-size:.95rem;margin-top:2px}
 .conta-detalhe{font-size:.79rem;color:var(--muted);line-height:1.5;margin-top:4px}
-.conta-botoes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .text-button.perigo{color:#a04435}
-.painel-conta[hidden]{display:none}
+
+/* Botões do cabeçalho: largura pelo texto, mas altura fixa, para que trocar de
+   rótulo não mude a altura da barra. */
+.botao-topo{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;border-radius:11px;height:38px;padding:0 13px;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}
+.icone-topo{width:18px;height:18px;flex:0 0 auto}
+.botao-topo:hover{background:rgba(255,255,255,.18)}
+button.brand-mark{cursor:pointer;font-family:inherit;padding:0}
+button.brand-mark:hover{background:rgba(255,255,255,.2)}
+.brand-mark[hidden]{display:none}
+
+/* Toda tela secundária começa com a mesma barra: voltar à esquerda, nome ao
+   lado. Antes não havia caminho de volta nenhum. */
+.topo-tela{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.topo-tela > span{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.voltar{border:1px solid var(--line);background:#fff;color:var(--blue);border-radius:11px;min-height:40px;padding:0 14px;font-size:.82rem;font-weight:800;cursor:pointer;flex:0 0 auto}
+.voltar:hover{background:var(--ice);border-color:var(--teal)}
+
+/* Ajustes: uma lista de opções de verdade, não links soltos no fundo escuro. */
+.lista-ajustes{display:grid;gap:8px;margin-top:20px}
+.item-ajuste{display:grid;gap:2px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px 15px;cursor:pointer;min-height:58px}
+.item-ajuste:hover{border-color:var(--teal);background:#f7fbfb}
+.item-ajuste strong{font-size:.92rem;color:var(--ink)}
+.item-ajuste span{font-size:.76rem;color:var(--muted);line-height:1.4}
+.item-ajuste.perigoso{margin-top:10px;border-color:#e3b2a8}
+.item-ajuste.perigoso strong{color:#a04435}
 
 /* Formulários (entrar, criar conta, senha, nome da base) */
 .formulario{display:grid;gap:14px;margin-top:20px}
@@ -237,11 +263,15 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
   .estado-sinc{width:11px;height:11px;padding:0;border-radius:50%;overflow:hidden;text-indent:-999px;background:#9fd8d2}
   .estado-sinc.ok{background:#8fe3d6}
   .estado-sinc.pendente{background:#ffc454}
-  .topbar{gap:10px;padding-top:calc(18px + env(safe-area-inset-top))}
-  .instalar{padding:7px 10px;font-size:.72rem}
-  .tela-estreita{padding:0 12px 36px}
+  .topbar{gap:10px;padding:calc(18px + env(safe-area-inset-top)) 16px 18px}
+  /* No celular o botão vira só a engrenagem: com a palavra "Ajustes" o título
+     "Médicos disponíveis" quebrava em duas linhas. Ícone desenhado em SVG, não
+     emoji — glifo de emoji muda de largura entre sistemas. */
+  .botao-topo{padding:0 10px;font-size:.72rem}
+  .botao-topo.com-icone{width:40px;padding:0;justify-content:center}
+  .botao-topo.com-icone .rotulo-topo{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .tela-estreita{padding:16px 12px 36px}
   .cartao{border-radius:20px;padding:18px}
-  .painel-conta{padding:0 12px 12px}
   .linha-mapa{grid-template-columns:1fr;gap:4px}
   .modo-base{grid-template-columns:1fr}
   .historico-item{flex-direction:column;align-items:flex-start}
@@ -264,3 +294,13 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
 
 /* Confirmação usa o mesmo lugar do erro; só a cor muda. */
 .save-message.boa{color:#087466}
+
+/* Telas de 320px (iPhone SE): o título cabe em uma linha só com um passo a menos. */
+@media(max-width:360px){
+  .topbar h1{font-size:1.25rem}
+  .topbar .eyebrow{font-size:.64rem}
+}
+
+/* "63 médicos" estava quebrando em duas linhas dentro da pílula. */
+.result-count{white-space:nowrap}
+.result-count[hidden]{display:none}

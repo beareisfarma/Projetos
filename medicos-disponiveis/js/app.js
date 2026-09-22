@@ -29,6 +29,7 @@ const tela = {
   entrar: el("telaEntrar"),
   senha: el("telaSenha"),
   base: el("telaBase"),
+  ajustes: el("telaAjustes"),
   convites: el("telaConvites"),
   app: el("telaApp"),
 };
@@ -42,6 +43,7 @@ const visao = {
   selecionados: new Set(),
   modoBase: "nova",
   nomeNovoCiclo: "",
+  pilha: [],
   arquivoLido: null,
   mapa: {},
   tokenRecuperacao: null,
@@ -71,12 +73,43 @@ function dizer(alvo, texto, tipo = "erro") {
 
 /* ------------------------------------------------------------------- telas */
 
+// Uma tela por vez, sempre. Nada de painel flutuante por cima de outra coisa:
+// era isso que deixava a tela de ajustes e a de convites empilhadas.
 function mostrar(nome) {
   visao.atual = nome;
   for (const [chave, no] of Object.entries(tela)) no.hidden = chave !== nome;
-  el("botaoConta").hidden = !dados.estado.sessao || nome === "entrar";
-  if (nome !== "app") el("painelConta").hidden = true;
+
+  const logada = Boolean(dados.estado.sessao);
+  const comBase = Boolean(dados.estado.base);
+  // O atalho do topo só aparece quando há para onde ir.
+  el("botaoAjustes").hidden = !logada || nome === "entrar" || nome === "ajustes";
+  el("irParaInicio").hidden = !(logada && comBase) || nome === "app" || nome === "entrar";
+  el("marcaEstatica").hidden = !el("irParaInicio").hidden;
+
+  // Sem base ainda, não há app para onde voltar: o Voltar da tela de base some.
+  el("voltarDaBase").hidden = !comBase;
   desenhar();
+}
+
+// Pilha de navegação: cada Voltar sabe de onde a pessoa veio, inclusive quando
+// a tela de base foi aberta a partir dos ajustes.
+function ir(nome) {
+  if (visao.atual && visao.atual !== nome) visao.pilha.push(visao.atual);
+  mostrar(nome);
+}
+
+function voltar() {
+  const anterior = visao.pilha.pop();
+  if (anterior && anterior !== visao.atual) {
+    mostrar(anterior);
+    return;
+  }
+  decidirTela();
+}
+
+function irParaInicio() {
+  visao.pilha = [];
+  decidirTela();
 }
 
 function decidirTela() {
@@ -85,6 +118,24 @@ function decidirTela() {
   if (!dados.estado.base) return mostrar("base");
   return mostrar("app");
 }
+
+// Todo botão "← Voltar" das telas secundárias passa pelo mesmo caminho.
+for (const botao of document.querySelectorAll("[data-voltar]")) {
+  botao.addEventListener("click", () => {
+    if (visao.atual === "senha") {
+      visao.tokenRecuperacao = null;
+      history.replaceState(null, "", location.pathname);
+      dizer("mensagemSenha", "");
+    }
+    voltar();
+  });
+}
+
+el("irParaInicio").addEventListener("click", irParaInicio);
+el("botaoAjustes").addEventListener("click", () => {
+  ir("ajustes");
+  desenharConta();
+});
 
 /* ------------------------------------------------------------------ acesso */
 
@@ -110,7 +161,7 @@ el("formEntrar").addEventListener("submit", async (evento) => {
     dizer("mensagemAcesso", "");
     await dados.carregarLocal();
     await dados.sincronizar({ silencioso: false });
-    decidirTela();
+    irParaInicio();
   } catch (erro) {
     dizer("mensagemAcesso", erro.message);
   } finally {
@@ -133,7 +184,7 @@ el("formCriar").addEventListener("submit", async (evento) => {
     dizer("mensagemAcesso", "");
     await dados.carregarLocal();
     await dados.sincronizar({ silencioso: false });
-    decidirTela();
+    irParaInicio();
   } catch (erro) {
     dizer("mensagemAcesso", erro.message);
   } finally {
@@ -183,7 +234,7 @@ el("formSenha").addEventListener("submit", async (evento) => {
     if (dados.estado.sessao) {
       await dados.carregarLocal();
       await dados.sincronizar();
-      decidirTela();
+      irParaInicio();
     } else {
       mostrar("entrar");
       dizer("mensagemAcesso", "Senha trocada. Entre com a nova senha.");
@@ -195,49 +246,32 @@ el("formSenha").addEventListener("submit", async (evento) => {
   }
 });
 
-el("cancelarSenha").addEventListener("click", () => {
-  visao.tokenRecuperacao = null;
-  history.replaceState(null, "", location.pathname);
-  dizer("mensagemSenha", "");
-  decidirTela();
-});
-
-/* -------------------------------------------------------------- painel conta */
-
-el("botaoConta").addEventListener("click", () => {
-  const painel = el("painelConta");
-  painel.hidden = !painel.hidden;
-  if (!painel.hidden) desenharConta();
-});
+/* ------------------------------------------------------------------ ajustes */
 
 el("sincronizarAgora").addEventListener("click", async () => {
+  el("detalheSinc").textContent = "Sincronizando…";
   await dados.sincronizar({ silencioso: false });
   desenharConta();
 });
 
 el("abrirTrocaSenha").addEventListener("click", () => {
-  el("painelConta").hidden = true;
   el("campoSenhaAtual").hidden = false;
   el("tituloSenha").textContent = "Trocar senha";
-  mostrar("senha");
+  ir("senha");
 });
 
-el("trocarBase").addEventListener("click", () => {
-  el("painelConta").hidden = true;
-  abrirTelaDeBase();
-});
+el("trocarBase").addEventListener("click", () => abrirTelaDeBase());
+
+el("baixarCopia").addEventListener("click", () => baixarCopia());
 
 /* ------------------------------------------------------------- convites */
 
 let convitesCarregados = [];
 
 el("abrirConvites").addEventListener("click", async () => {
-  el("painelConta").hidden = true;
-  mostrar("convites");
+  ir("convites");
   await carregarConvites();
 });
-
-el("voltarDosConvites").addEventListener("click", () => decidirTela());
 
 async function carregarConvites() {
   dizer("mensagemConvites", "Carregando…");
@@ -337,6 +371,7 @@ function desenharConvites() {
 el("sairConta").addEventListener("click", async () => {
   if (!confirm("Sair da conta? As marcações já sincronizadas continuam guardadas na sua conta.")) return;
   await dados.sairDaConta();
+  visao.pilha = [];
   mostrar("entrar");
 });
 
@@ -344,13 +379,15 @@ function desenharConta() {
   el("contaEmail").textContent = dados.estado.sessao?.usuario?.email || "";
   // Quem decide é o perfil vindo do banco; a tela só obedece.
   el("abrirConvites").hidden = !dados.estado.podeConvidar;
-  const partes = [];
-  if (dados.estado.base) {
-    partes.push(`${dados.estado.base.conteudo.medicos.length} médicos na base "${dados.estado.base.nome}"`);
-  }
-  partes.push(dados.estado.pendente ? "há marcações ainda não sincronizadas" : "tudo sincronizado");
-  if (dados.estado.ultimoErro) partes.push(dados.estado.ultimoErro);
-  el("contaDetalhe").textContent = partes.join(" · ");
+
+  const base = dados.estado.base;
+  el("contaDetalhe").textContent = dados.estado.pendente
+    ? "Há marcações feitas aqui que ainda não subiram."
+    : "Tudo sincronizado com a nuvem.";
+  el("detalheBase").textContent = base
+    ? `Agora: "${base.nome}" — ${base.conteudo.medicos.length} médicos, ${base.conteudo.agenda.length} disponibilidades`
+    : "Nenhuma base carregada ainda";
+  el("detalheSinc").textContent = dados.estado.ultimoErro || "Enviar e receber o que mudou";
 }
 
 /* --------------------------------------------------------------- tela da base */
@@ -365,10 +402,8 @@ function abrirTelaDeBase() {
   el("passoArquivo").hidden = false;
   el("passoMapa").hidden = true;
   dizer("mensagemBase", "");
-  mostrar("base");
+  ir("base");
 }
-
-el("voltarDaBase").addEventListener("click", () => decidirTela());
 
 for (const botao of document.querySelectorAll("#modoBase .modo")) {
   botao.addEventListener("click", () => {
@@ -585,7 +620,7 @@ el("aplicarBase").addEventListener("click", async () => {
       dizer("mensagem", `Base aplicada: ${conteudo.medicos.length} médicos.`, "ok");
     }
     visao.modoBase = "nova";
-    decidirTela();
+    irParaInicio();
   } catch (erro) {
     dizer("mensagemBase", erro.message);
   } finally {
@@ -926,6 +961,7 @@ function desenharDisponiveis() {
   el("eyebrowResultados").textContent = "DISPONIBILIDADE";
   el("tituloResultados").textContent = `${visao.dia} · ${visao.turno}`;
   el("contagem").textContent = `${filtrada.length} médicos`;
+  el("contagem").hidden = false;
 
   const nomes = [...new Set(filtrada.map((i) => i.nome))];
   const concluidos = nomes.filter((nome) => dados.situacaoDe(nome) === "concluido").length;
@@ -976,6 +1012,7 @@ function desenharRoteiro() {
   el("eyebrowResultados").textContent = "MEU ROTEIRO";
   el("tituloResultados").textContent = `${visao.dia} · dia inteiro`;
   el("contagem").textContent = `${total} médicos`;
+  el("contagem").hidden = false;
 
   const nomes = secoes.flatMap((s) => s.itens.map((i) => i.nome));
   const concluidos = new Set(nomes.filter((nome) => dados.situacaoDe(nome) === "concluido"));
@@ -1038,8 +1075,9 @@ function desenharRoteiro() {
 
 function desenharCiclo() {
   el("eyebrowResultados").textContent = "CICLO";
-  el("tituloResultados").textContent = dados.estado.ciclo ? dados.estado.ciclo.nome : "Nenhum ciclo aberto";
+  el("tituloResultados").textContent = dados.estado.ciclo ? "Resumo do ciclo" : "Nenhum ciclo aberto";
   el("contagem").textContent = "";
+  el("contagem").hidden = true;
   el("progresso").innerHTML = "";
 
   const resumo = dados.resumoDoCiclo();
@@ -1062,7 +1100,6 @@ function desenharCiclo() {
     }
     <div class="ciclo-acoes">
       <button type="button" class="add-route" data-acao="concluir-ciclo">Concluir ciclo e guardar resumo</button>
-      <button type="button" class="text-button" data-acao="baixar-copia">Baixar cópia de tudo (JSON)</button>
     </div>`);
   } else {
     partes.push(`<div class="empty-state"><span>○</span><h3>Nenhum ciclo aberto</h3>
@@ -1143,7 +1180,7 @@ dados.observar(() => {
   } else if (visao.atual === "base") {
     desenharRodape();
   }
-  if (!el("painelConta").hidden) desenharConta();
+  if (visao.atual === "ajustes") desenharConta();
 });
 
 (async function iniciar() {
