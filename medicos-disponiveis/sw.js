@@ -3,13 +3,19 @@
  * Estratégia: cache-first para a casca e a base de médicos, com atualização em
  * segundo plano. Subir o número da versão troca o cache inteiro.
  */
-const VERSAO = "medicos-v1";
+const VERSAO = "medicos-v2";
 const CASCA = [
   "./",
   "./index.html",
   "./estilo.css",
-  "./app.js",
-  "./medicos.json",
+  "./config.js",
+  "./js/app.js",
+  "./js/dados.js",
+  "./js/deposito.js",
+  "./js/importar.js",
+  "./js/nuvem.js",
+  "./js/utilidades.js",
+  "./vendor/fflate-0.8.3.min.js",
   "./manifest.webmanifest",
   "./icone.svg",
   "./favicon.png",
@@ -33,7 +39,10 @@ self.addEventListener("activate", (evento) => {
 
 self.addEventListener("fetch", (evento) => {
   const pedido = evento.request;
-  if (pedido.method !== "GET" || new URL(pedido.url).origin !== self.location.origin) return;
+  const endereco = new URL(pedido.url);
+  // Só a própria origem entra no cache: chamadas ao Supabase precisam ir à rede
+  // sempre, e uma resposta de API guardada seria dado velho fingindo ser novo.
+  if (pedido.method !== "GET" || endereco.origin !== self.location.origin) return;
 
   evento.respondWith(
     caches.match(pedido).then((guardado) => {

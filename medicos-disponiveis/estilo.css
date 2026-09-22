@@ -119,3 +119,109 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
     z-index:30;width:auto;margin:0;box-shadow:0 10px 28px rgba(7,31,43,.28)
   }
 }
+
+/* ==================================================================
+   Versão 2: contas, importação de base, ciclos e contador de visitas.
+   ================================================================== */
+
+.tela{display:grid}
+.tela-estreita{max-width:640px;margin:auto;padding:0 24px 52px;display:block}
+.cartao{background:rgba(255,255,255,.98);border:1px solid rgba(255,255,255,.6);border-radius:24px;box-shadow:var(--shadow);padding:24px}
+
+.acoes-topo{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.estado-sinc{font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9fd8d2;padding:5px 9px;border-radius:99px;background:rgba(255,255,255,.1);white-space:nowrap}
+.estado-sinc.ok{color:#8fe3d6}
+.estado-sinc.pendente{color:#ffd88a;background:rgba(255,196,84,.16)}
+
+/* Painel de conta: abre e fecha sobre o conteúdo, sem trocar de tela. */
+.painel-conta{max-width:1120px;margin:auto;padding:0 24px 16px;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start}
+.painel-conta > div:first-child{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 16px;flex:1 1 280px}
+.conta-email{font-weight:800;font-size:.95rem}
+.conta-detalhe{font-size:.79rem;color:var(--muted);line-height:1.5;margin-top:4px}
+.conta-botoes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.text-button.perigo{color:#a04435}
+.painel-conta[hidden]{display:none}
+
+/* Formulários (entrar, criar conta, senha, nome da base) */
+.formulario{display:grid;gap:14px;margin-top:20px}
+.formulario[hidden]{display:none}
+.campo{display:grid;gap:6px}
+.campo > span{font-size:.8rem;color:var(--muted);font-weight:750}
+.campo input,.campo select{border:1px solid var(--line);border-radius:12px;min-height:46px;padding:0 13px;background:#fbfdfd;color:var(--ink);font-size:.95rem}
+.campo input:focus,.campo select:focus{outline:3px solid rgba(20,184,166,.18);border-color:var(--teal)}
+.campo[hidden]{display:none}
+.view-tabs.dois{grid-template-columns:1fr 1fr}
+.view-tabs.tres{grid-template-columns:repeat(3,1fr)}
+.view-tabs.tres button{font-size:.82rem;padding:0 4px}
+
+/* Tela da base: modo, área de arquivo, mapeamento e prévia */
+.modo-base{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:18px 0;background:#edf4f5;padding:5px;border-radius:14px}
+.modo-base[hidden]{display:none}
+.modo-base .modo{border:0;background:transparent;color:#536b77;min-height:44px;border-radius:10px;cursor:pointer;font-size:.78rem;font-weight:800;padding:8px 6px}
+.modo-base .modo[aria-pressed="true"]{background:var(--navy);color:#fff}
+.area-arquivo{margin-top:18px;display:grid;justify-items:center;gap:5px;padding:30px 20px;border:2px dashed var(--line);border-radius:18px;background:#fbfdfd;cursor:pointer;text-align:center}
+.area-arquivo:hover,.area-arquivo.arrastando{border-color:var(--teal);background:#f2fbfa}
+.area-icone{font-size:1.7rem;color:var(--teal)}
+.area-arquivo strong{font-size:.95rem}
+
+.passo[hidden]{display:none}
+.mapa{display:grid;gap:9px;margin:16px 0}
+.linha-mapa{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px;align-items:center}
+.linha-mapa > span{font-size:.82rem;font-weight:750;color:#4d6672}
+.linha-mapa select{border:1px solid var(--line);border-radius:10px;min-height:40px;padding:0 9px;background:#fff;font-size:.85rem}
+.mapa-auto{font-size:.8rem;color:#087466;font-weight:750;font-style:normal}
+.previa{margin-top:10px}
+.previa h4,.problemas h4{font-size:.8rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px}
+.previa-linhas{display:grid;gap:7px}
+.previa-linha{border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:.8rem;display:grid;gap:2px;background:#fff}
+.previa-linha strong{font-size:.88rem}
+.previa-linha span{color:var(--muted)}
+.problemas{margin-top:14px;border:1px solid #f0d9a8;background:var(--warning-bg);border-radius:14px;padding:12px 14px}
+.problemas ul{margin:0;padding-left:18px;font-size:.8rem;color:var(--warning);line-height:1.6}
+.problemas[hidden]{display:none}
+
+/* Contador de visitas, especialidade e meta do ciclo */
+.contador{display:inline-grid;place-items:center;min-width:38px;height:22px;padding:0 7px;margin-left:7px;border-radius:99px;font-size:.72rem;font-weight:850;background:#e9eff1;color:#546b77;vertical-align:middle}
+.contador.parcial{background:#fff4d9;color:#795300}
+.contador.concluido{background:#dff5ef;color:#087466}
+.contador.nao_visitado{background:#fff0ed;color:#984334}
+.especialidade{font-size:.8rem;color:#0b637a;font-weight:750;margin-top:3px}
+.linha-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:9px}
+.meta{display:flex;align-items:center;gap:6px}
+.meta > span{font-size:.72rem;color:var(--muted);font-weight:750}
+.meta select{border:1px solid var(--line);border-radius:9px;min-height:32px;padding:0 7px;background:#fff;font-size:.74rem;font-weight:750;color:#4d6672}
+.doctor-card.situacao-concluido{background:#f6faf9}
+.doctor-card.situacao-concluido .doctor-name{color:#5d7a74}
+.doctor-card.situacao-nao_visitado{background:#fffaf9}
+.route-card.situacao-parcial{border-left-color:#e0ad3a}
+.route-card.situacao-concluido{border-left-color:var(--teal);background:#f7fbfa}
+.route-card.situacao-nao_visitado{border-left-color:#d26a57}
+.route-card.situacao-pendente{border-left-color:#c3d3d8}
+.route-card .doctor-actions{margin-top:12px}
+
+/* Roteiro do dia: manhã e tarde na mesma tela, em seções. */
+.turno-secao{margin-top:22px}
+.turno-secao.vazia{opacity:.7}
+.turno-titulo{display:flex;align-items:center;gap:9px;font-size:.9rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.turno-titulo span{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--ice);color:var(--blue);font-size:.74rem}
+.turno-secao .route-list{margin-top:12px}
+
+/* Painel do ciclo */
+.numeros{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:20px 0 14px}
+.numero{border:1px solid var(--line);border-radius:16px;padding:13px 14px;background:#fff}
+.numero strong{display:block;font-size:1.6rem;line-height:1.1;color:var(--navy)}
+.numero span{font-size:.75rem;color:var(--muted);font-weight:750;line-height:1.3;display:block;margin-top:4px}
+.ciclo-acoes{display:grid;gap:8px;margin-top:18px}
+.secao-titulo{margin-top:28px;font-size:.85rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.historico{display:grid;gap:9px;margin-top:12px}
+.historico-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+.historico-item strong{font-size:.9rem}
+
+@media(max-width:760px){
+  .tela-estreita{padding:0 12px 36px}
+  .cartao{border-radius:20px;padding:18px}
+  .painel-conta{padding:0 12px 12px}
+  .linha-mapa{grid-template-columns:1fr;gap:4px}
+  .modo-base{grid-template-columns:1fr}
+  .historico-item{flex-direction:column;align-items:flex-start}
+}

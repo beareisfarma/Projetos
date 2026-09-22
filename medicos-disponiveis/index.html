@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Médicos disponíveis</title>
-<meta name="description" content="Consulta rápida de médicos disponíveis por dia e turno, com roteiro de visitas que funciona offline.">
+<meta name="description" content="Roteiro de visitas médicas: cada pessoa envia a sua base, monta o roteiro do dia e fecha o ciclo com resumo. Funciona offline.">
 <meta name="theme-color" content="#071f2b">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="favicon.png" sizes="64x64">
@@ -23,66 +23,168 @@
     <p class="eyebrow">ROTEIRO DE VISITAS</p>
     <h1>Médicos disponíveis</h1>
   </div>
-  <button type="button" class="instalar" id="instalar" hidden>Instalar</button>
+  <div class="acoes-topo">
+    <span class="estado-sinc" id="estadoSinc" hidden></span>
+    <button type="button" class="instalar" id="instalar" hidden>Instalar</button>
+    <button type="button" class="instalar" id="botaoConta" hidden>Conta</button>
+  </div>
 </header>
 
 <div class="aviso" id="aviso" hidden><p id="avisoTexto"></p></div>
 
-<main>
+<section class="painel-conta" id="painelConta" hidden>
+  <div>
+    <p class="eyebrow">CONTA</p>
+    <p class="conta-email" id="contaEmail"></p>
+    <p class="conta-detalhe" id="contaDetalhe"></p>
+  </div>
+  <div class="conta-botoes">
+    <button type="button" class="text-button" id="sincronizarAgora">Sincronizar agora</button>
+    <button type="button" class="text-button" id="abrirTrocaSenha">Trocar senha</button>
+    <button type="button" class="text-button" id="trocarBase">Trocar ou atualizar base</button>
+    <button type="button" class="text-button perigo" id="sairConta">Sair</button>
+  </div>
+</section>
+
+<!-- ------------------------------------------------------------- entrar --- -->
+<main class="tela tela-estreita" id="telaEntrar" hidden>
+  <section class="cartao">
+    <div class="view-tabs dois" role="tablist">
+      <button type="button" role="tab" id="abaEntrar" aria-selected="true">Entrar</button>
+      <button type="button" role="tab" id="abaCriar" aria-selected="false">Criar conta</button>
+    </div>
+
+    <form id="formEntrar" class="formulario">
+      <label class="campo"><span>E-mail</span>
+        <input type="email" id="entrarEmail" autocomplete="username" required></label>
+      <label class="campo"><span>Senha</span>
+        <input type="password" id="entrarSenha" autocomplete="current-password" required></label>
+      <button type="submit" class="add-route">Entrar</button>
+      <button type="button" class="text-button" id="esqueciSenha">Esqueci minha senha</button>
+    </form>
+
+    <form id="formCriar" class="formulario" hidden>
+      <label class="campo"><span>E-mail</span>
+        <input type="email" id="criarEmail" autocomplete="username" required></label>
+      <label class="campo"><span>Senha (mínimo 8 caracteres)</span>
+        <input type="password" id="criarSenha" autocomplete="new-password" minlength="8" required></label>
+      <label class="campo"><span>Código de convite</span>
+        <input type="text" id="criarCodigo" autocomplete="off" placeholder="RTM-XXXXXXXX" required></label>
+      <button type="submit" class="add-route">Criar conta</button>
+      <p class="conta-detalhe">O cadastro é por convite. Se você não tem um código, peça a quem indicou o app.</p>
+    </form>
+
+    <p class="save-message" id="mensagemAcesso" role="status" hidden></p>
+  </section>
+</main>
+
+<!-- --------------------------------------------------------- nova senha --- -->
+<main class="tela tela-estreita" id="telaSenha" hidden>
+  <section class="cartao">
+    <p class="eyebrow">SEGURANÇA</p>
+    <h2 id="tituloSenha">Definir nova senha</h2>
+    <form id="formSenha" class="formulario">
+      <label class="campo" id="campoSenhaAtual"><span>Senha atual</span>
+        <input type="password" id="senhaAtual" autocomplete="current-password"></label>
+      <label class="campo"><span>Nova senha (mínimo 8 caracteres)</span>
+        <input type="password" id="senhaNova" autocomplete="new-password" minlength="8" required></label>
+      <button type="submit" class="add-route">Salvar senha</button>
+      <button type="button" class="text-button" id="cancelarSenha">Cancelar</button>
+    </form>
+    <p class="save-message" id="mensagemSenha" role="status" hidden></p>
+  </section>
+</main>
+
+<!-- --------------------------------------------------------------- base --- -->
+<main class="tela tela-estreita" id="telaBase" hidden>
+  <section class="cartao">
+    <p class="eyebrow" id="eyebrowBase">SUA BASE DE MÉDICOS</p>
+    <h2 id="tituloBase">Envie a sua planilha</h2>
+    <p class="conta-detalhe" id="explicacaoBase">
+      Aceita planilha (.xlsx, .csv), o Word do roteiro semanal (.docx) e backup em .json.
+      O app lê o cabeçalho da sua planilha e mostra o que entendeu antes de aplicar.
+    </p>
+
+    <div class="passo" id="passoArquivo">
+      <div class="modo-base" id="modoBase" hidden>
+        <button type="button" class="modo" data-modo="nova" aria-pressed="true">Nova base (substitui tudo)</button>
+        <button type="button" class="modo" data-modo="merge" aria-pressed="false">Atualizar médicos (mantém o resto)</button>
+      </div>
+      <label class="area-arquivo" id="areaArquivo">
+        <input type="file" id="arquivoBase" accept=".xlsx,.xlsm,.xlsb,.xls,.csv,.tsv,.txt,.docx,.json" hidden>
+        <span class="area-icone">⭳</span>
+        <strong>Escolher arquivo</strong>
+        <span class="conta-detalhe">ou arraste aqui</span>
+      </label>
+      <button type="button" class="text-button" id="voltarDaBase" hidden>Voltar para o app</button>
+    </div>
+
+    <div class="passo" id="passoMapa" hidden>
+      <h3 id="tituloMapa">Confira o que eu entendi</h3>
+      <p class="conta-detalhe" id="resumoArquivo"></p>
+      <div class="mapa" id="mapa"></div>
+      <div class="previa" id="previa"></div>
+      <div class="problemas" id="problemas" hidden></div>
+      <label class="campo"><span>Nome desta base</span>
+        <input type="text" id="nomeBase" maxlength="60"></label>
+      <button type="button" class="add-route" id="aplicarBase">Aplicar ao app</button>
+      <button type="button" class="text-button" id="cancelarBase">Escolher outro arquivo</button>
+    </div>
+
+    <p class="save-message" id="mensagemBase" role="status" hidden></p>
+  </section>
+</main>
+
+<!-- ---------------------------------------------------------------- app --- -->
+<main class="tela" id="telaApp" hidden>
   <section class="filter-panel">
     <div class="filter-heading">
       <div>
         <p class="eyebrow">PLANEJAMENTO</p>
-        <h2>Escolha dia e turno</h2>
+        <h2 id="tituloCiclo">Ciclo</h2>
       </div>
     </div>
 
-    <div class="view-tabs" role="tablist">
+    <div class="view-tabs tres" role="tablist">
       <button type="button" role="tab" id="abaDisponiveis" aria-selected="true">Disponíveis</button>
-      <button type="button" role="tab" id="abaRoteiros" aria-selected="false">Roteiros <span id="contaRoteiro">0</span></button>
+      <button type="button" role="tab" id="abaRoteiro" aria-selected="false">Roteiro <span id="contaRoteiro">0</span></button>
+      <button type="button" role="tab" id="abaCiclo" aria-selected="false">Ciclo</button>
     </div>
 
-    <div class="control-group">
+    <div class="control-group" id="grupoDias">
       <span class="control-label">Dia</span>
       <div class="segmented days" id="dias"></div>
     </div>
 
-    <div class="control-group">
+    <div class="control-group" id="grupoTurnos">
       <span class="control-label">Turno</span>
       <div class="segmented" id="turnos"></div>
     </div>
 
     <label class="search-box" id="caixaBusca">
       <span>&#8981;</span>
-      <input type="search" id="busca" placeholder="Buscar médico, bairro ou endereço" autocomplete="off">
+      <input type="search" id="busca" placeholder="Buscar médico, especialidade, bairro ou endereço" autocomplete="off">
     </label>
 
     <button type="button" class="add-route" id="adicionarRoteiro" hidden></button>
     <p class="save-message" id="mensagem" role="status" hidden></p>
-
-    <div class="dados">
-      <button type="button" id="backup">&#8681; Backup</button>
-      <button type="button" id="restaurar">&#8679; Restaurar</button>
-      <button type="button" class="semana" id="novaSemana">&#8635; Começar nova semana</button>
-      <input type="file" id="arquivoBackup" accept="application/json,.json" hidden>
-    </div>
   </section>
 
   <section class="results">
     <div class="results-heading">
       <div>
         <p class="eyebrow" id="eyebrowResultados">DISPONIBILIDADE</p>
-        <h2 id="tituloResultados">Segunda &middot; Manhã</h2>
+        <h2 id="tituloResultados"></h2>
         <p class="progresso" id="progresso"></p>
       </div>
-      <span class="result-count" id="contagem">0</span>
+      <span class="result-count" id="contagem"></span>
     </div>
     <div id="lista"></div>
   </section>
 </main>
 
 <footer>
-  <p>Base organizada a partir do roteiro semanal enviado.</p>
+  <p id="rodapeBase"></p>
   <span class="credito">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 62" role="img" aria-label="BCR — Beatriz C Reis">
   <g fill="currentColor" stroke="none">
@@ -101,6 +203,6 @@
   </span>
 </footer>
 
-<script src="app.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>

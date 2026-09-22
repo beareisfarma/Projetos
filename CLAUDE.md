@@ -395,5 +395,52 @@ Base de 755 disponibilidades (314 médicos, 91 endereços, Ipanema/Leblon/Copaca
   (navegação privada): tudo dentro de `try/catch`, a tela desenha sem ele.
 - Identidade: o desenho é o que veio do ChatGPT (navy `#071f2b`, teal `#14b8a6`),
   preservado. O ícone (pino com cruz) é próprio. Logo pessoal BCR no rodapé.
-- Sem testes automatizados — é uma tela só, sem cálculo. A lista do que conferir
-  no navegador está no fim do `medicos-disponiveis/README.md`.
+
+### v2 (22/09/2026): contas, base enviada pela pessoa, ciclos e metas
+
+A Beatriz pediu que **qualquer pessoa envie a própria planilha**, com login e
+senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
+(local, sem conta) — e com razão: passou a ser produto para mais de uma pessoa.
+
+- **Backend: Supabase `medicos-disponiveis`** (`lbphkvbucukfptdutmmp`, sa-east-1).
+  Tabelas `bases`, `ciclos` (documentos jsonb, uma linha por base/ciclo) e
+  `convites`. Auth do próprio Supabase (e-mail + senha).
+- **Cadastro é por CONVITE**, escolha dela: Edge Function `cadastrar`
+  (`verify_jwt` desligado) valida o código e cria a conta com
+  `email_confirm: true`. A reserva do código é uma instrução só
+  (`reservar_convite`), senão dois cadastros simultâneos passariam os dois.
+- **`bases` e `ciclos` têm policy `usuario = auth.uid()`; `convites` tem RLS e
+  ZERO policy.** É o RLS que protege os dados, não o app — a chave publicável
+  vai no navegador de propósito. Não criar policy permissiva.
+- **`medicos.json` foi REMOVIDO do repositório.** Era arquivo público num repo
+  público: a lista de 755 disponibilidades da APSEN ficava baixável por qualquer
+  pessoa com a URL. A base agora vive na conta. **Não voltar a commitar base de
+  médicos.** (O histórico do git ainda tem o arquivo — resolver isso exige
+  reescrever a história ou tornar o repositório privado.)
+- **Offline-first de verdade**: IndexedDB é a cópia de trabalho, o Supabase é o
+  arquivo. `localEm` marca o que ainda não subiu; conflito é último-a-escrever.
+  A subida é agrupada (1,2 s) para não virar uma chamada por clique.
+- **O roteiro é por DIA, com seções Manhã e Tarde juntas** (pedido explícito
+  dela: não quer trocar de turno para ver quem é de qual). O seletor de turno só
+  existe na aba Disponíveis.
+- **Meta de 1 ou 2 visitas por médico** (`0/1`, `1/2`, `2/2`): mora na **base**
+  (segue para o ciclo seguinte), a contagem mora no **ciclo** (zera no ciclo
+  novo). O botão trava na meta. "Não encontrei" é outra coisa, não conta visita.
+- **Ciclo** é fechado quando ela quiser: gera resumo, vai para o histórico, e o
+  próximo começa com a mesma base ou com uma nova.
+- **Especialidade** aparece quando a base tiver. O Word dela NÃO tem
+  especialidade nem número de visitas — a fonte é o `ConsultaCadMed.xlsx`.
+- **O importador não tem layout fixo**: lê o cabeçalho, sugere o mapeamento e
+  mostra prévia + problemas antes de aplicar. Aceita planilha longa e larga
+  (coluna por dia), `.docx` no formato dela e `.json`. **Nunca inventa horário.**
+- **IA foi descartada nesta rodada** (ler base de imagem custaria por uso e
+  precisaria de chave): ela escolheu só arquivos.
+- Armadilhas novas, todas no `README.md`: o `\b` ASCII do JavaScript descartou
+  em silêncio os 298 médicos da manhã (`/^MANHÃ\b/` nunca casa); concluir ciclo
+  se desfazia na sincronização seguinte; chave ausente no IndexedDB devolve
+  `IDBRequest` (verdadeiro!) e fingia base carregada; repintar a lista apagava o
+  texto sendo digitado; detecção de coluna em uma passada fazia "Hora de fim"
+  roubar a coluna "Visitas".
+- Testes: 51 asserções no Chromium com Supabase simulado + RLS verificado por
+  SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
+  não tem saída para a internet.
