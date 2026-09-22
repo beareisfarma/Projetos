@@ -56,6 +56,34 @@ depois de receber duas rodadas só com imagem e PDF.
   (`ssoProtection.enabled=false`), senão o PWA e o push não funcionam.
 - **Não existe ferramenta MCP para definir variáveis de ambiente na Vercel.**
   Esse passo é sempre manual, no painel.
+- **SETE projetos da Vercel apontam para este mesmo repositório**, então cada
+  push disparava sete deploys — e com duas branches, quatorze por correção. Em
+  22/09/2026 isso estourou o teto de **100 deploys por dia** do plano gratuito e
+  deixou uma versão pronta sem publicar. Cada projeto agora tem um **Ignored
+  Build Step** que só constrói quando a pasta dele muda:
+
+  | Projeto | Regra (`commandForIgnoringBuildStep`) |
+  | --- | --- |
+  | `medicos-disponiveis` | `git diff --quiet HEAD^ HEAD -- :/medicos-disponiveis` |
+  | `r2d-relatorio` | `git diff --quiet HEAD^ HEAD -- :/r2d-relatorio` |
+  | `cronometro-gamer` | `git diff --quiet HEAD^ HEAD -- :/cronometro-jogos :/logo` |
+  | `hdexternopremium` | `git diff --quiet HEAD^ HEAD -- :/lembretes` |
+  | `beatriz-portfolio` | `git diff --quiet HEAD^ HEAD -- ':/portfólio'` |
+  | `projetos` | `git diff --quiet HEAD^ HEAD -- ':(top)' ':(top,exclude)<cada pasta de app>'` |
+  | `quadra` | `exit 0` (projeto órfão, ver abaixo) |
+
+  **Sair 0 PULA o build.** Duas armadilhas: a sintaxe de exclusão é
+  `':(top,exclude)pasta'` — a forma `':!:/pasta'` dá **erro fatal** no git, e
+  como erro é saída diferente de zero, a regra construiria **sempre**; e a pasta
+  do portfólio tem acento (`portfólio`), então precisa de aspas. **Testar toda
+  regra nova com `git diff --quiet <rev>^ <rev> -- <caminhos>; echo $?` antes de
+  salvar** — regra errada faz um app parar de publicar em silêncio.
+- **Dois projetos estavam falhando em TODO deploy** por Root Directory errado:
+  `beatriz-portfolio` apontava para `portfolio` sem acento (corrigido para
+  `portfólio`) e `quadra` aponta para uma pasta `quadra` que nunca existiu — esse
+  segue quebrado de propósito, com `exit 0`, esperando a Beatriz decidir se apaga
+  o projeto na Vercel.
+- Commit que mexe só na `CLAUDE.md` não constrói projeto nenhum, por desenho.
 
 ## App "Lembretes" (`lembretes/`)
 
