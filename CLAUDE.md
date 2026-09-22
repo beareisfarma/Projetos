@@ -537,6 +537,17 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   só usa a URL de produção). Antes de culpar o Ignored Build Step por um deploy
   que não saiu, rodar o pathspec local: `git diff --quiet <antes> <depois> --
   ':(top)pasta'` — saída 1 quer dizer "tem mudança, deve construir".
+- **Espelho grátis no GitHub Pages**, para o dia em que a Vercel disser 402:
+  `https://beareisfarma.github.io/Projetos/medicos-disponiveis/`, servido da
+  própria `main` (Settings → Pages → Deploy from a branch, `main`, `/ (root)`).
+  Funciona sem tocar em nada porque o app não tem **nenhum** caminho absoluto —
+  `start_url`/`scope` são `.`, a `CASCA` do sw usa `./` e o registro é relativo.
+  O `.nojekyll` na raiz do repositório é obrigatório. **A Vercel continua sendo
+  o endereço oficial**: é dela o `vercel.json` com `must-revalidate` no `sw.js`,
+  que faz a versão nova chegar rápido ao iPhone. Detalhes em
+  `medicos-disponiveis/ESPELHO-GITHUB-PAGES.md`.
+  **A API de Pages e o domínio `github.io` são bloqueados pelo proxy da
+  sessão** — dá para preparar tudo, mas ligar e conferir é no navegador dela.
 - Testes: 190 asserções no Chromium com Supabase simulado (navegação, base,
   especialidade, "Todos", edição de horário, convites, offline) + RLS verificado
   por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
