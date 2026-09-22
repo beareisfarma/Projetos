@@ -166,8 +166,46 @@ async function rest(caminho, opcoes = {}, jaRenovou = false) {
   return dados;
 }
 
+// Chamada às funções de borda com a identidade de quem está logado. Quem
+// decide o que a pessoa pode fazer é o SQL lá dentro, não esta camada.
+async function funcao(nome, pedido, jaRenovou = false) {
+  if (!sessao) throw new Error("Sem sessão.");
+  if (Date.now() > sessao.expiraEm && !jaRenovou) await renovar();
+
+  const resposta = await fetch(`${FUNCOES}/${nome}`, {
+    method: "POST",
+    headers: {
+      apikey: CONFIG.chave,
+      Authorization: `Bearer ${sessao.token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(pedido),
+  });
+
+  if (resposta.status === 401 && !jaRenovou) {
+    await renovar();
+    return funcao(nome, pedido, true);
+  }
+
+  const dados = await corpo(resposta);
+  if (!resposta.ok) throw new Error(mensagemDeErro(dados, "Não foi possível falar com o servidor."));
+  return dados;
+}
+
+export const convites = {
+  listar: () => funcao("convites", { acao: "listar" }),
+  criar: (nota) => funcao("convites", { acao: "criar", nota }),
+  revogar: (codigo) => funcao("convites", { acao: "revogar", codigo }),
+};
+
 const CAMPOS_BASE = "id,nome,origem,conteudo,criado_em,atualizado_em";
 const CAMPOS_CICLO = "id,base_id,nome,inicio,fim,estado,visitas,roteiro,resumo,criado_em,atualizado_em";
+
+// A permissão de convidar vem do banco, nunca de um palpite da tela.
+export async function lerPerfil() {
+  const linhas = await rest("/perfis?select=pode_convidar&limit=1");
+  return linhas?.[0] ?? null;
+}
 
 export function listarBases() {
   return rest(`/bases?select=${CAMPOS_BASE}&order=atualizado_em.desc`);

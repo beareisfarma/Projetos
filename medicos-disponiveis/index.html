@@ -42,6 +42,7 @@
     <button type="button" class="text-button" id="sincronizarAgora">Sincronizar agora</button>
     <button type="button" class="text-button" id="abrirTrocaSenha">Trocar senha</button>
     <button type="button" class="text-button" id="trocarBase">Trocar ou atualizar base</button>
+    <button type="button" class="text-button" id="abrirConvites" hidden>Convites</button>
     <button type="button" class="text-button perigo" id="sairConta">Sair</button>
   </div>
 </section>
@@ -132,6 +133,28 @@
     </div>
 
     <p class="save-message" id="mensagemBase" role="status" hidden></p>
+  </section>
+</main>
+
+<!-- ------------------------------------------------------------ convites --- -->
+<main class="tela tela-estreita" id="telaConvites" hidden>
+  <section class="cartao">
+    <p class="eyebrow">ACESSO DA EQUIPE</p>
+    <h2>Convites</h2>
+    <p class="conta-detalhe">
+      Cada código serve para uma conta só. Gere um por pessoa, mande o código,
+      e acompanhe aqui quem já entrou.
+    </p>
+
+    <form id="formConvite" class="formulario">
+      <label class="campo"><span>Para quem é este convite (opcional)</span>
+        <input type="text" id="notaConvite" maxlength="60" placeholder="Ex.: Camila, do time do Rio"></label>
+      <button type="submit" class="add-route">Gerar convite</button>
+    </form>
+
+    <p class="save-message" id="mensagemConvites" role="status" hidden></p>
+    <div class="convites" id="listaConvites"></div>
+    <button type="button" class="text-button" id="voltarDosConvites">Voltar para o app</button>
   </section>
 </main>
 

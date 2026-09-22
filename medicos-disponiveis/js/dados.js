@@ -22,6 +22,7 @@ export const estado = {
   historico: [],
   sincronizando: false,
   pendente: false,
+  podeConvidar: false,
   ultimoErro: "",
 };
 
@@ -134,7 +135,12 @@ export async function sincronizar({ silencioso = true } = {}) {
     }
 
     // 3. Desce o que está lá e é mais novo.
-    const [bases, ciclos] = await Promise.all([nuvem.listarBases(), nuvem.listarCiclos()]);
+    const [bases, ciclos, perfil] = await Promise.all([
+      nuvem.listarBases(),
+      nuvem.listarCiclos(),
+      nuvem.lerPerfil().catch(() => null),
+    ]);
+    estado.podeConvidar = Boolean(perfil?.pode_convidar);
 
     const aberto = ciclos.find((c) => c.estado === "aberto") || null;
     const concluidos = ciclos.filter((c) => c.estado === "concluido");
@@ -447,5 +453,6 @@ export function ligarSessao() {
 
 export async function sairDaConta() {
   await nuvem.sair();
+  estado.podeConvidar = false;
   await limparLocal();
 }

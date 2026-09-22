@@ -409,6 +409,16 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   (`verify_jwt` desligado) valida o código e cria a conta com
   `email_confirm: true`. A reserva do código é uma instrução só
   (`reservar_convite`), senão dois cadastros simultâneos passariam os dois.
+  **A reserva NÃO pode usar `usado_por`** (FK para auth.users; na hora de
+  reservar a conta ainda não existe): tem coluna própria `reservado_em`, que
+  expira em 5 min. E `revoke ... from public` tira o execute do `service_role`
+  também — as funções de convite precisam de `grant execute ... to service_role`.
+- **Ela gera os próprios convites dentro do app** (Conta → Convites): gerar,
+  anotar para quem é, copiar, ver quem usou, apagar os não usados. A permissão é
+  `perfis.pode_convidar`, conferida DENTRO do SQL; a tela só esconde o botão.
+  **A primeira conta criada no sistema nasce podendo convidar** (gatilho
+  `contas_ganham_perfil`) — senão o primeiro convite dependeria de SQL na mão.
+  Promover outra pessoa é um `update` em `perfis`, sem tela, de propósito.
 - **`bases` e `ciclos` têm policy `usuario = auth.uid()`; `convites` tem RLS e
   ZERO policy.** É o RLS que protege os dados, não o app — a chave publicável
   vai no navegador de propósito. Não criar policy permissiva.

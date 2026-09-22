@@ -29,6 +29,7 @@ const tela = {
   entrar: el("telaEntrar"),
   senha: el("telaSenha"),
   base: el("telaBase"),
+  convites: el("telaConvites"),
   app: el("telaApp"),
 };
 
@@ -58,10 +59,14 @@ function avisar() {
   el("aviso").hidden = !texto;
 }
 
-function dizer(alvo, texto) {
+// O mesmo lugar serve para avisar de erro e para confirmar sucesso, então o
+// tipo precisa aparecer na cor: "Convite criado" em vermelho de erro faz a
+// pessoa achar que deu errado.
+function dizer(alvo, texto, tipo = "erro") {
   const campo = el(alvo);
   campo.textContent = texto;
   campo.hidden = !texto;
+  campo.classList.toggle("boa", tipo === "ok" && Boolean(texto));
 }
 
 /* ------------------------------------------------------------------- telas */
@@ -144,7 +149,7 @@ el("esqueciSenha").addEventListener("click", async () => {
   }
   try {
     await nuvem.pedirRecuperacao(email);
-    dizer("mensagemAcesso", "Enviei um link de redefinição para esse e-mail.");
+    dizer("mensagemAcesso", "Enviei um link de redefinição para esse e-mail.", "ok");
   } catch (erro) {
     dizer("mensagemAcesso", erro.message);
   }
@@ -222,6 +227,113 @@ el("trocarBase").addEventListener("click", () => {
   abrirTelaDeBase();
 });
 
+/* ------------------------------------------------------------- convites */
+
+let convitesCarregados = [];
+
+el("abrirConvites").addEventListener("click", async () => {
+  el("painelConta").hidden = true;
+  mostrar("convites");
+  await carregarConvites();
+});
+
+el("voltarDosConvites").addEventListener("click", () => decidirTela());
+
+async function carregarConvites() {
+  dizer("mensagemConvites", "Carregando…");
+  try {
+    const resposta = await nuvem.convites.listar();
+    convitesCarregados = resposta?.convites || [];
+    dizer("mensagemConvites", "");
+  } catch (erro) {
+    dizer("mensagemConvites", erro.message);
+  }
+  desenharConvites();
+}
+
+el("formConvite").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  const botao = evento.target.querySelector("button[type=submit]");
+  botao.disabled = true;
+  dizer("mensagemConvites", "Gerando…");
+  try {
+    const resposta = await nuvem.convites.criar(el("notaConvite").value);
+    convitesCarregados = resposta?.convites || convitesCarregados;
+    el("notaConvite").value = "";
+    dizer("mensagemConvites", `Convite ${resposta.codigo} criado. Mande esse código para a pessoa.`, "ok");
+    desenharConvites();
+  } catch (erro) {
+    dizer("mensagemConvites", erro.message);
+  } finally {
+    botao.disabled = false;
+  }
+});
+
+el("listaConvites").addEventListener("click", async (evento) => {
+  const botao = evento.target.closest("button[data-acao]");
+  if (!botao) return;
+  const codigo = botao.dataset.codigo;
+
+  if (botao.dataset.acao === "copiar") {
+    try {
+      await navigator.clipboard.writeText(codigo);
+      dizer("mensagemConvites", `${codigo} copiado.`, "ok");
+    } catch {
+      // Safari sem permissão de área de transferência: mostrar o código já
+      // resolve, porque ele está na tela para ser lido em voz alta.
+      dizer("mensagemConvites", `Copie à mão: ${codigo}`);
+    }
+    return;
+  }
+
+  if (botao.dataset.acao === "revogar") {
+    if (!confirm(`Apagar o convite ${codigo}? Quem ainda não usou não vai mais conseguir entrar com ele.`)) return;
+    dizer("mensagemConvites", "Apagando…");
+    try {
+      const resposta = await nuvem.convites.revogar(codigo);
+      convitesCarregados = resposta?.convites || convitesCarregados;
+      dizer("mensagemConvites", "Convite apagado.", "ok");
+      desenharConvites();
+    } catch (erro) {
+      dizer("mensagemConvites", erro.message);
+    }
+  }
+});
+
+function desenharConvites() {
+  if (!convitesCarregados.length) {
+    el("listaConvites").innerHTML =
+      `<p class="conta-detalhe">Nenhum convite ainda. Gere um acima e mande o código para a pessoa.</p>`;
+    return;
+  }
+
+  el("listaConvites").innerHTML = convitesCarregados
+    .map((convite) => {
+      const usado = Boolean(convite.usado_por_email);
+      const codigo = esc(convite.codigo);
+      return `<article class="convite${usado ? " usado" : ""}">
+        <div>
+          <span class="convite-codigo">${codigo}</span>
+          <span class="convite-nota">${esc(
+            usado
+              ? `usado por ${convite.usado_por_email}${convite.usado_em ? ` em ${dataCurta(convite.usado_em)}` : ""}`
+              : convite.nota || "sem anotação",
+          )}</span>
+        </div>
+        <div class="convite-acoes">
+          <span class="selo">${usado ? "usado" : "livre"}</span>
+          ${
+            usado
+              ? ""
+              : `<button type="button" class="text-button" data-acao="copiar" data-codigo="${codigo}">Copiar</button>
+                 <button type="button" class="text-button perigo" data-acao="revogar" data-codigo="${codigo}">Apagar</button>`
+          }
+        </div>
+      </article>`;
+    })
+    .join("");
+}
+
 el("sairConta").addEventListener("click", async () => {
   if (!confirm("Sair da conta? As marcações já sincronizadas continuam guardadas na sua conta.")) return;
   await dados.sairDaConta();
@@ -230,6 +342,8 @@ el("sairConta").addEventListener("click", async () => {
 
 function desenharConta() {
   el("contaEmail").textContent = dados.estado.sessao?.usuario?.email || "";
+  // Quem decide é o perfil vindo do banco; a tela só obedece.
+  el("abrirConvites").hidden = !dados.estado.podeConvidar;
   const partes = [];
   if (dados.estado.base) {
     partes.push(`${dados.estado.base.conteudo.medicos.length} médicos na base "${dados.estado.base.nome}"`);
@@ -442,6 +556,7 @@ el("aplicarBase").addEventListener("click", async () => {
       dizer(
         "mensagem",
         `Base atualizada: ${resultado.atualizados} médico(s) alterado(s), ${resultado.acrescentados} novo(s).`,
+        "ok",
       );
     } else {
       await dados.definirBase({
@@ -449,7 +564,7 @@ el("aplicarBase").addEventListener("click", async () => {
         origem: visao.arquivoLido?.origem || "",
         conteudo,
       });
-      dizer("mensagem", `Base aplicada: ${conteudo.medicos.length} médicos.`);
+      dizer("mensagem", `Base aplicada: ${conteudo.medicos.length} médicos.`, "ok");
     }
     visao.modoBase = "nova";
     decidirTela();
@@ -502,7 +617,7 @@ el("adicionarRoteiro").addEventListener("click", async () => {
   await dados.adicionarAoRoteiro(nomes, visao.dia, visao.turno);
   visao.selecionados = new Set();
   visao.aba = "roteiro";
-  dizer("mensagem", nomes.length === 1 ? "Médico adicionado ao roteiro." : `${nomes.length} médicos adicionados.`);
+  dizer("mensagem", nomes.length === 1 ? "Médico adicionado ao roteiro." : `${nomes.length} médicos adicionados.`, "ok");
   desenhar();
 });
 
@@ -538,7 +653,7 @@ el("lista").addEventListener("click", async (evento) => {
     case "novo-ciclo":
       await dados.iniciarCiclo(el("nomeNovoCiclo")?.value || visao.nomeNovoCiclo);
       visao.nomeNovoCiclo = "";
-      dizer("mensagem", "Novo ciclo aberto.");
+      dizer("mensagem", "Novo ciclo aberto.", "ok");
       break;
     case "nova-base-ciclo":
       abrirTelaDeBase();
@@ -576,7 +691,7 @@ async function concluirCiclo() {
     `O ciclo fica guardado no histórico e um novo começa em branco.`;
   if (!confirm(confirmacao)) return;
   await dados.concluirCiclo();
-  dizer("mensagem", "Ciclo concluído e guardado no histórico.");
+  dizer("mensagem", "Ciclo concluído e guardado no histórico.", "ok");
   desenhar();
 }
 

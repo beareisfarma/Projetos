@@ -60,6 +60,25 @@ médicos. Hoje a base mora na conta, protegida por RLS.
   Supabase, que no plano gratuito é limitado; em caso de bloqueio, redefinir
   pelo painel é mais rápido.
 
+## Convites (quem entra no app)
+
+O cadastro é por código, e **quem gera os códigos é a dona da conta, dentro do
+próprio app** (Conta → Convites): gera, anota para quem é, copia, acompanha quem
+já usou e apaga os que ainda não foram usados. Convite já usado não some — ele é
+o registro de como aquela conta entrou.
+
+- A permissão mora em `perfis.pode_convidar` e é conferida **dentro das funções
+  SQL**, não na tela. O botão some para quem não pode, mas isso é conforto: quem
+  recusa é o banco.
+- **A primeira conta criada no sistema nasce podendo convidar** (gatilho
+  `contas_ganham_perfil`). Sem isso, o primeiro convite dependeria de alguém
+  mexer no banco na mão — que é justamente o que esta tela existe para evitar.
+- A função de borda `convites` roda com `verify_jwt` ligado e **descobre quem
+  chamou perguntando ao Supabase pelo token**, nunca lendo um id do corpo do
+  pedido (seria trivial mentir).
+- Para promover outra pessoa a "pode convidar", é um `update` em `perfis`. Não há
+  tela para isso de propósito: dar acesso ao acesso merece uma decisão pensada.
+
 ## O importador
 
 Não existe layout fixo: **o app lê o cabeçalho da planilha, chuta o mapeamento e
@@ -144,6 +163,24 @@ lista de problemas, visível na tela, e fica de fora.
   palavra e só para pistas com 5+ caracteres.
 - **Elemento com `display:flex`/`grid` ignora o atributo `hidden`.** Daí o
   `[hidden]{display:none !important}`.
+- **`.tela{display:grid}` quebrou o celular.** Seletor de classe vence
+  `main{display:block}` da consulta de mídia, então o app ficava em duas colunas
+  no telefone e o painel de resultados saía da tela. Layout do app é
+  responsabilidade de `main`, e só.
+- **Reservar convite não pode usar `usado_por`**: essa coluna aponta para
+  `auth.users` e, na hora de reservar, a conta ainda não existe — a chave
+  estrangeira derrubava todo cadastro. A reserva tem coluna própria
+  (`reservado_em`) e expira em 5 minutos, para que um erro de rede no meio do
+  caminho não queime o convite.
+- **`revoke ... from public` tira o execute do `service_role` também.** As
+  funções de convite precisam de `grant execute ... to service_role` explícito,
+  senão a função de borda toma 403 e a tela diz "não foi possível validar o
+  convite agora".
+- **Variável com o mesmo nome de uma coluna** (`codigo`) faz o Postgres recusar a
+  comparação por ambiguidade. Dentro de PL/pgSQL, nome de variável é diferente
+  do nome da coluna.
+- **Confirmação em vermelho parece erro.** O mesmo lugar mostra sucesso e falha,
+  então o tipo precisa aparecer na cor (`.save-message.boa`).
 - **`localStorage` e IndexedDB podem lançar exceção** (navegação privada). Tudo
   em `try/catch`; a tela desenha sem eles e avisa que nada será guardado.
 - **Nome de médico com apóstrofo** (`Sant'anna`) vai para atributo HTML:
@@ -158,7 +195,8 @@ lista de problemas, visível na tela, e fica de fora.
 ## Testes
 
 `teste-v2.mjs` (fora do repositório, no diretório de trabalho da sessão) roda 51
-asserções no Chromium com um Supabase simulado: cadastro por convite, importação
+asserções, e `teste-convites.mjs` mais 12 (gerar, anotar, copiar, apagar, esconder
+a tela de quem não pode convidar, e o celular). São no Chromium com um Supabase simulado: cadastro por convite, importação
 do Word real (755 disponibilidades, 314 médicos), planilha longa com cabeçalhos
 estranhos, planilha larga, mesclagem, contador de visitas com meta, roteiro do
 dia com os dois turnos, conclusão de ciclo, histórico, funcionamento offline com

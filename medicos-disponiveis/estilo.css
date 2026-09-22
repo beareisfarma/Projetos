@@ -240,3 +240,21 @@ footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 
   .modo-base{grid-template-columns:1fr}
   .historico-item{flex-direction:column;align-items:flex-start}
 }
+
+/* Convites ---------------------------------------------------------------- */
+.convites{display:grid;gap:9px;margin-top:18px}
+.convite{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.convite.usado{background:#f6f9f9;border-style:dashed}
+.convite-codigo{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1rem;font-weight:800;letter-spacing:.06em;color:var(--navy)}
+.convite.usado .convite-codigo{color:#7b8e96;text-decoration:line-through}
+.convite-nota{font-size:.78rem;color:var(--muted);display:block;margin-top:3px;font-weight:700}
+.convite-acoes{display:flex;gap:4px;align-items:center;flex:0 0 auto}
+.convite .selo{font-size:.68rem;font-weight:850;text-transform:uppercase;letter-spacing:.05em;padding:4px 8px;border-radius:99px;background:#dff5ef;color:#087466;white-space:nowrap}
+.convite.usado .selo{background:#e9eff1;color:#66808c}
+@media(max-width:760px){
+  .convite{flex-direction:column;align-items:flex-start}
+  .convite-acoes{width:100%;justify-content:space-between}
+}
+
+/* Confirmação usa o mesmo lugar do erro; só a cor muda. */
+.save-message.boa{color:#087466}
