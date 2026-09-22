@@ -537,17 +537,31 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   só usa a URL de produção). Antes de culpar o Ignored Build Step por um deploy
   que não saiu, rodar o pathspec local: `git diff --quiet <antes> <depois> --
   ':(top)pasta'` — saída 1 quer dizer "tem mudança, deve construir".
-- **Espelho grátis no GitHub Pages**, para o dia em que a Vercel disser 402:
-  `https://beareisfarma.github.io/Projetos/medicos-disponiveis/`, servido da
-  própria `main` (Settings → Pages → Deploy from a branch, `main`, `/ (root)`).
-  Funciona sem tocar em nada porque o app não tem **nenhum** caminho absoluto —
-  `start_url`/`scope` são `.`, a `CASCA` do sw usa `./` e o registro é relativo.
-  O `.nojekyll` na raiz do repositório é obrigatório. **A Vercel continua sendo
-  o endereço oficial**: é dela o `vercel.json` com `must-revalidate` no `sw.js`,
-  que faz a versão nova chegar rápido ao iPhone. Detalhes em
-  `medicos-disponiveis/ESPELHO-GITHUB-PAGES.md`.
-  **A API de Pages e o domínio `github.io` são bloqueados pelo proxy da
-  sessão** — dá para preparar tudo, mas ligar e conferir é no navegador dela.
+- **Espelho grátis no GitHub Pages, no ar desde 22/09/2026:**
+  `https://beareisfarma.github.io/Projetos/medicos-disponiveis/`. Serve para o dia
+  em que a Vercel disser 402 — o Pages não tem cota diária de publicação.
+  **A fonte do Pages deste repositório é a branch `gh-pages`, NÃO a `main`.**
+  Publicar ali é `git push origin <sua-branch>:gh-pages` com o app numa subpasta
+  `medicos-disponiveis/`; push para a `main` não chega ao ar. Esse engano já
+  custou uma rodada inteira: eu vi `has_pages: true`, não consegui ler a fonte
+  (o proxy da sessão bloqueia a rota `/pages` da API **e** o domínio
+  `github.io`) e **assumi `main`**, mandando a Beatriz num 404. Quando não der
+  para verificar, dizer o que não se consegue ver — não preencher com palpite.
+  A `gh-pages` também hospeda o **portfólio** dela na raiz e em `portfolio-v1`,
+  `portfolio-v2` e `portfólio`: publicar o app ali é **acréscimo**, nunca
+  substituição da árvore.
+  Funciona em subpasta sem tocar em nada porque o app não tem **nenhum** caminho
+  absoluto — `start_url`/`scope` são `.`, a `CASCA` do sw usa `./` e o registro é
+  relativo. O `.nojekyll` na raiz da `gh-pages` é obrigatório.
+  **Dá para verificar sem abrir o site**, que é o que salvou a rodada: servir a
+  árvore que vai subir numa subpasta local e conferir no Playwright (tela abre,
+  nenhum 404, nenhum erro de JS, escopo do sw igual à subpasta); e, depois do
+  push, acompanhar o build pela API de Actions e o resultado em
+  `/deployments?environment=github-pages` — essas duas rotas **não** são
+  bloqueadas.
+  **A Vercel continua sendo o endereço oficial**: é dela o `vercel.json` com
+  `must-revalidate` no `sw.js`, que faz a versão nova chegar rápido ao iPhone.
+  Detalhes em `medicos-disponiveis/ESPELHO-GITHUB-PAGES.md`.
 - Testes: 190 asserções no Chromium com Supabase simulado (navegação, base,
   especialidade, "Todos", edição de horário, convites, offline) + RLS verificado
   por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão

@@ -4,7 +4,7 @@ Serve para quando a cota diária de deploys da Vercel estourar (100 por dia na
 conta inteira, plano gratuito) e o app precisar estar no ar **hoje**. O GitHub
 Pages não tem cota diária de publicação.
 
-## Endereço
+## Endereço (no ar desde 22/09/2026)
 
     https://beareisfarma.github.io/Projetos/medicos-disponiveis/
 
@@ -12,11 +12,32 @@ Funciona porque o app não tem nenhum caminho absoluto: o `index.html`, o
 `manifest.webmanifest` (`start_url` e `scope` são `.`) e a lista `CASCA` do
 `sw.js` usam `./`. Em subpasta tudo continua resolvendo.
 
-## Ligar (uma vez só, no painel do GitHub)
+## Como publicar aqui
 
-Settings → Pages → **Source: Deploy from a branch** → branch `main`, pasta
-`/ (root)` → Save. Em um ou dois minutos o endereço acima responde, e **todo
-push para a `main` atualiza sozinho** — sem cota, sem build.
+**A fonte do Pages é a branch `gh-pages`, não a `main`.** Push para a `main`
+não chega ao ar — esse engano já custou uma rodada e um 404 na mão dela.
+
+    git worktree add <tmp> origin/gh-pages
+    # copiar o app para <tmp>/medicos-disponiveis/ (sem README, sem
+    # gerar-icones.mjs, sem vercel.json, sem origem-chatgpt/)
+    git -C <tmp> add -A && git -C <tmp> commit
+    git push origin <branch-do-worktree>:gh-pages
+
+A `gh-pages` também hospeda o **portfólio** dela, na raiz e em `portfolio-v1`,
+`portfolio-v2` e `portfólio`. Publicar o app ali é **acréscimo numa subpasta**,
+nunca substituição da árvore.
+
+## Como conferir sem conseguir abrir o site
+
+O proxy da sessão bloqueia o domínio `github.io` **e** a rota `/pages` da API,
+então não dá para abrir o endereço nem ler a configuração. O que dá:
+
+1. **Antes do push**: servir a árvore que vai subir e abrir a subpasta no
+   Playwright — tela de entrar aparece, nenhum 404, nenhum erro de JS, e o
+   escopo do service worker igual à subpasta.
+2. **Depois do push**: acompanhar `pages build and deployment` pela API de
+   Actions e conferir o resultado em `/deployments?environment=github-pages`
+   (estado `success`). Essas duas rotas não são bloqueadas.
 
 ## O que este espelho NÃO muda
 
