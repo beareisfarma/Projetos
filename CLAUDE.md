@@ -562,6 +562,20 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   **A Vercel continua sendo o endereço oficial**: é dela o `vercel.json` com
   `must-revalidate` no `sw.js`, que faz a versão nova chegar rápido ao iPhone.
   Detalhes em `medicos-disponiveis/ESPELHO-GITHUB-PAGES.md`.
+- **Não dá para abrir nenhuma das duas URLs publicadas de dentro da sessão**:
+  o proxy bloqueia `github.io` **e** `*.vercel.app`, e a ferramenta
+  `web_fetch_vercel_url` do MCP responde "Vercel denied access to this
+  deployment" (escopo do conector). Então "está no ar" se prova por outro
+  caminho, e esse caminho basta:
+  1. o deploy de produção tem `state: READY` e `githubCommitSha` igual ao HEAD;
+  2. `list_deployment_aliases` mostra `medicos-disponiveis.vercel.app` apontando
+     para ele (READY sem alias não é publicação);
+  3. `git show <sha>:<arquivo>` confirma o conteúdo — este projeto não tem build,
+     a Vercel serve os arquivos do repositório como estão;
+  4. no GitHub Pages, o build pela API de Actions e o `success` em
+     `/deployments?environment=github-pages`.
+  Antes disso, o ensaio local: servir a árvore numa subpasta e passar o
+  Playwright. **Nunca dizer "está no ar" só porque o push saiu.**
 - Testes: 190 asserções no Chromium com Supabase simulado (navegação, base,
   especialidade, "Todos", edição de horário, convites, offline) + RLS verificado
   por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
