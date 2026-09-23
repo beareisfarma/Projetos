@@ -359,8 +359,7 @@ el("formHorario").addEventListener("submit", async (evento) => {
   visao.aba = "disponiveis";
   visao.dia = campos.dia;
   visao.turno = TODOS;
-  visao.busca = "";
-  el("busca").value = "";
+  definirBusca("");
   irParaInicio();
 });
 
@@ -774,10 +773,19 @@ el("turnos").addEventListener("click", (evento) => {
   desenhar();
 });
 
-el("busca").addEventListener("input", () => {
-  visao.busca = el("busca").value;
+// Todo mundo que mexe na busca passa por aqui: com dois caminhos (digitar e
+// limpar) o botão "x" acabaria visível com o campo vazio em algum deles.
+function definirBusca(texto, { focar = false } = {}) {
+  visao.busca = texto;
+  el("busca").value = texto;
+  el("limparBusca").hidden = texto === "";
+  if (focar) el("busca").focus();
   desenhar();
-});
+}
+
+el("busca").addEventListener("input", () => definirBusca(el("busca").value));
+
+el("limparBusca").addEventListener("click", () => definirBusca("", { focar: true }));
 
 el("adicionarRoteiro").addEventListener("click", async () => {
   const nomes = [...visao.selecionados];
@@ -903,6 +911,29 @@ function baixarCopia() {
 
 /* ---------------------------------------------------------------- desenho */
 
+// Médico sem dia ou sem hora fica na base, mas precisa ser VISTO — senão ela só
+// descobre no corredor do consultório que o horário nunca foi preenchido.
+function desenharAvisoDeDados() {
+  const faltando = dados.medicosIncompletos();
+  el("avisoDados").hidden = faltando.length === 0;
+  if (!faltando.length) return;
+  el("avisoDadosTexto").textContent =
+    faltando.length === 1
+      ? "1 médico está na base sem dia ou sem horário."
+      : `${faltando.length} médicos estão na base sem dia ou sem horário.`;
+}
+
+// Leva até eles: base inteira, sem filtro de busca, e rola até o grupo.
+el("verIncompletos").addEventListener("click", () => {
+  visao.aba = "disponiveis";
+  visao.dia = TODOS;
+  visao.turno = TODOS;
+  definirBusca("");
+  requestAnimationFrame(() => {
+    el("grupoIncompletos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
+
 function desenhar() {
   if (visao.atual !== "app") {
     desenharRodape();
@@ -924,6 +955,7 @@ function desenhar() {
   desenharControles();
   desenharEstadoSinc();
   desenharRodape();
+  desenharAvisoDeDados();
 
   if (visao.aba === "disponiveis") desenharDisponiveis();
   else if (visao.aba === "roteiro") desenharRoteiro();
@@ -1121,6 +1153,18 @@ function cartaoPorMedico(nome, itens) {
 
   const horarios = itens
     .map((item) => {
+      // Sem dia não dá para mandar ao roteiro: o roteiro é sempre de um dia.
+      // Então a linha incompleta troca "+ roteiro" por "Completar".
+      if (item.incompleto) {
+        const falta = !item.dia && !item.inicio ? "dia e horário" : !item.dia ? "o dia" : "o horário";
+        return `<div class="horario sem-horario">
+          <span class="horario-quando">Falta ${esc(falta)}</span>
+          <span class="horario-onde">${esc([item.bairro, item.endereco, item.sala && `sala ${item.sala}`].filter(Boolean).join(" · "))}</span>
+          <span class="horario-acoes">
+            <button type="button" class="horario-acao" data-acao="editar" data-id="${esc(item.id)}">Completar</button>
+          </span>
+        </div>`;
+      }
       const jaEsta = doRoteiro.has(`${nome}|${item.dia}|${item.turno}`);
       return `<div class="horario">
         <span class="horario-quando">${esc(item.dia.slice(0, 3))} · ${esc(item.inicio)}–${esc(item.fim)}</span>
@@ -1135,11 +1179,13 @@ function cartaoPorMedico(nome, itens) {
     })
     .join("");
 
-  return `<article class="doctor-card por-medico situacao-${situacao}">
+  const incompleto = itens.some((item) => item.incompleto);
+  return `<article class="doctor-card por-medico situacao-${situacao}${incompleto ? " incompleto" : ""}">
     <div>
       <div class="linha-nome">
         <span class="doctor-name">${nomeEsc}</span>
         ${fichaEspecialidade(medico.especialidade)}
+        ${incompleto ? '<span class="ficha-incompleto">faltam dados</span>' : ""}
         ${fichaVisitas(nome)}
       </div>
       <div class="horarios">${horarios}</div>
@@ -1151,10 +1197,20 @@ function cartaoPorMedico(nome, itens) {
 
 function listaPorMedico(filtrada) {
   const porNome = agrupar(filtrada, (item) => item.nome);
-  return Object.keys(porNome)
-    .sort((a, b) => a.localeCompare(b, "pt-BR"))
-    .map((nome) => cartaoPorMedico(nome, porNome[nome]))
-    .join("");
+  const nomes = Object.keys(porNome).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const faltando = nomes.filter((nome) => porNome[nome].some((item) => item.incompleto));
+  const completos = nomes.filter((nome) => !faltando.includes(nome));
+
+  // Quem está faltando dado vem primeiro: é a lista de pendências dela.
+  // Misturado em ordem alfabética entre 314 nomes, ninguém acha.
+  const grupo = faltando.length
+    ? `<section class="grupo-incompletos" id="grupoIncompletos">
+        <h3>Faltam dados · ${faltando.length} médico${faltando.length > 1 ? "s" : ""}</h3>
+        ${faltando.map((nome) => cartaoPorMedico(nome, porNome[nome])).join("")}
+      </section>`
+    : "";
+
+  return grupo + completos.map((nome) => cartaoPorMedico(nome, porNome[nome])).join("");
 }
 
 function desenharDisponiveis() {

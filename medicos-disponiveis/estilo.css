@@ -27,6 +27,12 @@ main{max-width:1120px;margin:auto;padding:22px 24px 52px;display:grid;grid-templ
 .search-box:focus-within{outline:3px solid rgba(20,184,166,.18);border-color:var(--teal)}
 .search-box input{border:0;outline:0;width:100%;background:transparent;color:var(--ink);font-size:.92rem}
 .search-box input::placeholder{color:#83949c}
+/* O "x" nativo do type=search não aparece no Safari do iPhone e some no Firefox:
+   por isso o botão é nosso. Alvo de 30px, que é o mínimo confortável no polegar. */
+.search-box input::-webkit-search-cancel-button{display:none}
+.limpar-busca{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:50%;background:#e7eef0;color:#4d6672;font-size:.8rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.limpar-busca:hover{background:var(--ice);color:var(--ink)}
+.limpar-busca[hidden]{display:none}
 .results{padding:24px;min-height:520px}
 .text-button{border:0;background:transparent;color:var(--blue);font-weight:750;cursor:pointer;padding:8px}
 .neighborhood{margin-top:24px}
@@ -88,6 +94,15 @@ footer{text-align:center;color:#6c8089;font-size:.76rem;padding:0 24px 30px}
 
 .aviso{margin:0 auto;max-width:1120px;padding:16px 24px 0}
 .aviso p{background:var(--warning-bg);border:1px solid #f0d9a8;color:var(--warning);border-radius:13px;padding:11px 14px;font-size:.8rem;font-weight:750;line-height:1.4}
+.aviso-dados p{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.aviso-dados button{flex:0 0 auto;border:1px solid currentColor;background:transparent;color:inherit;border-radius:99px;min-height:32px;padding:0 14px;font-size:.76rem;font-weight:850;cursor:pointer}
+.aviso-dados button:hover{background:rgba(0,0,0,.05)}
+/* Grupo dos médicos sem horário, no topo da visão por médico. */
+.grupo-incompletos{margin-bottom:22px}
+.grupo-incompletos > h3{margin:0 0 10px;font-size:.9rem;color:var(--warning);font-weight:850;text-transform:uppercase;letter-spacing:.07em}
+.doctor-card.incompleto{border-color:#f0d9a8;background:var(--warning-bg)}
+.ficha-incompleto{flex:0 0 auto;padding:3px 9px;border-radius:99px;background:var(--warning);color:#fff;font-size:.66rem;font-weight:850;white-space:nowrap}
+.horario.sem-horario .horario-quando{color:var(--warning);font-style:italic}
 
 /* Rodapé com o crédito e a logo pessoal. */
 footer{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 24px 34px}

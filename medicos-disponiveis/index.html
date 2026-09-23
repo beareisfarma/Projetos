@@ -32,6 +32,13 @@
 </header>
 
 <div class="aviso" id="aviso" hidden><p id="avisoTexto"></p></div>
+<!-- Faixa SEPARADA da de cima: falha de armazenamento e médico sem horário são
+     coisas diferentes, e uma não pode apagar a outra da tela. -->
+<div class="aviso aviso-dados" id="avisoDados" hidden>
+  <p><span id="avisoDadosTexto"></span>
+    <button type="button" id="verIncompletos">Ver quais</button>
+  </p>
+</div>
 
 
 <!-- ------------------------------------------------------------- entrar --- -->
@@ -277,10 +284,14 @@
       <div class="segmented" id="turnos"></div>
     </div>
 
-    <label class="search-box" id="caixaBusca">
-      <span>&#8981;</span>
-      <input type="search" id="busca" placeholder="Buscar médico, especialidade, bairro ou endereço" autocomplete="off">
-    </label>
+    <!-- Div, não label: um botão dentro de um <label> reencaminha o toque para o
+         input e o "x" ficava disputando o clique com o foco do campo. -->
+    <div class="search-box" id="caixaBusca">
+      <span aria-hidden="true">&#8981;</span>
+      <input type="search" id="busca" aria-label="Buscar médico, especialidade, bairro ou endereço"
+             placeholder="Buscar médico, especialidade, bairro ou endereço" autocomplete="off">
+      <button type="button" class="limpar-busca" id="limparBusca" aria-label="Limpar a busca" hidden>&#10005;</button>
+    </div>
 
     <button type="button" class="add-route" id="adicionarRoteiro" hidden></button>
     <p class="save-message" id="mensagem" role="status" hidden></p>
