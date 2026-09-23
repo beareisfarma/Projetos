@@ -105,6 +105,52 @@ depois de receber duas rodadas só com imagem e PDF.
   `portfólio`) e `quadra` aponta para uma pasta `quadra` que nunca existiu — esse
   segue quebrado de propósito, com `exit 0`, esperando a Beatriz decidir se apaga
   o projeto na Vercel.
+- **REGRA PERMANENTE, pedida por ela em 23/09/2026: avisar quando deploy
+  falhar.** Ela recebeu por e-mail um "3 deployments failed" que eu tinha
+  causado e não tinha percebido. Então, **ao terminar qualquer sessão que tenha
+  dado push neste repositório**, rodar a varredura abaixo e **contar o resultado
+  na resposta** — inclusive quando estiver tudo bem, numa linha só:
+
+  ```
+  list_deployments(slug: "beareisfarma", state: "ERROR", limit: 15,
+                   projectIds: [os sete prj_... da tabela acima])
+  ```
+
+  Como ler o que voltar:
+  - **`ERROR` com `target: "production"`** → um app dela está quebrado no ar.
+    É urgente, e vem antes de qualquer outra coisa na resposta.
+  - **`ERROR` com `target: null`** (prévia) → uma branch construindo o projeto
+    errado. É o defeito de 23/09; se voltar, alguém religou as prévias ou
+    mexeu no Ignored Build Step.
+  - **`CANCELED`** → NÃO é falha: é a regra pulando o build de propósito.
+    Confundir os dois vira alarme falso, que é pior que silêncio.
+  - `quadra` sempre falha por ser projeto órfão — **não contar como novidade**
+    até ela decidir apagá-lo.
+
+  Antes de dizer que um projeto está quebrado, conferir se ele tem um deploy
+  **`READY` em produção** mais recente que o erro (`state: "READY"`,
+  `target: "production"`): erro antigo com publicação boa depois significa que
+  já foi consertado. Foi o caso do `beatriz-portfolio`, cujo `ERROR` de
+  22/09 (Root Directory sem acento) já tinha sido resolvido por `bfff0ad`.
+
+  Existe também uma **Routine diária** (`Vigia de deploys da Vercel`,
+  `trig_01HQgKePPegJWyQcm5v5cBsy`, 12:00 UTC = 09:00 no Rio) que só escreve
+  quando acha problema. Ela **não usa as ferramentas da Vercel**: sessão de
+  Routine nasce sem conectores, e a criada com o prompt original teria falhado
+  em silêncio. O caminho que funciona é o GitHub — **a Vercel publica o
+  resultado de cada build como commit status no repositório**, legível com
+  `curl` e o `GITHUB_TOKEN` do ambiente:
+
+  ```
+  GET /repos/beareisfarma/Projetos/commits/<branch>          → .sha
+  GET /repos/beareisfarma/Projetos/commits/<sha>/status      → .statuses[]
+  ```
+
+  Só conta como falha `state == "failure"` num `context` que começa com
+  `Vercel`. **"Canceled by Ignored Build Step" chega como `success`** — é a
+  regra pulando de propósito, e tratar como erro vira alarme falso. Se ela
+  pedir para parar, é `delete_trigger`.
+
 - Commit que mexe só na `CLAUDE.md` não constrói projeto nenhum, por desenho.
 
 ## App "Lembretes" (`lembretes/`)
