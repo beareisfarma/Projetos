@@ -222,16 +222,38 @@ async function lerWord(buffer, origem) {
       return;
     }
 
-    if (!dia || !turno) {
-      problemas.push({ linha: indice + 1, motivo: "médico fora de um dia/turno", conteudo: linha });
-      return;
-    }
-
     const inicio = lerHora(medico[1]);
     const fim = lerHora(medico[2]);
     const nome = texto(medico[3]);
-    if (!nome || !inicio) {
-      problemas.push({ linha: indice + 1, motivo: "sem nome ou sem horário", conteudo: linha });
+
+    // Sem NOME não dá para fazer nada: não há por onde chamar essa pessoa.
+    if (!nome) {
+      problemas.push({ linha: indice + 1, motivo: "sem nome de médico", conteudo: linha });
+      return;
+    }
+
+    // Com nome mas sem dia ou sem hora, o médico ENTRA na base marcado como
+    // incompleto, em vez de sumir. Descartar em silêncio fazia um médico que
+    // ela sabe que existe desaparecer do app, e ela só descobria no consultório.
+    if (!dia || !turno || !inicio) {
+      agenda.push({
+        nome,
+        dia: dia || "",
+        turno: dia ? turno || "" : "",
+        bairro: bairro || "",
+        endereco: endereco || "",
+        inicio: inicio || "",
+        fim: fim || inicio || "",
+        sala: texto(medico[4] || ""),
+        alerta: false,
+        incompleto: true,
+        especialidade: texto(medico[5] || ""),
+      });
+      problemas.push({
+        linha: indice + 1,
+        motivo: !dia || !turno ? "sem dia/turno — entrou como incompleto" : "sem horário — entrou como incompleto",
+        conteudo: linha,
+      });
       return;
     }
 
@@ -349,22 +371,26 @@ export function montarBase({ cabecalhos, linhas }, mapa) {
         });
         gerou = true;
       }
-      if (!gerou) problemas.push({ linha: numero, motivo: "nenhum dia com horário" });
+      if (!gerou) {
+        agenda.push({ ...comum, dia: "", turno: "", inicio: "", fim: "", alerta: false, incompleto: true });
+        problemas.push({ linha: numero, motivo: "nenhum dia com horário — entrou como incompleto" });
+      }
       return;
     }
 
     const dia = lerDia(pegar(linha, "dia"));
-    if (!dia) {
-      problemas.push({ linha: numero, motivo: "dia da semana não reconhecido" });
-      return;
-    }
 
     let [inicio, fim] = mapa.horario != null ? partirHorario(pegar(linha, "horario")) : [null, null];
     inicio = lerHora(pegar(linha, "inicio")) || inicio;
     fim = lerHora(pegar(linha, "fim")) || fim;
 
-    if (!inicio) {
-      problemas.push({ linha: numero, motivo: "sem hora de início" });
+    // Mesma regra do documento: com nome, entra marcado como incompleto.
+    if (!dia || !inicio) {
+      agenda.push({ ...comum, dia: dia || "", turno: "", inicio: "", fim: "", alerta: false, incompleto: true });
+      problemas.push({
+        linha: numero,
+        motivo: !dia ? "dia não reconhecido — entrou como incompleto" : "sem hora de início — entrou como incompleto",
+      });
       return;
     }
 
@@ -409,8 +435,11 @@ function montarConteudo(agenda) {
     delete item.visitas;
   }
 
+  // Incompleto vai para o fim: sem dia, `DIAS.indexOf("")` é -1 e eles
+  // subiriam para antes de segunda-feira, atravessados no meio do roteiro.
   agenda.sort(
     (a, b) =>
+      Number(Boolean(a.incompleto)) - Number(Boolean(b.incompleto)) ||
       DIAS.indexOf(a.dia) - DIAS.indexOf(b.dia) ||
       (a.turno === b.turno ? 0 : a.turno === "Manhã" ? -1 : 1) ||
       a.bairro.localeCompare(b.bairro, "pt-BR") ||
@@ -437,8 +466,17 @@ export function normalizarConteudo(conteudo) {
       sala: texto(item.sala ?? item.room),
       alerta: Boolean(item.alerta ?? item.warning),
     }))
-    .filter((item) => item.nome && item.dia && item.inicio)
-    .map((item) => ({ ...item, fim: item.fim || item.inicio }));
+    // Só o nome é obrigatório. Faltando dia ou hora, a linha fica na base
+    // marcada como incompleta — some daqui seria perder o médico.
+    .filter((item) => item.nome)
+    .map((item) => ({
+      ...item,
+      dia: item.dia || "",
+      turno: item.dia && item.inicio ? item.turno || "" : "",
+      inicio: item.inicio || "",
+      fim: item.inicio ? item.fim || item.inicio : "",
+      incompleto: !item.dia || !item.inicio,
+    }));
 
   const medicos = new Map();
   for (const item of Array.isArray(conteudo?.medicos) ? conteudo.medicos : []) {

@@ -207,6 +207,48 @@ Decisões que não devem ser desfeitas:
   esperado de "trocar a base". Para corrigir sem perder, o caminho é **atualizar**
   (mesclagem por nome), não trocar.
 
+## Médico sem horário não some da base
+
+Antes, uma linha com nome mas sem dia ou sem hora ia para a lista de "linhas
+fora" e **desaparecia**. Do ponto de vista de quem usa, o médico simplesmente
+não existia no app — e ela só descobria isso no corredor do consultório.
+
+Agora essa linha **entra na base marcada como incompleta** (`incompleto: true`,
+com `dia` e `inicio` vazios). O único caso que continua fora é a linha **sem
+nome**: sem nome não há por onde chamar a pessoa, nem como casar as visitas.
+
+Como aparece:
+
+- Uma **faixa no topo** diz quantos médicos estão sem dia ou sem horário, com
+  um botão "Ver quais" que leva à base inteira e rola até eles. É uma faixa
+  **separada** da de falha de armazenamento — as duas coisas são independentes
+  e uma não pode apagar a outra.
+- Na visão por médico (dia = Todos) eles vêm num **grupo no topo**, "Faltam
+  dados", com o cartão marcado e a ficha "faltam dados" ao lado do nome.
+  Misturados em ordem alfabética entre 314 nomes, ninguém acharia.
+- Cada linha incompleta diz **o que falta** ("Falta o horário", "Falta o dia",
+  "Falta dia e horário") e troca "+ roteiro" por **"Completar"**, que abre a
+  tela de edição. Roteiro é sempre de um dia: sem dia não há o que adicionar.
+- Preencher dia e hora tira a marca sozinho, e a conta da faixa cai.
+
+Armadilha paga: **incompleto tem de ordenar por último**. Sem dia,
+`DIAS.indexOf("")` é `-1`, então esses médicos subiam para antes de
+segunda-feira e ficavam atravessados no meio da semana. A ordenação começa por
+`Number(Boolean(item.incompleto))`, nos dois lugares que ordenam agenda
+(`importar.js` e `dados.js`).
+
+## Limpar a busca num toque
+
+O `×` do `type="search"` não aparece no Safari do iPhone e some no Firefox, e
+apagar palavra por palavra num campo cheio é irritante. O botão é nosso, com
+alvo de 30px, e só aparece quando há texto.
+
+Duas decisões: a caixa deixou de ser `<label>` e virou `<div>` (um botão dentro
+de um `label` reencaminha o toque para o input, e o `×` disputava o clique com
+o foco do campo); e **todo caminho que mexe na busca passa por `definirBusca()`**
+— com dois caminhos independentes (digitar e limpar) o botão acabaria visível
+com o campo já vazio em algum deles.
+
 ## Arquivos
 
 | Arquivo | Papel |
@@ -300,6 +342,17 @@ Decisões que não devem ser desfeitas:
 - **O leitor de planilha (880 KB) não entra no precache** do service worker: é
   carregado só quando alguém importa um arquivo, e guardado a partir daí. O app
   precisa abrir leve.
+- **`cache.addAll` usa o cache HTTP do navegador.** Foi o defeito mais caro
+  desta fase: com `Cache-Control` longo nos arquivos, o service worker novo
+  enchia o cache NOVO com os arquivos VELHOS que o navegador já tinha guardado.
+  O número da versão subia, o cache antigo era apagado, tudo parecia certo — e o
+  app continuava exatamente o mesmo. Reproduzido num navegador de verdade
+  (perfil persistente, servidor com os mesmos cabeçalhos da Vercel): **sem a
+  correção o cache se chama `medicos-v7` e entrega o `app.js` de `medicos-v4`**.
+  A correção é `new Request(caminho, { cache: "reload" })` em cada item da casca.
+- **`caches.match(pedido)` sem `cacheName` varre TODOS os caches da origem**, e
+  podia servir um arquivo de uma versão anterior. Passou a ser
+  `caches.open(VERSAO).then((c) => c.match(pedido))`.
 - **Resposta do Supabase nunca entra no cache do service worker** — só a própria
   origem. Uma resposta de API guardada seria dado velho fingindo ser novo.
 

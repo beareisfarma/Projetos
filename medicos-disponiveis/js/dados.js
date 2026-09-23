@@ -64,6 +64,9 @@ function garantirIds(base) {
 function ordenarAgenda(agenda) {
   agenda.sort(
     (a, b) =>
+      // Incompleto no fim: sem dia, `DIAS.indexOf("")` é -1 e o médico subiria
+      // para antes de segunda, atravessado no meio da semana.
+      Number(Boolean(a.incompleto)) - Number(Boolean(b.incompleto)) ||
       DIAS.indexOf(a.dia) - DIAS.indexOf(b.dia) ||
       (a.turno === b.turno ? 0 : a.turno === "Manhã" ? -1 : 1) ||
       (a.bairro || "").localeCompare(b.bairro || "", "pt-BR") ||
@@ -294,6 +297,8 @@ export async function editarHorario(id, campos) {
       endereco: texto(campos.endereco),
       sala: texto(campos.sala),
       alerta: !campos.fim || campos.fim === campos.inicio,
+      // Completar dia e hora é o que tira a marca de "faltam dados".
+      incompleto: !campos.dia || !campos.inicio,
     });
     if (campos.especialidade !== undefined) medicoOuNovo(item.nome).especialidade = texto(campos.especialidade);
     ordenarAgenda(estado.base.conteudo.agenda);
@@ -317,6 +322,7 @@ export async function acrescentarHorario(campos) {
       fim: campos.fim || campos.inicio,
       sala: texto(campos.sala),
       alerta: !campos.fim || campos.fim === campos.inicio,
+      incompleto: !campos.dia || !campos.inicio,
     });
     const medico = medicoOuNovo(nome);
     if (campos.especialidade !== undefined) medico.especialidade = texto(campos.especialidade);
@@ -497,6 +503,13 @@ export function disponibilidade(nome, dia, turno) {
 
 function horarioDe(item) {
   return disponibilidade(item.nome, item.dia, item.turno)?.inicio || "";
+}
+
+// Médicos com alguma linha sem dia ou sem hora. A conta é por PESSOA, não por
+// linha: o que ela precisa saber é de quantos médicos faltam dados.
+export function medicosIncompletos() {
+  const agenda = estado.base?.conteudo.agenda || [];
+  return [...new Set(agenda.filter((item) => item.incompleto).map((item) => item.nome))];
 }
 
 export function medicoDe(nome) {

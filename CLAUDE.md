@@ -576,7 +576,37 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
      `/deployments?environment=github-pages`.
   Antes disso, o ensaio local: servir a árvore numa subpasta e passar o
   Playwright. **Nunca dizer "está no ar" só porque o push saiu.**
-- Testes: 190 asserções no Chromium com Supabase simulado (navegação, base,
-  especialidade, "Todos", edição de horário, convites, offline) + RLS verificado
+- **Médico sem dia ou sem hora ENTRA na base, marcado como incompleto**
+  (23/09/2026, pedido dela). Antes ia para "linhas fora" e sumia — o médico
+  simplesmente não existia no app, e ela descobria no consultório. Só a linha
+  **sem nome** continua fora (sem nome não há como chamar a pessoa nem casar as
+  visitas). Aparece em três lugares: faixa no topo com a conta e "Ver quais"
+  (faixa **separada** da de falha de armazenamento — uma não pode apagar a
+  outra), grupo "Faltam dados" no topo da visão por médico, e a linha dizendo o
+  que falta com botão **Completar** no lugar de "+ roteiro" (roteiro é sempre de
+  um dia; sem dia não há o que adicionar). Preencher dia e hora tira a marca.
+  **Incompleto ordena por último**: sem dia, `DIAS.indexOf("")` é -1 e eles
+  subiam para antes de segunda. A ordenação começa por
+  `Number(Boolean(item.incompleto))`, nos dois lugares que ordenam agenda.
+- **Botão "×" para limpar a busca** (23/09/2026, pedido dela). O `×` nativo do
+  `type="search"` não aparece no Safari do iPhone. A caixa deixou de ser
+  `<label>` e virou `<div>`: botão dentro de `label` reencaminha o toque para o
+  input e o × disputava o clique com o foco. **Todo caminho que mexe na busca
+  passa por `definirBusca()`** — com dois caminhos independentes o botão ficaria
+  visível com o campo já vazio em algum deles.
+- **`cache.addAll` do service worker usa o cache HTTP do navegador.** Defeito
+  real, reproduzido em navegador em 23/09/2026 e a causa de "o site não é a
+  última versão": com `Cache-Control` longo, o sw novo enchia o cache NOVO com
+  os arquivos VELHOS. **O cache passava a se chamar `medicos-v7` e entregava o
+  `app.js` de `medicos-v4`** — número de versão novo, app igual. Correção:
+  `new Request(caminho, { cache: "reload" })` em cada item da casca, e
+  `caches.open(VERSAO).then((c) => c.match(pedido))` no fetch (o
+  `caches.match` solto varre TODOS os caches da origem e podia servir versão
+  anterior). Ao mexer no sw, rodar `repro-atualizacao.mjs`: ele instala a versão
+  velha num perfil persistente, publica a nova e mede **o conteúdo que o app
+  recebe**, não a tela — sem login a tela fica no "entrar" e não prova nada.
+- Testes: 210 asserções no Chromium com Supabase simulado (navegação, base,
+  especialidade, "Todos", edição de horário, médicos incompletos, limpar busca,
+  convites, offline) + RLS verificado
   por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
   não tem saída para a internet.
