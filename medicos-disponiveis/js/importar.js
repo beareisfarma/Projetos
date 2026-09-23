@@ -13,6 +13,7 @@
  */
 
 import {
+  chaveBusca,
   DIAS,
   lerAlvo,
   lerDia,
@@ -505,18 +506,29 @@ export function mesclar(conteudoAtual, conteudoNovo) {
   const atual = normalizarConteudo(conteudoAtual);
   const novo = normalizarConteudo(conteudoNovo);
 
-  const nomesNovos = new Set(novo.medicos.map((m) => m.nome));
-  const comAgendaNova = new Set(novo.agenda.map((a) => a.nome));
+  // A comparação de nomes ignora caixa e acento: a mesma pessoa aparece como
+  // "ALCIDES BUSTILLOS VILLAFAN" num cadastro e "Alcides Bustillos Villafan"
+  // noutro. Casando por texto exato, o arquivo seguinte criaria um médico
+  // duplicado em vez de completar o que já existe.
+  const igual = (nome) => chaveBusca(nome);
+  // Quem já está na base MANDA na grafia: trocar o nome quebraria as visitas
+  // do ciclo, que são guardadas por nome.
+  const grafiaAtual = new Map(atual.medicos.map((m) => [igual(m.nome), m.nome]));
+  const nomeFinal = (nome) => grafiaAtual.get(igual(nome)) || nome;
 
-  const medicos = new Map(atual.medicos.map((m) => [m.nome, m]));
+  const nomesNovos = new Set(novo.medicos.map((m) => nomeFinal(m.nome)));
+  const comAgendaNova = new Set(novo.agenda.map((a) => igual(a.nome)));
+
+  const medicos = new Map(atual.medicos.map((m) => [igual(m.nome), m]));
   let atualizados = 0;
   let acrescentados = 0;
 
-  for (const medico of novo.medicos) {
-    if (medicos.has(medico.nome)) {
-      const antigo = medicos.get(medico.nome);
-      medicos.set(medico.nome, {
-        nome: medico.nome,
+  for (const bruto of novo.medicos) {
+    const medico = { ...bruto, nome: nomeFinal(bruto.nome) };
+    if (medicos.has(igual(medico.nome))) {
+      const antigo = medicos.get(igual(medico.nome));
+      medicos.set(igual(medico.nome), {
+        nome: antigo.nome,
         // Campo vazio no arquivo não apaga o que já havia: quem manda três
         // linhas para corrigir horário não quer perder a especialidade.
         especialidade: medico.especialidade || antigo.especialidade,
@@ -524,29 +536,30 @@ export function mesclar(conteudoAtual, conteudoNovo) {
       });
       atualizados += 1;
     } else {
-      medicos.set(medico.nome, medico);
+      medicos.set(igual(medico.nome), medico);
       acrescentados += 1;
     }
   }
 
   const agenda = [
-    ...atual.agenda.filter((item) => !comAgendaNova.has(item.nome)),
-    ...novo.agenda,
+    ...atual.agenda.filter((item) => !comAgendaNova.has(igual(item.nome))),
+    // As linhas que chegam adotam a grafia que já existe na base.
+    ...novo.agenda.map((item) => ({ ...item, nome: nomeFinal(item.nome) })),
   ];
 
   const resultado = montarConteudo(
-    agenda.map((item) => ({ ...item, especialidade: "", visitas: medicos.get(item.nome)?.visitas ?? 1 })),
+    agenda.map((item) => ({ ...item, especialidade: "", visitas: medicos.get(igual(item.nome))?.visitas ?? 1 })),
   );
 
   // montarConteudo recria a lista de médicos a partir da agenda; a lista
   // mesclada é a boa (tem especialidade e quem não tem horário nenhum).
-  const finais = new Map(resultado.medicos.map((m) => [m.nome, m]));
-  for (const [nome, medico] of medicos) finais.set(nome, medico);
+  const finais = new Map(resultado.medicos.map((m) => [igual(m.nome), m]));
+  for (const [chave, medico] of medicos) finais.set(chave, medico);
 
   return {
     conteudo: { medicos: [...finais.values()], agenda: resultado.agenda },
     atualizados,
     acrescentados,
-    semAgenda: [...nomesNovos].filter((nome) => !comAgendaNova.has(nome)).length,
+    semAgenda: [...nomesNovos].filter((nome) => !comAgendaNova.has(igual(nome))).length,
   };
 }

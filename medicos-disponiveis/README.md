@@ -249,6 +249,23 @@ o foco do campo); e **todo caminho que mexe na busca passa por `definirBusca()`*
 — com dois caminhos independentes (digitar e limpar) o botão acabaria visível
 com o campo já vazio em algum deles.
 
+## Nome de médico casa sem olhar caixa nem acento
+
+O cadastro da empresa escreve `ALCIDES BUSTILLOS VILLAFAN`; o roteiro em Word
+escreve `Alcides Bustillos Villafan`. São a mesma pessoa. A mesclagem comparava
+nome por **texto exato**, então o segundo arquivo criaria um médico duplicado em
+vez de completar o que já existe — e as visitas do ciclo, guardadas por nome,
+ficariam no duplicado errado.
+
+Agora `mesclar()` compara por `chaveBusca()` (sem acento, sem pontuação, sem
+caixa). Duas regras que vêm junto:
+
+- **Quem já está na base manda na grafia.** O arquivo novo não renomeia ninguém:
+  trocar o nome quebraria o vínculo com as visitas já registradas. As linhas que
+  chegam adotam a grafia que já existe.
+- A contagem de "atualizados" e "acrescentados" segue a mesma chave, senão a
+  mensagem no fim da importação mentiria.
+
 ## Arquivos
 
 | Arquivo | Papel |

@@ -605,7 +605,26 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   anterior). Ao mexer no sw, rodar `repro-atualizacao.mjs`: ele instala a versão
   velha num perfil persistente, publica a nova e mede **o conteúdo que o app
   recebe**, não a tela — sem login a tela fica no "entrar" e não prova nada.
-- Testes: 210 asserções no Chromium com Supabase simulado (navegação, base,
+- **A mesclagem casa nome sem olhar caixa nem acento** (23/09/2026). O cadastro
+  da empresa escreve `ALCIDES BUSTILLOS VILLAFAN` e o roteiro em Word escreve
+  `Alcides Bustillos Villafan`: comparando por texto exato, o segundo arquivo
+  criava um médico DUPLICADO em vez de completar o existente — e as visitas do
+  ciclo, guardadas por nome, ficariam no duplicado errado. `mesclar()` compara
+  por `chaveBusca()`. **Quem já está na base manda na grafia**: o arquivo novo
+  não renomeia ninguém, porque trocar o nome quebra o vínculo com as visitas.
+- **Os 119 médicos sem horário foram acrescentados à base dela em 23/09/2026**
+  (planilha `Medicos_sem_horario_para_atualizar.xlsx`, aplicada por SQL). A base
+  passou de **314 médicos / 755 disponibilidades** para **433 / 874**: as 755
+  linhas com dia ficaram intactas e as 119 novas entraram como `incompleto`.
+  Nenhum dos 119 já existia — conferido com md5 dos nomes normalizados batendo
+  entre o documento e o banco antes de comparar. **Não havia especialidade na
+  planilha**, então ficou vazia; 6 dos 119 ficaram **sem bairro** porque o
+  endereço não deixava claro e inventar bairro num app de roteiro seria pior que
+  deixar em branco. Os nomes foram gravados em Maiúscula/minúscula para casar
+  com o resto da base. A operação foi puramente aditiva e tem trava
+  (`jsonb_array_length(medicos) = 314`), então não se aplica duas vezes; desfazer
+  é remover as linhas com `incompleto` e os médicos correspondentes.
+- Testes: 219 asserções no Chromium com Supabase simulado (navegação, base,
   especialidade, "Todos", edição de horário, médicos incompletos, limpar busca,
   convites, offline) + RLS verificado
   por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
