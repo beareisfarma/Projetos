@@ -56,28 +56,50 @@ depois de receber duas rodadas só com imagem e PDF.
   (`ssoProtection.enabled=false`), senão o PWA e o push não funcionam.
 - **Não existe ferramenta MCP para definir variáveis de ambiente na Vercel.**
   Esse passo é sempre manual, no painel.
-- **SETE projetos da Vercel apontam para este mesmo repositório**, então cada
-  push disparava sete deploys — e com duas branches, quatorze por correção. Em
-  22/09/2026 isso estourou o teto de **100 deploys por dia** do plano gratuito e
-  deixou uma versão pronta sem publicar. Cada projeto agora tem um **Ignored
-  Build Step** que só constrói quando a pasta dele muda:
+- **SETE projetos da Vercel apontam para este mesmo repositório**, e por padrão
+  a Vercel constrói **todas as branches**. Isso já causou dois estragos
+  diferentes: em 22/09/2026 cada push disparava sete (ou quatorze) deploys e
+  estourou o teto de 100/dia do plano gratuito; em 23/09/2026 cada push na
+  `gh-pages` mandou à Beatriz um e-mail **"3 deployments failed"**, porque a
+  `gh-pages` não tem as pastas `lembretes/`, `r2d-relatorio/` e
+  `cronometro-jogos/` — o Root Directory desses três não existe lá e o build
+  morre. (Os outros não falhavam por acaso: `beatriz-portfolio` aponta para
+  `portfólio`, que EXISTE na `gh-pages`; `projetos` aponta para a raiz;
+  `quadra` tem `exit 0`; e `medicos-disponiveis` já estava com prévia
+  desligada.) Três pushes do espelho = três e-mails de falha.
 
-  | Projeto | Regra (`commandForIgnoringBuildStep`) |
+  **Corrigido em 23/09/2026 com DUAS camadas, nos sete projetos.** Uma só não
+  basta: a primeira é uma configuração que alguém pode religar sem querer no
+  painel, a segunda vive na regra e sobrevive a isso.
+
+  1. **`previewDeploymentsDisabled: true`** — só a branch de produção constrói.
+  2. **Ignored Build Step travado por branch**, começando por
+     `if [ "$VERCEL_GIT_COMMIT_REF" != "main" ]; then exit 0; fi;` e só então o
+     pathspec da pasta:
+
+  | Projeto | Depois do `if` |
   | --- | --- |
-  | `medicos-disponiveis` | `git diff --quiet HEAD^ HEAD -- :/medicos-disponiveis` |
-  | `r2d-relatorio` | `git diff --quiet HEAD^ HEAD -- :/r2d-relatorio` |
-  | `cronometro-gamer` | `git diff --quiet HEAD^ HEAD -- :/cronometro-jogos :/logo` |
-  | `hdexternopremium` | `git diff --quiet HEAD^ HEAD -- :/lembretes` |
-  | `beatriz-portfolio` | `git diff --quiet HEAD^ HEAD -- ':/portfólio'` |
-  | `projetos` | `git diff --quiet HEAD^ HEAD -- ':(top)' ':(top,exclude)<cada pasta de app>'` |
+  | `medicos-disponiveis` | `git diff --quiet HEAD^ HEAD -- ':(top)medicos-disponiveis'` |
+  | `r2d-relatorio` | `git diff --quiet HEAD^ HEAD -- ':(top)r2d-relatorio'` |
+  | `cronometro-gamer` | `git diff --quiet HEAD^ HEAD -- ':(top)cronometro-jogos' ':(top)logo'` |
+  | `hdexternopremium` | `git diff --quiet HEAD^ HEAD -- ':(top)lembretes'` |
+  | `beatriz-portfolio` | `git diff --quiet HEAD^ HEAD -- ':(top)portfólio'` |
+  | `projetos` | `git diff --quiet HEAD^ HEAD -- ':(top)index.html'` (serve só o `index.html` da raiz) |
   | `quadra` | `exit 0` (projeto órfão, ver abaixo) |
 
-  **Sair 0 PULA o build.** Duas armadilhas: a sintaxe de exclusão é
-  `':(top,exclude)pasta'` — a forma `':!:/pasta'` dá **erro fatal** no git, e
-  como erro é saída diferente de zero, a regra construiria **sempre**; e a pasta
-  do portfólio tem acento (`portfólio`), então precisa de aspas. **Testar toda
-  regra nova com `git diff --quiet <rev>^ <rev> -- <caminhos>; echo $?` antes de
-  salvar** — regra errada faz um app parar de publicar em silêncio.
+  **Sair 0 PULA o build.** Armadilhas: a sintaxe de exclusão é
+  `':(top,exclude)pasta'` — `':!:/pasta'` dá **erro fatal** no git, e erro é
+  saída diferente de zero, então a regra construiria **sempre**; a pasta do
+  portfólio tem acento e precisa de aspas; e o comando tem limite de **256
+  caracteres**, por isso `projetos` usa um caminho positivo em vez de sete
+  exclusões. **Testar toda regra nova localmente** com
+  `git diff --quiet <rev>^ <rev> -- <caminhos>; echo $?` antes de salvar.
+
+  **Verificado de verdade**, não por leitura: com as duas camadas no ar, um
+  push na `gh-pages` (commit `0ede6c1`) gerou **zero** deploys na Vercel —
+  contra três `ERROR` nos três pushes anteriores — e o GitHub Pages publicou
+  normalmente. A consulta que prova é `list_deployments` com `projectIds` dos
+  seis projetos e `since` no instante da mudança.
 - **Dois projetos estavam falhando em TODO deploy** por Root Directory errado:
   `beatriz-portfolio` apontava para `portfolio` sem acento (corrigido para
   `portfólio`) e `quadra` aponta para uma pasta `quadra` que nunca existiu — esse
