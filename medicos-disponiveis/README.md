@@ -298,6 +298,35 @@ app semanas depois achando que perdeu médicos.
 — sem isso a caixa apareceria nas abas Roteiro e Ciclo. É a mesma armadilha já
 paga antes neste projeto.
 
+## "Já no roteiro" ao lado do nome
+
+Pedido dela em 24/09/2026. Antes, a marca de roteiro existia **só para o dia e
+turno que estavam na tela**: olhando a quinta-feira, não havia nenhum sinal de
+que aquele médico já estava escalado na terça. Ela só descobriria a escala dupla
+ao montar o roteiro do outro dia — ou no carro, a caminho.
+
+A ficha aparece em três lugares, sempre ao lado do nome:
+
+- **Disponíveis, por dia** — o caso principal, que evita escalar duas vezes.
+- **Disponíveis, por médico** (dia = Todos) — ao procurar alguém pelo nome.
+- **Roteiro** — o cartão de terça avisa que a pessoa também está na quinta.
+
+Duas decisões de desenho:
+
+- **O dia que está na tela NÃO entra na ficha.** Ali o próprio botão já diz
+  "Retirar do roteiro"; repetir ao lado do nome roubaria espaço de uma linha que
+  já tem especialidade e contador de visitas. É o parâmetro `exceto` de
+  `fichaRoteiro()`.
+- **Um roteiro mostra dia e turno** ("No roteiro · Ter manhã"); **dois ou mais
+  viram a contagem** ("Em 2 roteiros"), porque a lista inteira não cabe na ficha
+  no iPhone. O texto completo fica no `title`, a um toque longo.
+
+A ficha é de contorno teal, não preenchida: preenchida competiria com a ficha
+laranja de "faltam dados", que é a que pede ação. Esta é informação.
+
+`dados.roteirosDe(nome)` devolve os pares dia/turno ordenados como a semana
+anda, e é a única fonte — a tela não recalcula nada.
+
 ## Arquivos
 
 | Arquivo | Papel |

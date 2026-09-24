@@ -704,7 +704,23 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   vazia diz "Tudo visitado por aqui" + como desmarcar, em vez de "Nenhum médico
   aqui", que faria parecer base sumida. Ligar/desligar limpa `visao.selecionados`:
   médico fora da tela não pode seguir selecionado para o roteiro.
-- Testes: 243 asserções no Chromium com Supabase simulado (navegação, base,
+- **Ficha "Já no roteiro" ao lado do nome** (24/09/2026, pedido dela). A marca de
+  roteiro existia só para o dia/turno da tela: olhando a quinta, nada dizia que o
+  médico já estava escalado na terça, e a escala dupla só aparecia depois — ou no
+  carro. Agora aparece nas três telas (Disponíveis por dia, por médico, e
+  Roteiro), via `fichaRoteiro()` sobre `dados.roteirosDe(nome)`.
+  **O dia que está na tela entra em `exceto`**: ali o botão já diz "Retirar do
+  roteiro", e repetir rouba espaço de uma linha que já tem especialidade e
+  contador. **Um roteiro mostra dia e turno** ("No roteiro · Ter manhã"); **dois
+  ou mais viram contagem** ("Em 2 roteiros"), porque a lista não cabe na ficha no
+  iPhone — o texto inteiro fica no `title`. Contorno teal, não preenchida:
+  preenchida competiria com a laranja de "faltam dados", que é a que pede ação.
+- **Adicionar ao roteiro TROCA para a aba Roteiro** (`visao.aba = "roteiro"` no
+  handler de `#adicionarRoteiro`), e lá os botões de turno ficam escondidos.
+  Teste que adiciona e continua navegando por dia/turno precisa voltar para
+  Disponíveis antes — senão trava esperando um botão invisível. Já custou uma
+  depuração.
+- Testes: 258 asserções no Chromium com Supabase simulado (navegação, base,
   especialidade, "Todos", edição de horário, médicos incompletos, limpar busca,
   convites, offline) + RLS verificado
   por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
