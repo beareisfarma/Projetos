@@ -284,6 +284,14 @@
       <div class="segmented" id="turnos"></div>
     </div>
 
+    <!-- Fica ACIMA da busca de propósito: é um recorte da lista, como dia e
+         turno, não um jeito de buscar. -->
+    <label class="filtro-falta" id="caixaFaltam">
+      <input type="checkbox" id="soFaltam">
+      <span>Só quem falta visitar</span>
+      <span class="filtro-conta" id="contaFaltam"></span>
+    </label>
+
     <!-- Div, não label: um botão dentro de um <label> reencaminha o toque para o
          input e o "x" ficava disputando o clique com o foco do campo. -->
     <div class="search-box" id="caixaBusca">
