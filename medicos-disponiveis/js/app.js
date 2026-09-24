@@ -1059,6 +1059,23 @@ function fichaEspecialidade(especialidade) {
   return `<span class="especialidade" title="${esc(especialidade)}">${esc(curta)}</span>`;
 }
 
+// Sinaliza que o médico JÁ está escalado em algum roteiro. O dia/turno que está
+// na tela entra em `exceto` de propósito: ali o próprio botão já diz "Retirar do
+// roteiro", e repetir ao lado do nome só rouba espaço numa linha que já tem
+// especialidade e contador de visitas.
+function fichaRoteiro(nome, exceto = null) {
+  const outros = dados
+    .roteirosDe(nome)
+    .filter((r) => !exceto || r.dia !== exceto.dia || r.turno !== exceto.turno);
+  if (!outros.length) return "";
+  const curto = (r) => `${r.dia.slice(0, 3)} ${r.turno === "Manhã" ? "manhã" : "tarde"}`;
+  const lista = outros.map(curto).join(", ");
+  // Dois ou mais não cabem na ficha no iPhone: vira a contagem, e a lista
+  // inteira fica no title para conferir com um toque longo.
+  const rotulo = outros.length === 1 ? `No roteiro · ${curto(outros[0])}` : `Em ${outros.length} roteiros`;
+  return `<span class="ficha-roteiro" title="Já no roteiro de ${esc(lista)}">${esc(rotulo)}</span>`;
+}
+
 function fichaVisitas(nome) {
   const feitas = dados.feitasDe(nome);
   const alvo = dados.alvoDe(nome);
@@ -1109,6 +1126,7 @@ function cartaoDisponivel(item, noRoteiro) {
       <div class="linha-nome">
         <span class="doctor-name">${nome}</span>
         ${fichaEspecialidade(medico.especialidade)}
+        ${fichaRoteiro(item.nome, { dia: item.dia, turno: item.turno })}
         ${fichaVisitas(item.nome)}
       </div>
       ${item.sala ? `<div class="room">Sala/complemento: ${esc(item.sala)}</div>` : ""}
@@ -1198,6 +1216,7 @@ function cartaoPorMedico(nome, itens) {
         <span class="doctor-name">${nomeEsc}</span>
         ${fichaEspecialidade(medico.especialidade)}
         ${incompleto ? '<span class="ficha-incompleto">faltam dados</span>' : ""}
+        ${fichaRoteiro(nome)}
         ${fichaVisitas(nome)}
       </div>
       <div class="horarios">${horarios}</div>
@@ -1352,6 +1371,7 @@ function desenharRoteiro() {
                 <h3 class="linha-nome">
                   <span>${nome}</span>
                   ${fichaEspecialidade(medico.especialidade)}
+                  ${fichaRoteiro(item.nome, { dia: item.dia, turno: item.turno })}
                   ${fichaVisitas(item.nome)}
                 </h3>
                 <p>${esc(

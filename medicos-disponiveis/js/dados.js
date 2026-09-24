@@ -507,6 +507,17 @@ function horarioDe(item) {
 
 // Médicos com alguma linha sem dia ou sem hora. A conta é por PESSOA, não por
 // linha: o que ela precisa saber é de quantos médicos faltam dados.
+// Onde este médico já está escalado no ciclo, na ordem em que a semana anda.
+// A tela usa isto para avisar que ele já está em OUTRO dia — sem isso ela só
+// descobriria a escala dupla montando o roteiro do dia seguinte.
+export function roteirosDe(nome) {
+  const ordem = (i) => DIAS.indexOf(i.dia) * 2 + (i.turno === "Manhã" ? 0 : 1);
+  return (estado.ciclo?.roteiro || [])
+    .filter((i) => i.nome === nome)
+    .map((i) => ({ dia: i.dia, turno: i.turno }))
+    .sort((a, b) => ordem(a) - ordem(b));
+}
+
 export function medicosIncompletos() {
   const agenda = estado.base?.conteudo.agenda || [];
   return [...new Set(agenda.filter((item) => item.incompleto).map((item) => item.nome))];

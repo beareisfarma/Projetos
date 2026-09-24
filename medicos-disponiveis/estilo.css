@@ -112,6 +112,10 @@ footer{text-align:center;color:#6c8089;font-size:.76rem;padding:0 24px 30px}
 .grupo-incompletos{margin-bottom:22px}
 .grupo-incompletos > h3{margin:0 0 10px;font-size:.9rem;color:var(--warning);font-weight:850;text-transform:uppercase;letter-spacing:.07em}
 .doctor-card.incompleto{border-color:#f0d9a8;background:var(--warning-bg)}
+/* "Já no roteiro": teal como o resto da sinalização de roteiro do app, para o
+   olho associar sem ler. Contorno em vez de preenchido, porque preenchido
+   competiria com a ficha de "faltam dados", que é a que pede ação. */
+.ficha-roteiro{flex:0 0 auto;padding:2px 9px;border:1px solid var(--teal);border-radius:99px;background:var(--ice);color:#0c6f73;font-size:.66rem;font-weight:850;white-space:nowrap}
 .ficha-incompleto{flex:0 0 auto;padding:3px 9px;border-radius:99px;background:var(--warning);color:#fff;font-size:.66rem;font-weight:850;white-space:nowrap}
 .horario.sem-horario .horario-quando{color:var(--warning);font-style:italic}
 
