@@ -46,6 +46,7 @@ const visao = {
   dia: diaDeHoje(),
   turno: new Date().getHours() < 12 ? "Manhã" : "Tarde",
   busca: "",
+  soFaltam: false,
   selecionados: new Set(),
   modoBase: "nova",
   nomeNovoCiclo: "",
@@ -785,6 +786,12 @@ function definirBusca(texto, { focar = false } = {}) {
 
 el("busca").addEventListener("input", () => definirBusca(el("busca").value));
 
+el("soFaltam").addEventListener("change", () => {
+  visao.soFaltam = el("soFaltam").checked;
+  visao.selecionados.clear(); // quem sumiu da tela não pode seguir selecionado
+  desenhar();
+});
+
 el("limparBusca").addEventListener("click", () => definirBusca("", { focar: true }));
 
 el("adicionarRoteiro").addEventListener("click", async () => {
@@ -951,6 +958,8 @@ function desenhar() {
   el("grupoDias").hidden = visao.aba === "ciclo";
   el("grupoTurnos").hidden = visao.aba !== "disponiveis";
   el("caixaBusca").hidden = visao.aba !== "disponiveis";
+  el("caixaFaltam").hidden = visao.aba !== "disponiveis";
+  el("soFaltam").checked = visao.soFaltam;
 
   desenharControles();
   desenharEstadoSinc();
@@ -1025,6 +1034,9 @@ function agendaFiltrada() {
   return agenda.filter((item) => {
     if (visao.dia !== TODOS && item.dia !== visao.dia) return false;
     if (visao.turno !== TODOS && item.turno !== visao.turno) return false;
+    // "Falta visitar" é quem NÃO bateu a meta — inclui o 1/2, que ainda deve uma
+    // visita. Esconder o parcial faria ela pular gente que ainda precisa ver.
+    if (visao.soFaltam && dados.situacaoDe(item.nome) === "concluido") return false;
     if (!procurado) return true;
     const medico = dados.medicoDe(item.nome);
     // Tanto "cardiologia" quanto "cardio" têm de achar: a pessoa busca pelo que
@@ -1127,7 +1139,7 @@ let ultimaPintura = "";
 // piscar na tela inteira. Então só pinta quando o HTML mudou de verdade, e a
 // animação só roda quando muda o contexto (dia, turno, busca ou aba).
 function pintar(html) {
-  const assinatura = `${visao.aba}|${visao.dia}|${visao.turno}|${visao.busca.trim()}`;
+  const assinatura = `${visao.aba}|${visao.dia}|${visao.turno}|${visao.soFaltam}|${visao.busca.trim()}`;
   if (html === ultimaPintura) {
     el("lista").classList.remove("animar");
     return;
@@ -1227,17 +1239,33 @@ function desenharDisponiveis() {
   el("contagem").textContent = `${semDia ? nomes.length : filtrada.length} médicos`;
   el("contagem").hidden = false;
 
+  // Quantos faltam NESTE recorte, ao lado da caixa: ela decide se vale marcar
+  // antes de marcar, em vez de ligar o filtro para descobrir que não muda nada.
+  const faltam = nomes.filter((nome) => dados.situacaoDe(nome) !== "concluido").length;
+  el("contaFaltam").textContent = faltam ? `${faltam} ${faltam === 1 ? "pendente" : "pendentes"}` : "";
+
+  // Com o filtro ligado, "0 de N com a meta batida" seria verdade e inútil:
+  // os concluídos foram justamente escondidos. Aí a frase muda de assunto.
   const concluidos = nomes.filter((nome) => dados.situacaoDe(nome) === "concluido").length;
-  el("progresso").innerHTML = nomes.length
-    ? `<b>${concluidos}</b> de ${nomes.length} com a meta batida ${semDia ? "na base" : "neste turno"}`
-    : "";
+  el("progresso").innerHTML = !nomes.length
+    ? ""
+    : visao.soFaltam
+      ? `<b>${nomes.length}</b> ainda ${nomes.length === 1 ? "falta" : "faltam"} visitar ${semDia ? "na base" : "aqui"} · os concluídos estão escondidos`
+      : `<b>${concluidos}</b> de ${nomes.length} com a meta batida ${semDia ? "na base" : "neste turno"}`;
 
   if (!filtrada.length) {
+    // A pessoa precisa saber se a lista está vazia porque não há ninguém ou
+    // porque ela mesma escondeu todo mundo — são coisas MUITO diferentes.
     pintar(
-      vazio(
-        "Nenhum médico aqui",
-        semDia ? "Nenhum médico com esse termo de busca." : "Tente outro dia, turno ou termo de busca.",
-      ),
+      visao.soFaltam
+        ? vazio(
+            "Tudo visitado por aqui",
+            "Nenhum médico pendente neste recorte. Desmarque “Só quem falta visitar” para ver os concluídos.",
+          )
+        : vazio(
+            "Nenhum médico aqui",
+            semDia ? "Nenhum médico com esse termo de busca." : "Tente outro dia, turno ou termo de busca.",
+          ),
     );
     return;
   }

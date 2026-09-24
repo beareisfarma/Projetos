@@ -266,6 +266,38 @@ caixa). Duas regras que vêm junto:
 - A contagem de "atualizados" e "acrescentados" segue a mesma chave, senão a
   mensagem no fim da importação mentiria.
 
+## "Só quem falta visitar"
+
+Caixa de seleção **acima do campo de busca** (pedido dela em 24/09/2026), na aba
+Disponíveis. Marcada, esconde quem já bateu a meta de visitas; combina com dia,
+turno e busca, e continua valendo ao trocar de dia.
+
+A decisão que importa: **"falta visitar" é quem NÃO bateu a meta, não quem tem
+zero visitas.** Quem está `1/2` ainda deve uma visita e **continua aparecendo**.
+Pela leitura literal ("não foram visitados") ele sumiria — e ela descobriria no
+corredor do consultório que pulou alguém que ainda precisava ver. Esconder quem
+já está `1/1` ou `2/2` resolve o problema dela sem criar esse outro.
+
+Três cuidados para o filtro não virar uma tela mentirosa:
+
+- **Contador ao lado da caixa** ("3 pendentes") calculado no recorte atual, para
+  ela decidir se vale marcar **antes** de marcar.
+- **A frase de progresso muda de assunto.** Com o filtro ligado, "0 de N com a
+  meta batida" seria verdade e inútil, porque os concluídos foram escondidos de
+  propósito. Vira "N ainda faltam visitar · os concluídos estão escondidos".
+- **Lista vazia diz de quem é a culpa.** Com o filtro ligado a mensagem é "Tudo
+  visitado por aqui" e ensina a desmarcar — em vez de "Nenhum médico aqui", que
+  faria parecer que a base sumiu.
+
+A seleção some ao ligar/desligar o filtro (`visao.selecionados.clear()`): médico
+que saiu da tela não pode continuar selecionado para ir ao roteiro. E o estado
+**não é guardado**: recarregar volta com a lista inteira, para ninguém abrir o
+app semanas depois achando que perdeu médicos.
+
+`.filtro-falta` é `display:flex`, então leva `.filtro-falta[hidden]{display:none}`
+— sem isso a caixa apareceria nas abas Roteiro e Ciclo. É a mesma armadilha já
+paga antes neste projeto.
+
 ## Arquivos
 
 | Arquivo | Papel |

@@ -692,7 +692,19 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   com o resto da base. A operação foi puramente aditiva e tem trava
   (`jsonb_array_length(medicos) = 314`), então não se aplica duas vezes; desfazer
   é remover as linhas com `incompleto` e os médicos correspondentes.
-- Testes: 219 asserções no Chromium com Supabase simulado (navegação, base,
+- **Caixa "Só quem falta visitar"**, acima do campo de busca (24/09/2026, pedido
+  dela). **"Falta visitar" é quem NÃO bateu a meta, não quem tem zero visitas**:
+  o médico em `1/2` ainda deve uma visita e CONTINUA aparecendo. Pela leitura
+  literal do pedido ele sumiria, e ela descobriria no corredor que pulou alguém.
+  Combina com dia, turno e busca; sobrevive à troca de dia; **não é guardada**
+  (recarregar volta com a lista inteira, para ninguém achar que perdeu médicos).
+  Três cuidados para não virar tela mentirosa: contador "N pendentes" ao lado da
+  caixa (decidir antes de marcar), a frase de progresso troca de assunto (com o
+  filtro ligado, "0 de N com a meta batida" seria verdade e inútil) e a lista
+  vazia diz "Tudo visitado por aqui" + como desmarcar, em vez de "Nenhum médico
+  aqui", que faria parecer base sumida. Ligar/desligar limpa `visao.selecionados`:
+  médico fora da tela não pode seguir selecionado para o roteiro.
+- Testes: 243 asserções no Chromium com Supabase simulado (navegação, base,
   especialidade, "Todos", edição de horário, médicos incompletos, limpar busca,
   convites, offline) + RLS verificado
   por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
