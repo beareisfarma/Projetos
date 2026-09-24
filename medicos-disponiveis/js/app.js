@@ -52,6 +52,7 @@ const visao = {
   nomeNovoCiclo: "",
   pilha: [],
   editandoId: null,
+  voltarDaEdicao: "disponiveis",
   turnoEscolhidoNaMao: false,
   arquivoLido: null,
   mapa: {},
@@ -275,9 +276,12 @@ el("baixarCopia").addEventListener("click", () => baixarCopia());
 
 /* ------------------------------------------------------ editar horário */
 
-function abrirEdicao(id, nomeSugerido) {
+function abrirEdicao(id, nomeSugerido, voltarPara = "disponiveis") {
   const item = id ? dados.horarioPorId(id) : null;
   visao.editandoId = item ? id : null;
+  // Quem corrigiu um endereço olhando o roteiro quer voltar para o roteiro.
+  // Jogá-la em Disponíveis faria ela refazer o caminho para conferir.
+  visao.voltarDaEdicao = voltarPara === "roteiro" ? "roteiro" : "disponiveis";
 
   const medico = item ? dados.medicoDe(item.nome) : nomeSugerido ? dados.medicoDe(nomeSugerido) : null;
   el("tituloEdicao").textContent = item ? "Editar horário" : "Novo horário";
@@ -357,7 +361,8 @@ el("formHorario").addEventListener("submit", async (evento) => {
 
   // Volta para o app mostrando o DIA do horário mexido, com os dois turnos:
   // quem acabou de alterar quer ver o resultado, não a tela de onde veio.
-  visao.aba = "disponiveis";
+  // Horário novo nunca cai no roteiro: quem acrescenta precisa ver a lista.
+  visao.aba = editando ? visao.voltarDaEdicao : "disponiveis";
   visao.dia = campos.dia;
   visao.turno = TODOS;
   definirBusca("");
@@ -371,7 +376,9 @@ el("excluirHorario").addEventListener("click", async () => {
   await dados.removerHorario(visao.editandoId);
   visao.editandoId = null;
   dizer("mensagem", "Horário excluído.", "ok");
-  visao.aba = "disponiveis";
+  visao.aba = visao.voltarDaEdicao === "roteiro" && dados.roteiroDoDia(visao.dia).some((s) => s.itens.length)
+    ? "roteiro"
+    : "disponiveis";
   irParaInicio();
 });
 
@@ -828,7 +835,7 @@ el("lista").addEventListener("click", async (evento) => {
       desenhar();
       break;
     case "editar":
-      abrirEdicao(botao.dataset.id);
+      abrirEdicao(botao.dataset.id, "", visao.aba);
       break;
     case "acrescentar":
       abrirEdicao(null, nome);
@@ -1379,6 +1386,11 @@ function desenharRoteiro() {
                     .filter(Boolean)
                     .join(" · ") || "Endereço não encontrado",
                 )}</p>
+                ${
+                  info?.id
+                    ? `<div class="linha-meta"><button type="button" class="editar-horario" data-acao="editar" data-id="${esc(info.id)}">✎ Editar horário e endereço</button></div>`
+                    : ""
+                }
               </div>
             </div>
             <div class="doctor-actions">${botoesDeVisita(item.nome)}</div>

@@ -275,6 +275,8 @@ button.brand-mark:hover{background:rgba(255,255,255,.2)}
 .route-card.situacao-nao_visitado{border-left-color:#d26a57}
 .route-card.situacao-pendente{border-left-color:#c3d3d8}
 .route-card .doctor-actions{margin-top:12px}
+.route-card .linha-meta{margin-top:6px}
+.route-card .editar-horario{margin-left:-8px}
 
 /* Roteiro do dia: manhã e tarde na mesma tela, em seções. */
 .turno-secao{margin-top:22px}
