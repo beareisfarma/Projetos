@@ -327,6 +327,42 @@ laranja de "faltam dados", que é a que pede ação. Esta é informação.
 `dados.roteirosDe(nome)` devolve os pares dia/turno ordenados como a semana
 anda, e é a única fonte — a tela não recalcula nada.
 
+## Editar o horário direto do roteiro
+
+Pedido dela em 24/09/2026: *"Adicionei um endereço errado em um novo horário de
+médico, preciso ter botão de edição para poder alterar"*. O botão de edição já
+existia nas duas visões de Disponíveis (por dia e por médico) — **faltava
+justamente no Roteiro**, que é onde o endereço é lido na hora de sair. Agora o
+cartão do roteiro tem "✎ Editar horário e endereço", com o `id` da
+disponibilidade daquele dia e turno.
+
+**Editar a partir do roteiro devolve ao roteiro.** Salvar sempre levava para
+Disponíveis no dia do horário mexido; quem corrigiu um endereço olhando a lista
+de visitas do dia teria de refazer o caminho só para conferir. `abrirEdicao`
+recebe a aba de origem e guarda em `visao.voltarDaEdicao`. Horário **novo** (não
+edição) continua sempre caindo em Disponíveis: ele ainda não está escalado, e o
+roteiro não o mostraria.
+
+### O defeito que isso destapou: escala órfã
+
+A escala do ciclo se apoia em **nome + dia + turno**, não no `id` da
+disponibilidade. Mudar o dia de um horário já escalado deixava a linha do
+roteiro apontando para um atendimento que não existe mais naquele dia — e como
+`disponibilidade()` cai para "qualquer linha desse médico" quando não acha o
+par exato, o cartão passava a mostrar **o horário e o endereço de outro dia**.
+Um roteiro que manda ao endereço errado é pior que um roteiro vazio.
+
+`reapontarRoteiro(nome, antes, agora)` em `js/dados.js` resolve os dois lados:
+
+- **Só mexe se a combinação antiga morreu.** Médico com outro atendimento no
+  mesmo dia e turno mantém a escala — a linha do roteiro continua válida, e
+  tirá-la seria desfazer o que ela montou.
+- **Muda de dia ⇒ a escala vai junto**, sem duplicar quem já estava escalado no
+  destino e sem criar escala para horário sem dia (roteiro é sempre de um dia).
+- **Excluir horário** passou a usar a mesma regra. Antes a escala só saía quando
+  o médico sumia da base inteira: quem atendia terça e quinta e perdia a terça
+  continuava no roteiro de terça, mostrando o endereço da quinta.
+
 ## Arquivos
 
 | Arquivo | Papel |
@@ -441,7 +477,11 @@ asserções; `teste-navegacao.mjs` mais 57 (uma tela por vez, todo caminho com
 volta); `teste-editar.mjs` mais 22 (alterar dia/horário/sala, turno seguindo o
 horário, acrescentar horário, acrescentar médico, excluir, e tudo sobrevivendo ao
 recarregamento); `teste-todos.mjs` mais 21, `teste-arquivo.mjs` 18,
-`teste-convites.mjs` 13 e `teste-especialidade.mjs` 8. São no Chromium com um Supabase simulado: cadastro por convite, importação
+`teste-convites.mjs` 13 e `teste-especialidade.mjs` 8; `teste-so-faltam.mjs`
+mais 24, `teste-novidades.mjs` 20, `teste-editar-roteiro.mjs` 18 (corrigir
+endereço pelo roteiro, escala acompanhando a mudança de dia),
+`teste-ja-no-roteiro.mjs` 15 e `teste-completar-por-arquivo.mjs` 9 — **276 ao
+todo**. São no Chromium com um Supabase simulado: cadastro por convite, importação
 do Word real (755 disponibilidades, 314 médicos), planilha longa com cabeçalhos
 estranhos, planilha larga, mesclagem, contador de visitas com meta, roteiro do
 dia com os dois turnos, conclusão de ciclo, histórico, funcionamento offline com

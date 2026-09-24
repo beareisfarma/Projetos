@@ -715,13 +715,25 @@ senha, sem perder dados em atualização do site. Isso inverteu a decisão da v1
   ou mais viram contagem** ("Em 2 roteiros"), porque a lista não cabe na ficha no
   iPhone — o texto inteiro fica no `title`. Contorno teal, não preenchida:
   preenchida competiria com a laranja de "faltam dados", que é a que pede ação.
+- **O cartão do Roteiro tem botão de edição** (24/09/2026, pedido dela: endereço
+  errado num horário novo). Era a única das três telas sem ele. Editar a partir
+  do roteiro **volta para o roteiro** (`visao.voltarDaEdicao`); horário novo
+  continua caindo em Disponíveis, porque ainda não está escalado.
+  Isso destapou uma **escala órfã**: a linha do roteiro se apoia em nome + dia +
+  turno, então mudar o dia de um horário escalado (ou excluí-lo) deixava a
+  escala apontando para o vazio — e `disponibilidade()` caía para "qualquer
+  linha desse médico", fazendo o cartão mostrar **o endereço de outro dia**.
+  `reapontarRoteiro()` em `dados.js` move a escala junto, **só quando a
+  combinação antiga morreu** (médico com outro atendimento no mesmo dia/turno
+  mantém a escala), sem duplicar no destino e sem criar escala para horário sem
+  dia. Vale também para excluir: antes a escala só saía se o médico sumisse da
+  base inteira.
 - **Adicionar ao roteiro TROCA para a aba Roteiro** (`visao.aba = "roteiro"` no
   handler de `#adicionarRoteiro`), e lá os botões de turno ficam escondidos.
   Teste que adiciona e continua navegando por dia/turno precisa voltar para
   Disponíveis antes — senão trava esperando um botão invisível. Já custou uma
   depuração.
-- Testes: 258 asserções no Chromium com Supabase simulado (navegação, base,
-  especialidade, "Todos", edição de horário, médicos incompletos, limpar busca,
-  convites, offline) + RLS verificado
-  por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
+- Testes: 276 asserções no Chromium com Supabase simulado (navegação, base,
+  especialidade, "Todos", edição de horário, edição pelo roteiro, médicos
+  incompletos, limpar busca, convites, offline) + RLS verificado por SQL. **A ida real ao Supabase não pôde ser testada** — o ambiente da sessão
   não tem saída para a internet.

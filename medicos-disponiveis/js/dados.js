@@ -288,6 +288,7 @@ export async function editarHorario(id, campos) {
   await aplicar(() => {
     const item = estado.base.conteudo.agenda.find((h) => h.id === id);
     if (!item) return;
+    const antes = { dia: item.dia, turno: item.turno };
     Object.assign(item, {
       dia: campos.dia,
       turno: campos.turno || turnoPelaHora(campos.inicio) || item.turno,
@@ -304,7 +305,38 @@ export async function editarHorario(id, campos) {
     ordenarAgenda(estado.base.conteudo.agenda);
     estado.base.atualizado_em = new Date().toISOString();
     marcarSujo(estado.base);
+    // Mudar o dia/turno de um horário que já estava escalado deixava a linha do
+    // roteiro apontando para um atendimento que não existe mais naquele dia — e
+    // o cartão passava a mostrar, por aproximação, o horário e o endereço de
+    // OUTRO dia do mesmo médico. A escala acompanha o horário.
+    if (antes.dia !== item.dia || antes.turno !== item.turno) reapontarRoteiro(item.nome, antes, item);
   });
+}
+
+// A escala do ciclo se apoia em nome + dia + turno. Quando essa combinação
+// deixa de existir na agenda, a linha do roteiro tem de ir junto.
+function reapontarRoteiro(nome, antes, agora) {
+  if (!estado.ciclo) return;
+  const agenda = estado.base.conteudo.agenda;
+  // Outro atendimento do mesmo médico no mesmo dia/turno sustenta a escala.
+  if (agenda.some((h) => h.nome === nome && h.dia === antes.dia && h.turno === antes.turno)) return;
+  const escalado = estado.ciclo.roteiro.some(
+    (i) => i.nome === nome && i.dia === antes.dia && i.turno === antes.turno,
+  );
+  if (!escalado) return;
+
+  estado.ciclo.roteiro = estado.ciclo.roteiro.filter(
+    (i) => !(i.nome === nome && i.dia === antes.dia && i.turno === antes.turno),
+  );
+  // Sem dia não há roteiro possível (roteiro é sempre de um dia); e não duplica
+  // quem já estava escalado no destino.
+  const destinoValido = Boolean(agora?.dia && agora?.turno);
+  const jaNoDestino = estado.ciclo.roteiro.some(
+    (i) => i.nome === nome && i.dia === agora?.dia && i.turno === agora?.turno,
+  );
+  if (destinoValido && !jaNoDestino) estado.ciclo.roteiro.push({ nome, dia: agora.dia, turno: agora.turno });
+  estado.ciclo.atualizado_em = new Date().toISOString();
+  marcarSujo(estado.ciclo);
 }
 
 export async function acrescentarHorario(campos) {
@@ -347,16 +379,10 @@ export async function removerHorario(id) {
     estado.base.atualizado_em = new Date().toISOString();
     marcarSujo(estado.base);
     // O roteiro do ciclo não pode apontar para um horário que não existe mais.
-    if (estado.ciclo) {
-      const antes = estado.ciclo.roteiro.length;
-      estado.ciclo.roteiro = estado.ciclo.roteiro.filter(
-        (i) => !(i.nome === item.nome && i.dia === item.dia && i.turno === item.turno && !aindaAtende),
-      );
-      if (estado.ciclo.roteiro.length !== antes) {
-        estado.ciclo.atualizado_em = new Date().toISOString();
-        marcarSujo(estado.ciclo);
-      }
-    }
+    // O que decide é sobrar atendimento NAQUELE dia e turno, não o médico
+    // continuar na base: quem atende terça e quinta e perde a terça tinha de
+    // sair do roteiro de terça, e ficava lá mostrando o endereço da quinta.
+    reapontarRoteiro(item.nome, item, null);
   });
 }
 
